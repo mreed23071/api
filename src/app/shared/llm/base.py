@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 
 class LLMTask(StrEnum):
@@ -31,6 +31,12 @@ class LLMRequest:
     task: LLMTask
     max_tokens: int | None = None
     metadata: dict[str, str] = field(default_factory=dict)
+    #: JSON schema the reply must conform to, when the caller needs structured
+    #: output rather than prose. A *request*, not a guarantee: adapters whose
+    #: provider cannot constrain decoding ignore it, so callers still have to
+    #: parse defensively. Ollama enforces it during sampling, which is what
+    #: makes a small local model usable for classification at all.
+    response_schema: dict[str, Any] | None = None
 
 
 @dataclass(slots=True, frozen=True)

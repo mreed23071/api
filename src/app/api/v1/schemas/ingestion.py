@@ -18,6 +18,7 @@ from app.domains.ingestion.dto import (
     FilterDecision as FilterDecisionDto,
 )
 from app.domains.ingestion.models import IngestionRun
+from app.workflows.dto import RunSummary
 
 
 class FilterDecisionRead(BaseModel):
@@ -95,6 +96,36 @@ class IngestionRunResponse(BaseModel):
     decisions: list[FilterDecisionRead] = Field(default_factory=list)
 
     @classmethod
+    def from_summary(cls, summary: RunSummary) -> IngestionRunResponse:
+        """The same report, built from a completed workflow's result.
+
+        The queued path and the synchronous one have to describe a run
+        identically, or the console would need two renderers for one concept.
+        """
+        return cls(
+            run_id=summary.run_id,
+            started_at=summary.started_at,
+            finished_at=summary.finished_at,
+            duration_ms=summary.duration_ms,
+            dry_run=summary.dry_run,
+            platform=summary.platform,
+            fetched=summary.fetched,
+            already_ingested=summary.already_ingested,
+            evaluated=summary.evaluated,
+            retained=summary.retained,
+            discarded=summary.discarded,
+            filter_errors=summary.filter_errors,
+            embedded=summary.embedded,
+            persisted=summary.persisted,
+            users_provisioned=summary.users_provisioned,
+            relations_provisioned=summary.relations_provisioned,
+            filter_provider=summary.filter_provider,
+            filter_prompt_version=summary.filter_prompt_version,
+            embedding_model=summary.embedding_model,
+            decisions=[FilterDecisionRead.from_dto(d) for d in summary.decisions],
+        )
+
+    @classmethod
     def from_result(cls, result: IngestionRunResult) -> IngestionRunResponse:
         return cls(
             run_id=result.run_id,
@@ -118,6 +149,42 @@ class IngestionRunResponse(BaseModel):
             embedding_model=result.embedding_model,
             decisions=[FilterDecisionRead.from_dto(d) for d in result.decisions],
         )
+
+
+class QueuedRunResponse(BaseModel):
+    """What a trigger returns once ingestion is durably orchestrated.
+
+    The run has been *accepted*, not completed - with a local model a real run
+    takes minutes, so blocking the request until it finished would time out in
+    the browser long before there was anything to report. Poll
+    `GET /ingestion/runs/{platform}/{run_id}` for progress.
+    """
+
+    run_id: str = Field(description="Poll for this run's status with it.")
+    platform: Platform
+    status: str = Field(default="queued", description="Always 'queued' here.")
+    workflow_id: str = Field(description="The durable workflow, visible in the Temporal UI.")
+    dry_run: bool = False
+
+
+class RunProgressResponse(BaseModel):
+    """A run in flight, or its final counters once it has finished.
+
+    `stage` is the pipeline step currently executing. Before this existed the
+    console animated fake progress, because the API had nothing to report until
+    the whole run completed.
+    """
+
+    run_id: str
+    status: str = Field(description="queued, running, completed, failed or cancelled.")
+    stage: str = Field(default="starting", description="Pipeline step in flight.")
+    fetched: int = 0
+    evaluated: int = 0
+    filtered: int = 0
+    embedded: int = 0
+    persisted: int = 0
+    #: Present only once the run has finished successfully.
+    result: IngestionRunResponse | None = None
 
 
 class IngestionConfigResponse(BaseModel):

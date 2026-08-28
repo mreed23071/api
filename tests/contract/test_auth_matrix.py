@@ -51,6 +51,8 @@ ADMIN = {"X-API-Key": ADMIN_KEY}
 DEV_USER = {"X-Dev-User": "dev-user"}
 
 OK = 200
+#: The ingestion trigger queues a run rather than completing one.
+ACCEPTED = 202
 UNAUTHENTICATED = 401
 FORBIDDEN = 403
 
@@ -61,14 +63,18 @@ AUTH_MATRIX: list[tuple[str, str, str, dict[str, str], int]] = [
     ("GET", "/api/versions", "anonymous", ANONYMOUS, OK),
     # -- ingestion: machine-to-machine only, one pipeline per platform ------
     ("POST", "/api/v1/ingestion/runs/slack", "anonymous", ANONYMOUS, UNAUTHENTICATED),
-    ("POST", "/api/v1/ingestion/runs/slack", "scheduler", SCHEDULER, OK),
+    ("POST", "/api/v1/ingestion/runs/slack", "scheduler", SCHEDULER, ACCEPTED),
     ("POST", "/api/v1/ingestion/runs/slack", "reader", READER, FORBIDDEN),
-    ("POST", "/api/v1/ingestion/runs/slack", "admin", ADMIN, OK),
+    ("POST", "/api/v1/ingestion/runs/slack", "admin", ADMIN, ACCEPTED),
     ("POST", "/api/v1/ingestion/runs/slack", "dev-user", DEV_USER, FORBIDDEN),
     ("GET", "/api/v1/ingestion/config/slack", "anonymous", ANONYMOUS, UNAUTHENTICATED),
     ("GET", "/api/v1/ingestion/config/slack", "scheduler", SCHEDULER, OK),
     ("GET", "/api/v1/ingestion/config/slack", "reader", READER, FORBIDDEN),
     ("GET", "/api/v1/ingestion/config/slack", "admin", ADMIN, OK),
+    # Polling a queued run. The id belongs to nothing, which is fine - these
+    # rows assert who gets *past* authentication, not that the run exists.
+    ("GET", "/api/v1/ingestion/runs/slack/nope", "anonymous", ANONYMOUS, UNAUTHENTICATED),
+    ("GET", "/api/v1/ingestion/runs/slack/nope", "reader", READER, FORBIDDEN),
     # -- insights: personal data. Never anonymous, never the scheduler -----
     ("GET", "/api/v1/insights/users", "anonymous", ANONYMOUS, UNAUTHENTICATED),
     ("GET", "/api/v1/insights/users", "scheduler", SCHEDULER, FORBIDDEN),

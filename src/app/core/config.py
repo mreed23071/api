@@ -90,22 +90,59 @@ class Settings(BaseSettings):
         default_factory=lambda: [Scope.INSIGHTS_READ, Scope.MESSAGES_READ]
     )
 
-    # -- embeddings (strictly local) ---------------------------------------
+    # -- embeddings --------------------------------------------------------
+    #: Which adapter generates vectors. `ollama` is the default because it is
+    #: the shape production ships in - an inference service reached over the
+    #: network, with the timeouts and outages that implies. `local` keeps the
+    #: in-process sentence-transformers path, for offline work and CI.
+    embedding_provider: Literal["local", "ollama"] = "ollama"
+    #: The contract both adapters must satisfy, and the width of the
+    #: `messages.embedding` column. Changing it needs a migration: pgvector
+    #: fixes the dimension on the column so the HNSW index can be built.
+    #: 768 = nomic-embed-text; 384 = all-MiniLM-L6-v2.
+    embedding_dim: int = 768
+    embedding_warmup_on_startup: bool = True
+
+    # Local adapter only. Ignored when EMBEDDING_PROVIDER=ollama.
     embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
-    embedding_dim: int = 384
     embedding_batch_size: int = 32
     embedding_executor: Literal["thread", "process"] = "thread"
     embedding_workers: int = 1
     embedding_torch_threads: int = 2
-    embedding_warmup_on_startup: bool = True
 
     # -- llm ---------------------------------------------------------------
-    llm_provider: Literal["stub", "anthropic"] = "stub"
+    llm_provider: Literal["stub", "anthropic", "ollama"] = "stub"
     anthropic_api_key: SecretStr | None = None
     llm_model: str = "claude-sonnet-4-5"
     llm_max_tokens: int = 1024
     llm_timeout_seconds: float = 30.0
     llm_max_concurrency: int = 4
+
+    # -- ollama ------------------------------------------------------------
+    #: Serves both the chat model (filtering, summarizing) and the embedding
+    #: model. One service, two models, so there is a single place where
+    #: inference happens locally - the same as pointing at one hosted provider.
+    ollama_base_url: str = "http://ollama:11434"
+    ollama_chat_model: str = "llama3.2:3b"
+    ollama_embed_model: str = "nomic-embed-text"
+    #: Generous by design. A 3B model on CPU answering a batch of filter
+    #: decisions is slow, and a timeout here means the batch fails closed -
+    #: messages get dropped - so it must not fire during normal operation.
+    ollama_timeout_seconds: float = 300.0
+
+    # -- temporal ----------------------------------------------------------
+    #: Durable orchestration for ingestion. The API starts a workflow and
+    #: returns; the worker runs it. `enabled=false` keeps the synchronous
+    #: in-request pipeline, which is what the test suite and a bare
+    #: `uvicorn` run use - neither has a Temporal to talk to.
+    temporal_enabled: bool = True
+    temporal_address: str = "temporal:7233"
+    temporal_namespace: str = "default"
+    #: One inference at a time by default, matching Ollama's own
+    #: `OLLAMA_NUM_PARALLEL=1`. Raising this past what the inference service
+    #: can actually run in parallel just moves the queue somewhere it cannot
+    #: be observed or timed out.
+    temporal_max_concurrent_activities: int = 1
 
     # -- agent prompts -----------------------------------------------------
     ingestion_filter_system_prompt: str = DEFAULT_FILTER_PROMPT

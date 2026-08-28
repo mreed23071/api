@@ -128,7 +128,10 @@ SOURCE_COVERAGE: dict[str, list[str] | Untested] = {
     "app/domains/organization/service.py": [f"{UNIT}/domains/organization/test_service.py"],
     "app/domains/organization/tree.py": [f"{UNIT}/domains/organization/test_tree.py"],
     # -- shared ------------------------------------------------------------
-    "app/shared/embeddings/service.py": [f"{UNIT}/shared/embeddings/test_service.py"],
+    "app/shared/embeddings/base.py": Untested("Protocol definition; no behaviour."),
+    "app/shared/embeddings/local.py": [f"{UNIT}/shared/embeddings/test_local.py"],
+    "app/shared/embeddings/ollama.py": [f"{UNIT}/shared/embeddings/test_ollama.py"],
+    "app/shared/embeddings/factory.py": [f"{UNIT}/shared/embeddings/test_factory.py"],
     "app/shared/embeddings/worker.py": Untested(
         "Loads the real sentence-transformer. Covered only by running the "
         "container; see docs/TESTING.md 'What is deliberately untested'."
@@ -136,10 +139,25 @@ SOURCE_COVERAGE: dict[str, list[str] | Untested] = {
     "app/shared/llm/base.py": Untested("Protocol and dataclass definitions; no behaviour."),
     "app/shared/llm/stub.py": [f"{UNIT}/shared/llm/test_stub.py"],
     "app/shared/llm/factory.py": [f"{UNIT}/shared/llm/test_factory.py"],
+    "app/shared/llm/ollama_client.py": [f"{UNIT}/shared/llm/test_ollama_client.py"],
     "app/shared/llm/anthropic_client.py": Untested(
         "Thin adapter over a paid network API. Exercising it would test the "
         "vendor SDK, not us; the port contract is covered by the stub tests."
     ),
+    # -- workflows ---------------------------------------------------------
+    "app/workflows/config.py": [f"{UNIT}/workflows/test_config.py"],
+    "app/workflows/dto.py": Untested("Pydantic payload definitions; no behaviour."),
+    "app/workflows/client.py": Untested(
+        "Opens a gRPC connection to Temporal. The workflow tests use "
+        "WorkflowEnvironment, which supplies its own client."
+    ),
+    "app/workflows/activities.py": [f"{UNIT}/workflows/test_activities.py"],
+    "app/workflows/ingestion.py": [f"{UNIT}/workflows/test_ingestion_workflow.py"],
+    "app/workflows/runner.py": Untested(
+        "Process entrypoint: builds a Worker and blocks. Covered by running "
+        "the container; the pieces it wires are tested individually."
+    ),
+    "app/workflows/gateway.py": [f"{UNIT}/workflows/test_gateway.py"],
     # -- entrypoints -------------------------------------------------------
     "app/main.py": [f"{API}/test_system_routes.py"],
     "app/seed/loader.py": [
@@ -180,9 +198,17 @@ def test_named_test_modules_exist(module: str, targets: list[str]) -> None:
 
 
 def test_untested_modules_stay_a_short_list() -> None:
-    """A ratchet: if this grows, someone is opting out of testing by default."""
+    """A ratchet: if this grows, someone is opting out of testing by default.
+
+    Raised from 6 to 9 when the Temporal worker landed. The three additions are
+    the same category as the entries already here - a process entrypoint that
+    blocks forever (`workflows/runner.py`), a module that opens a gRPC
+    connection (`workflows/client.py`), and payload definitions with no
+    behaviour (`workflows/dto.py`). Raise this only for that category, and say
+    why here.
+    """
     untested = {m for m, t in SOURCE_COVERAGE.items() if isinstance(t, Untested)}
-    assert len(untested) <= 6, f"Too many untested modules: {sorted(untested)}"
+    assert len(untested) <= 9, f"Too many untested modules: {sorted(untested)}"
 
 
 # ---------------------------------------------------------------------------
@@ -220,8 +246,14 @@ def test_every_models_module_is_registered_for_migrations() -> None:
 
 
 def test_the_embedding_dimension_matches_the_migration() -> None:
-    """Two sources of truth exist; this keeps them honest."""
+    """Two sources of truth exist; this keeps them honest.
+
+    pgvector fixes the width on the column so the HNSW index can be built, so
+    EMBEDDING_DIM and the migration chain must agree exactly - a mismatch is
+    not caught until an INSERT fails at runtime. Checked against the migration
+    that last set the width, which moves whenever the embedding model changes.
+    """
     from app.core.config import Settings
 
-    migration = (REPO_ROOT / "migrations/versions/0001_initial_schema.py").read_text()
-    assert f"EMBEDDING_DIM = {Settings().embedding_dim}" in migration
+    migration = (REPO_ROOT / "migrations/versions/0005_embedding_dim_768.py").read_text()
+    assert f"NEW_DIM = {Settings().embedding_dim}" in migration

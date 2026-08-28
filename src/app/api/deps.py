@@ -7,32 +7,31 @@ declarative and every dependency has exactly one override point in tests
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import Annotated
 
 from fastapi import Depends, Query
 
 from app.core.config import Settings, get_settings
 from app.core.db.engine import SessionDep
-from app.core.errors import NotFoundError
 from app.core.pagination import MAX_LIMIT, PageParams
 from app.core.security.dependencies import CurrentPrincipal
 from app.domains.identity.directory import DirectoryService
 from app.domains.identity.models import Platform
 from app.domains.ingestion.dto import RawMessage
 from app.domains.ingestion.service import IngestionService
-from app.domains.ingestion.sources import MessageSource, MockChatSource, MockGitHubCommitSource
+from app.domains.ingestion.sources import MessageSource, source_for
 from app.domains.insights.service import UserInsightsService
 from app.domains.messaging.service import MessageService
 from app.domains.organization.service import OrganizationService
 from app.domains.uow import UnitOfWork
-from app.shared.embeddings.service import EmbeddingService, get_embedding_service
+from app.shared.embeddings.base import EmbeddingClient
+from app.shared.embeddings.factory import get_embedding_client
 from app.shared.llm.base import LLMClient
 from app.shared.llm.factory import get_llm_client
 
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 LLMDep = Annotated[LLMClient, Depends(get_llm_client)]
-EmbeddingDep = Annotated[EmbeddingService, Depends(get_embedding_service)]
+EmbeddingDep = Annotated[EmbeddingClient, Depends(get_embedding_client)]
 
 
 def get_uow(session: SessionDep, principal: CurrentPrincipal) -> UnitOfWork:
@@ -94,17 +93,6 @@ def get_page_params(
 PageParamsDep = Annotated[PageParams, Depends(get_page_params)]
 
 
-#: One pipeline per platform, not one pipeline for all of them - each entry is
-#: swapped for a real connector independently, on its own schedule, without
-#: touching the others. `Callable[[], MessageSource]`, not an instance: a fresh
-#: connector per request, same as every other per-request dependency here.
-_MOCK_SOURCES: dict[Platform, Callable[[], MessageSource]] = {
-    Platform.GITHUB: MockGitHubCommitSource,
-    Platform.SLACK: lambda: MockChatSource(Platform.SLACK, name="slack-mock"),
-    Platform.TEAMS: lambda: MockChatSource(Platform.TEAMS, name="teams-mock"),
-}
-
-
 class _NoConnector:
     """Stands in for routes that build an `IngestionService` without ever
     calling `.run()` on it - `/connectors` and the unfiltered `/runs` list.
@@ -124,18 +112,12 @@ def get_message_source(platform: Platform | None = None) -> MessageSource:
     this dependency is used from declares (a path param for `/runs/{platform}`
     and `/config/{platform}`, the optional query param for `/runs`). Routes
     with no `platform` at all - `/connectors` - get `None`, which is fine
-    since those never call `.run()`. Swapping in a real Slack/GitHub/Teams
-    connector is a change to `_MOCK_SOURCES`, not to any route.
+    since those never call `.run()`. The registry itself lives in
+    `domains/ingestion/sources.py`; this is only its HTTP-facing wrapper.
     """
     if platform is None:
         return _NoConnector()
-    try:
-        return _MOCK_SOURCES[platform]()
-    except KeyError:
-        raise NotFoundError(
-            f"No connector configured for platform '{platform.value}'.",
-            details={"platform": platform.value},
-        ) from None
+    return source_for(platform)
 
 
 MessageSourceDep = Annotated[MessageSource, Depends(get_message_source)]

@@ -14,6 +14,10 @@ os.environ.setdefault("LOG_JSON", "false")
 os.environ.setdefault("LOG_LEVEL", "WARNING")
 os.environ.setdefault("LLM_PROVIDER", "stub")
 os.environ.setdefault("EMBEDDING_WARMUP_ON_STARTUP", "false")
+# No Temporal in the fast suite: the trigger route runs the pipeline inline
+# instead of queueing it. Workflow orchestration is covered separately, by
+# tests/unit/workflows/, which spins up an in-process Temporal of its own.
+os.environ.setdefault("TEMPORAL_ENABLED", "false")
 os.environ.setdefault("DEV_AUTH_ENABLED", "true")
 os.environ.setdefault(
     "DATABASE_URL", "postgresql+asyncpg://threadline:threadline@localhost:5432/threadline_test"
@@ -139,14 +143,14 @@ def embeddings():  # type: ignore[no-untyped-def]
 def app(seeded_uow, embeddings):  # type: ignore[no-untyped-def]
     from app.api.deps import get_uow
     from app.main import create_app
-    from app.shared.embeddings.service import get_embedding_service
+    from app.shared.embeddings.factory import get_embedding_client
     from app.shared.llm.factory import get_llm_client
     from app.shared.llm.stub import StubLLMClient
 
     instance = create_app(get_settings())
     instance.dependency_overrides[get_uow] = lambda: seeded_uow
     instance.dependency_overrides[get_llm_client] = StubLLMClient
-    instance.dependency_overrides[get_embedding_service] = lambda: embeddings
+    instance.dependency_overrides[get_embedding_client] = lambda: embeddings
     # get_message_source is left un-overridden: it's the real per-platform mock
     # registry, deterministic and side-effect-free, so route tests exercise it
     # the same way production does.

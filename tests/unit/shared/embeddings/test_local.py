@@ -15,7 +15,8 @@ import pytest
 
 from app.core.config import Settings
 from app.shared.embeddings import worker
-from app.shared.embeddings.service import EmbeddingService
+from app.shared.embeddings.base import EmbeddingError
+from app.shared.embeddings.local import LocalEmbeddingClient
 
 
 @pytest.fixture
@@ -32,9 +33,9 @@ def patched_worker(monkeypatch):  # type: ignore[no-untyped-def]
     return seen
 
 
-def build(**overrides) -> EmbeddingService:  # type: ignore[no-untyped-def]
-    settings = Settings(app_env="test", embedding_workers=2, **overrides)
-    return EmbeddingService(settings)
+def build(**overrides) -> LocalEmbeddingClient:  # type: ignore[no-untyped-def]
+    settings = Settings(app_env="test", embedding_workers=2, embedding_dim=384, **overrides)
+    return LocalEmbeddingClient(settings)
 
 
 async def test_embedding_runs_off_the_event_loop(patched_worker) -> None:
@@ -69,7 +70,7 @@ async def test_empty_input_short_circuits(patched_worker) -> None:
 
 
 async def test_embedding_before_start_is_a_programming_error(patched_worker) -> None:
-    with pytest.raises(RuntimeError, match="start"):
+    with pytest.raises(EmbeddingError, match="start"):
         await build().embed(["x"])
 
 
@@ -80,7 +81,7 @@ async def test_dimension_mismatch_fails_loudly(monkeypatch) -> None:
     service = build()
     service.start()
     try:
-        with pytest.raises(RuntimeError, match="EMBEDDING_DIM"):
+        with pytest.raises(EmbeddingError, match="EMBEDDING_DIM"):
             await service.embed(["x"])
     finally:
         service.shutdown()

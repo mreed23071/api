@@ -43,7 +43,7 @@ from app.domains.ingestion.sources import MessageSource
 from app.domains.messaging.dto import NewMessage
 from app.domains.messaging.service import MessageService
 from app.domains.uow import UnitOfWork
-from app.shared.embeddings.service import EmbeddingService
+from app.shared.embeddings.base import EmbeddingClient
 from app.shared.llm.base import LLMClient
 
 logger = logging.getLogger(__name__)
@@ -69,7 +69,7 @@ class IngestionService:
         principal: Principal,
         source: MessageSource,
         llm: LLMClient,
-        embeddings: EmbeddingService,
+        embeddings: EmbeddingClient,
         settings: Settings,
     ) -> None:
         self.uow = uow

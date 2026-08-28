@@ -13,6 +13,7 @@ import json
 import logging
 import re
 from collections.abc import Sequence
+from typing import Any
 
 from app.domains.ingestion.dto import FilterDecision, RawMessage
 from app.shared.llm.base import LLMClient, LLMError, LLMRequest, LLMTask
@@ -31,10 +32,73 @@ Reply with JSON only - no prose, no markdown fence - in exactly this shape:
 
 Rules:
 - Return exactly one decision per input message, using the same "id".
+- Include EVERY message, including the ones you reject. A message you are
+  dropping gets a decision with "keep": false - never omit it.
 - "keep" must be a boolean.
 - "category" must be one of: business, personal, automated, unclear.
 - Keep "reason" under 140 characters.
 """.strip()
+
+#: The same contract as `RESPONSE_CONTRACT`, in a form a provider can enforce
+#: during sampling. Passed on every classification request; adapters that
+#: cannot constrain decoding ignore it and the prose contract above still
+#: applies, so this is an upgrade rather than a dependency.
+#:
+#: This is what makes a small local model usable here. Asked politely, a 3B
+#: model returns prose or a fenced block often enough that whole batches fail
+#: closed - and a batch that fails closed silently *discards messages*. Given
+#: the schema, the reply is valid JSON by construction.
+def decision_schema(count: int) -> dict[str, Any]:
+    """The response schema for a batch of exactly `count` messages.
+
+    `minItems`/`maxItems` are the load-bearing part, and they are why this is a
+    function rather than a constant. Given only the object shape, a 3B model
+    returns valid JSON that omits every message it decided to *reject* - it
+    expresses "drop" by leaving the entry out. Those then land as missing
+    verdicts, which fail closed and are flagged `is_fallback`, so a run where
+    the model worked correctly reports a pile of filter errors and the
+    fail-closed signal stops meaning anything.
+
+    Pinning the array to the batch length forces a decision for every message,
+    rejections included.
+    """
+    return {
+        "type": "object",
+        "properties": {
+            "decisions": {
+                "type": "array",
+                "minItems": count,
+                "maxItems": count,
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "string"},
+                        "keep": {"type": "boolean"},
+                        "category": {
+                            "type": "string",
+                            "enum": ["business", "personal", "automated", "unclear"],
+                        },
+                        "reason": {"type": "string"},
+                    },
+                    "required": ["id", "keep", "category", "reason"],
+                },
+            }
+        },
+        "required": ["decisions"],
+    }
+
+#: Small local models lose track of which id belongs to which verdict well
+#: before they hit a context limit, and one bad batch costs every message in
+#: it. Hosted frontier models do not have that problem and paying per call
+#: makes large batches worth it, so the size is chosen per provider rather
+#: than being one constant.
+DEFAULT_BATCH_SIZE = 20
+LOCAL_BATCH_SIZE = 5
+
+
+def _batch_size_for(llm: LLMClient) -> int:
+    """Pick a batch size from the provider's known reliability at this task."""
+    return LOCAL_BATCH_SIZE if llm.provider == "ollama" else DEFAULT_BATCH_SIZE
 
 
 class MessageFilterAgent:
@@ -45,12 +109,14 @@ class MessageFilterAgent:
         llm: LLMClient,
         *,
         system_prompt: str,
-        batch_size: int = 20,
+        batch_size: int | None = None,
         fail_closed: bool = True,
     ) -> None:
         self._llm = llm
         self._system_prompt = system_prompt
-        self._batch_size = batch_size
+        #: Defaults to a smaller batch for a locally-hosted model - see
+        #: LOCAL_BATCH_SIZE. An explicit value always wins.
+        self._batch_size = batch_size if batch_size is not None else _batch_size_for(llm)
         #: When the model misbehaves, drop the batch rather than store messages
         #: the policy may have wanted excluded. Privacy beats recall here.
         self._fail_closed = fail_closed
@@ -103,6 +169,7 @@ class MessageFilterAgent:
             user=json.dumps(payload, ensure_ascii=False),
             task=LLMTask.CLASSIFY,
             metadata={"batch_size": str(len(batch))},
+            response_schema=decision_schema(len(batch)),
         )
 
         try:

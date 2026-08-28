@@ -13,6 +13,19 @@ logger = logging.getLogger(__name__)
 
 
 def build_llm_client(settings: Settings) -> LLMClient:
+    if settings.llm_provider == "ollama":
+        from app.shared.llm.ollama_client import OllamaLLMClient
+
+        logger.info(
+            "Using Ollama (%s) at %s.", settings.ollama_chat_model, settings.ollama_base_url
+        )
+        return OllamaLLMClient(
+            base_url=settings.ollama_base_url,
+            model=settings.ollama_chat_model,
+            max_tokens=settings.llm_max_tokens,
+            timeout_seconds=settings.ollama_timeout_seconds,
+        )
+
     if settings.llm_provider == "anthropic":
         api_key = (
             settings.anthropic_api_key.get_secret_value() if settings.anthropic_api_key else ""

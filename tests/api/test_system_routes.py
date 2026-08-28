@@ -20,7 +20,7 @@ async def test_readiness_reports_503_when_a_dependency_is_down(client) -> None:
 
 async def test_readiness_is_ok_once_the_pool_is_up(client, embeddings, monkeypatch) -> None:
     embeddings.start()
-    monkeypatch.setattr("app.api.system.get_embedding_service", lambda: embeddings, raising=True)
+    monkeypatch.setattr("app.api.system.get_embedding_client", lambda: embeddings, raising=True)
 
     response = await client.get("/ready")
     # The database is genuinely unavailable in this suite, so readiness stays

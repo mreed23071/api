@@ -16,7 +16,7 @@ from sqlalchemy import text
 from app import __version__
 from app.api.deps import SettingsDep
 from app.core.db.engine import get_sessionmaker
-from app.shared.embeddings.service import get_embedding_service
+from app.shared.embeddings.factory import get_embedding_client
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ async def get_readiness(response: Response) -> ReadinessResponse:
     # Check that the worker pool is up rather than encoding a string: a real
     # forward pass on every probe is a permanent background CPU cost and holds
     # an executor slot that ingestion wants.
-    embeddings_ok = get_embedding_service().is_ready
+    embeddings_ok = get_embedding_client().is_ready
 
     ready = database_ok and embeddings_ok
     if not ready:

@@ -162,3 +162,16 @@ def test_every_reading_repository_method_routes_through_scoped(path: Path) -> No
                 "reaching self.scoped(), directly or through a sibling method; "
                 "it would silently ignore tenant isolation."
             )
+
+
+@pytest.mark.parametrize("path", modules("workflows"), ids=rel)
+def test_workflows_never_import_the_api_layer(path: Path) -> None:
+    """The worker is an entrypoint of its own.
+
+    It runs in a container with no HTTP server in it, so reaching into
+    `app.api` for anything - even a dependency helper - would mean the worker
+    could not start without FastAPI's DI graph. The API's half of the boundary
+    lives in `app/api/workflow_gateway.py` and points this way, not back.
+    """
+    offenders = {name for name in imported_modules(path) if name.startswith("app.api")}
+    assert not offenders, f"{rel(path)} imports {sorted(offenders)}"

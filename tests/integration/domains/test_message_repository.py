@@ -7,12 +7,18 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from sqlalchemy import select, text
 
+from app.core.config import get_settings
 from app.domains.identity.models import Platform
 from app.domains.messaging.dto import NewMessage
 from app.domains.messaging.models import Message
 from tests.factories import make_relation, make_user
 
 pytestmark = pytest.mark.integration
+
+#: Derived, never hardcoded: the column's width follows EMBEDDING_DIM, and a
+#: literal here would fail the day the embedding model changes rather than the
+#: day something is actually wrong.
+DIM = get_settings().embedding_dim
 
 
 def new_message(user, relation, **overrides) -> NewMessage:  # type: ignore[no-untyped-def]
@@ -25,7 +31,7 @@ def new_message(user, relation, **overrides) -> NewMessage:  # type: ignore[no-u
         "source_metadata": {"source": "test"},
         "sender_user_id": user.id,
         "sender_relation_id": relation.id,
-        "embedding": [0.1] * 384,
+        "embedding": [0.1] * DIM,
         "embedding_model": "test-embedder",
         "filter_category": "business",
         "filter_reason": "matched business markers",
@@ -47,7 +53,7 @@ async def test_a_message_round_trips_with_its_vector(uow, sender) -> None:
     await uow.messages.bulk_upsert([new_message(user, relation)])
 
     stored = (await uow.session.execute(select(Message))).scalar_one()
-    assert len(stored.embedding) == 384
+    assert len(stored.embedding) == DIM
     assert pytest.approx(float(stored.embedding[0]), abs=1e-6) == 0.1
     assert stored.filter_prompt_version == "v1"
 
@@ -139,8 +145,8 @@ async def test_the_hnsw_index_answers_a_nearest_neighbour_query(uow, sender) -> 
     is finally written.
     """
     user, relation = sender
-    near = [0.1] * 384
-    far = [-0.9] + [0.0] * 383
+    near = [0.1] * DIM
+    far = [-0.9] + [0.0] * (DIM - 1)
     await uow.messages.bulk_upsert(
         [
             new_message(user, relation, external_message_id="near", embedding=near),

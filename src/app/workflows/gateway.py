@@ -1,0 +1,112 @@
+"""Starting runs and reading their state.
+
+The client-side half of the workflow boundary, used by the API. It deals only
+in `app.workflows.dto` types - mapping those onto the v1 wire contract is the
+route's job, and doing it here would make the worker's package depend on the
+HTTP layer (and, less abstractly, produce a circular import).
+"""
+
+from __future__ import annotations
+
+import logging
+from typing import Any
+
+from pydantic import BaseModel
+from temporalio.client import WorkflowExecutionStatus, WorkflowHandle
+from temporalio.service import RPCError
+
+from app.core.errors import NotFoundError
+from app.workflows import client
+from app.workflows.config import INGESTION_TASK_QUEUE, INGESTION_WORKFLOW, run_workflow_id
+from app.workflows.dto import IngestionInput, RunProgress, RunSummary
+
+logger = logging.getLogger(__name__)
+
+#: Temporal's execution statuses, in the vocabulary the console speaks.
+STATUS = {
+    WorkflowExecutionStatus.RUNNING: "running",
+    WorkflowExecutionStatus.COMPLETED: "completed",
+    WorkflowExecutionStatus.FAILED: "failed",
+    WorkflowExecutionStatus.CANCELED: "cancelled",
+    WorkflowExecutionStatus.TERMINATED: "failed",
+    WorkflowExecutionStatus.TIMED_OUT: "failed",
+    WorkflowExecutionStatus.CONTINUED_AS_NEW: "running",
+}
+
+
+class RunView(BaseModel):
+    """A run's current state: live counters, plus the report once it finishes."""
+
+    run_id: str
+    status: str
+    progress: RunProgress = RunProgress()
+    #: Populated only when `status == "completed"`.
+    summary: RunSummary | None = None
+
+
+async def start_ingestion_run(payload: IngestionInput) -> WorkflowHandle[Any, Any]:
+    """Hand the run to the worker and return immediately."""
+    temporal = await client.connect()
+    handle = await temporal.start_workflow(
+        INGESTION_WORKFLOW,
+        payload,
+        id=run_workflow_id(payload.run_id),
+        task_queue=INGESTION_TASK_QUEUE,
+    )
+    logger.info(
+        "queued ingestion run",
+        extra={
+            "run_id": payload.run_id,
+            "platform": payload.platform.value,
+            "workflow_id": handle.id,
+        },
+    )
+    return handle
+
+
+async def describe_ingestion_run(run_id: str) -> RunView:
+    """Current stage while running; the full report once finished."""
+    temporal = await client.connect()
+    # `result_type` is required, not optional politeness. This handle is
+    # fetched by id rather than returned from `start_workflow`, so it carries
+    # no type information; without it the converter hands back raw JSON and
+    # the attribute access below fails on a dict.
+    handle = temporal.get_workflow_handle(run_workflow_id(run_id), result_type=RunSummary)
+
+    try:
+        description = await handle.describe()
+    except RPCError as exc:
+        raise NotFoundError(
+            f"No ingestion run with id '{run_id}'.", details={"run_id": run_id}
+        ) from exc
+
+    status = STATUS.get(description.status, "queued") if description.status else "queued"
+
+    if status == "completed":
+        summary = await handle.result()
+        return RunView(
+            run_id=run_id,
+            status=status,
+            progress=RunProgress(
+                stage="done",
+                fetched=summary.fetched,
+                evaluated=summary.evaluated,
+                filtered=len(summary.decisions),
+                embedded=summary.embedded,
+                persisted=summary.persisted,
+            ),
+            summary=summary,
+        )
+
+    progress = RunProgress()
+    if status == "running":
+        # A query reaches the running workflow directly. It can fail if the
+        # worker is momentarily unavailable, and a missing progress report
+        # should not turn a healthy run into an error the console shows as a
+        # failure.
+        try:
+            progress = await handle.query("progress", result_type=RunProgress)
+        except Exception:  # pragma: no cover - transient worker unavailability
+            logger.warning("progress query failed for run %s", run_id)
+
+    return RunView(run_id=run_id, status=status, progress=progress)

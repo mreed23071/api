@@ -1,9 +1,10 @@
 """Message source connectors.
 
 `MessageSource` is the port. A real Slack/GitHub/Teams connector implements this
-protocol and is swapped in through the dependency in `app.api.deps` - the
-pipeline itself never changes. Everything in this module is mock, deliberately
-- see `get_message_source` for where a real connector plugs in.
+protocol and is swapped into `_SOURCES` at the bottom of this module - the
+pipeline itself never changes. Everything here is mock, deliberately; the
+registry is the single place a real connector plugs in, and both the API and
+the ingestion worker resolve through it.
 
 What a real connector will additionally need, and these mocks deliberately do
 not model: an incremental cursor (a watermark per channel or per repository) so
@@ -13,10 +14,11 @@ each run fetches only what is new. That belongs on this protocol as a
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from datetime import UTC, datetime, timedelta
 from typing import Any, Protocol, runtime_checkable
 
+from app.core.errors import NotFoundError
 from app.domains.identity.models import Platform
 from app.domains.ingestion.dto import RawMessage
 
@@ -283,3 +285,40 @@ class MockGitHubCommitSource:
                 )
             )
         return messages[:limit] if limit else messages
+
+
+#: One connector per platform, not one pipeline for all of them - each entry is
+#: swapped for a real connector independently, on its own schedule, without
+#: touching the others. `Callable[[], MessageSource]`, not an instance: a fresh
+#: connector per call, since a real one will hold a session or a cursor.
+#:
+#: Lives in the domain rather than in `api/deps` because the API is not the
+#: only caller: the ingestion worker resolves connectors too, and a worker that
+#: had to import the HTTP layer to find one would have the dependency arrow
+#: backwards.
+_SOURCES: dict[Platform, Callable[[], MessageSource]] = {
+    Platform.GITHUB: MockGitHubCommitSource,
+    Platform.SLACK: lambda: MockChatSource(Platform.SLACK, name="slack-mock"),
+    Platform.TEAMS: lambda: MockChatSource(Platform.TEAMS, name="teams-mock"),
+}
+
+
+def source_for(platform: Platform) -> MessageSource:
+    """The connector one platform's ingestion pipeline pulls from.
+
+    Raises `NotFoundError` for a platform with no connector configured yet
+    (email, linear, other), so the edge answers a clean 404 rather than
+    failing somewhere deeper.
+    """
+    try:
+        return _SOURCES[platform]()
+    except KeyError:
+        raise NotFoundError(
+            f"No connector configured for platform '{platform.value}'.",
+            details={"platform": platform.value},
+        ) from None
+
+
+def configured_platforms() -> list[Platform]:
+    """Platforms that actually have a connector, in declaration order."""
+    return list(_SOURCES)

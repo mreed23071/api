@@ -2,21 +2,27 @@
 
 from __future__ import annotations
 
+import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Path, Query, status
 
-from app.api.deps import IngestionServiceDep, MessageSourceDep, SettingsDep
+from app.api.deps import IngestionServiceDep, MessageSourceDep, SettingsDep, get_message_source
 from app.api.errors import AUTH_RESPONSES
 from app.api.v1.schemas.ingestion import (
     IngestionConfigResponse,
     IngestionRunRequest,
     IngestionRunResponse,
     IngestionRunSummary,
+    QueuedRunResponse,
+    RunProgressResponse,
 )
+from app.core.errors import NotFoundError
 from app.core.security.dependencies import require_scopes
 from app.core.security.principal import Scope
 from app.domains.identity.models import Platform
+from app.workflows.dto import IngestionInput
+from app.workflows.gateway import describe_ingestion_run, start_ingestion_run
 
 router = APIRouter(prefix="/ingestion", tags=["ingestion"], responses=AUTH_RESPONSES)
 
@@ -25,32 +31,104 @@ PlatformPath = Annotated[Platform, Path(description="Which platform's pipeline t
 
 @router.post(
     "/runs/{platform}",
-    response_model=IngestionRunResponse,
-    status_code=status.HTTP_200_OK,
+    response_model=QueuedRunResponse,
+    status_code=status.HTTP_202_ACCEPTED,
     dependencies=[Depends(require_scopes(Scope.INGEST_RUN))],
-    summary="Run one platform's ingestion cycle",
+    summary="Queue one platform's ingestion cycle",
     description=(
         "One pipeline per platform, invoked by the external scheduler "
         "independently per platform. Pulls messages from that platform's "
-        "connector, filters them with the agentic policy, generates embeddings "
-        "locally on a worker pool, and stores the survivors.\n\n"
-        "Idempotent: messages already stored are skipped by "
-        "`(platform, external_message_id)`, so retries and overlapping windows "
-        "are safe.\n\n"
-        "Synchronous - the response waits for the whole pipeline. Acceptable "
-        "for the fixture connectors; a real one needs this to become a queued "
-        "job.\n\n"
+        "connector, filters them with the agentic policy, generates "
+        "embeddings, and stores the survivors.\n\n"
+        "**Accepted, not completed.** The run is handed to a durable workflow "
+        "and this returns immediately with a `run_id`. Poll "
+        "`GET /ingestion/runs/{platform}/{run_id}` for stage-by-stage "
+        "progress and the final counters. Inference against a local model "
+        "takes minutes, so waiting for it in the request would time out in a "
+        "browser long before there was anything to report.\n\n"
+        "Idempotent twice over: messages already stored are skipped by "
+        "`(platform, external_message_id)`, and the workflow id derived from "
+        "`run_id` means the same run cannot be started concurrently.\n\n"
         "404 if no connector is configured for the platform yet."
     ),
 )
 async def run_ingestion(
     platform: PlatformPath,
     service: IngestionServiceDep,
+    settings: SettingsDep,
     payload: IngestionRunRequest | None = None,
-) -> IngestionRunResponse:
+) -> QueuedRunResponse:
     request = payload or IngestionRunRequest()
-    result = await service.run(request.to_options(), platform=platform)
-    return IngestionRunResponse.from_result(result)
+
+    # Resolve the connector before queueing, so an unconfigured platform is a
+    # 404 here rather than a workflow that starts and immediately fails.
+    get_message_source(platform)
+
+    if not settings.temporal_enabled:
+        # No orchestrator configured - run it inline and report it as already
+        # finished. This is the path the test suite and a bare `uvicorn` take.
+        result = await service.run(request.to_options(), platform=platform)
+        return QueuedRunResponse(
+            run_id=result.run_id,
+            platform=platform,
+            status="completed",
+            workflow_id="inline",
+            dry_run=result.dry_run,
+        )
+
+    run_id = str(uuid.uuid4())
+    handle = await start_ingestion_run(
+        IngestionInput(
+            run_id=run_id,
+            platform=platform,
+            limit=request.limit,
+            system_prompt_override=request.system_prompt_override,
+            dry_run=request.dry_run,
+        )
+    )
+    return QueuedRunResponse(
+        run_id=run_id,
+        platform=platform,
+        workflow_id=handle.id,
+        dry_run=request.dry_run,
+    )
+
+
+@router.get(
+    "/runs/{platform}/{run_id}",
+    response_model=RunProgressResponse,
+    dependencies=[Depends(require_scopes(Scope.INGEST_READ))],
+    summary="Poll a queued run",
+    description=(
+        "Stage-by-stage progress while a run is in flight, and the full report "
+        "once it finishes. `status` is one of queued, running, completed, "
+        "failed or cancelled; `result` is populated only on completion.\n\n"
+        "Progress comes from a workflow query, which reads live state without "
+        "replaying history, so polling this is cheap."
+    ),
+)
+async def get_run_status(
+    platform: PlatformPath,
+    run_id: Annotated[str, Path(description="The id returned when the run was queued.")],
+    settings: SettingsDep,
+) -> RunProgressResponse:
+    if not settings.temporal_enabled:
+        raise NotFoundError(
+            "Run status is only available when ingestion is orchestrated by Temporal.",
+            details={"run_id": run_id},
+        )
+    view = await describe_ingestion_run(run_id)
+    return RunProgressResponse(
+        run_id=view.run_id,
+        status=view.status,
+        stage=view.progress.stage,
+        fetched=view.progress.fetched,
+        evaluated=view.progress.evaluated,
+        filtered=view.progress.filtered,
+        embedded=view.progress.embedded,
+        persisted=view.progress.persisted,
+        result=IngestionRunResponse.from_summary(view.summary) if view.summary else None,
+    )
 
 
 @router.get(

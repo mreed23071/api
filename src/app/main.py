@@ -19,7 +19,7 @@ from app.core.logging import configure_logging
 from app.core.middleware import RequestContextMiddleware
 from app.core.openapi import assert_unique_operation_ids, custom_generate_unique_id
 from app.core.security.dependencies import get_auth_chain
-from app.shared.embeddings.service import get_embedding_service
+from app.shared.embeddings.factory import get_embedding_client
 from app.shared.llm.factory import close_llm_client, get_llm_client
 
 logger = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
     configure_logging(settings.log_level, json_output=settings.log_json)
 
-    embeddings = get_embedding_service()
+    embeddings = get_embedding_client()
     embeddings.start()
     if settings.embedding_warmup_on_startup:
         await embeddings.warmup()
@@ -46,7 +46,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         extra={
             "environment": settings.app_env,
             "llm_provider": llm.provider,
-            "embedding_model": settings.embedding_model_name,
+            "embedding_provider": settings.embedding_provider,
+            "embedding_model": embeddings.model_name,
             "auth_schemes": list(get_auth_chain().schemes),
         },
     )

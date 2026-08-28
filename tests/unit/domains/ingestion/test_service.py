@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import pytest
 
+from app.core.config import get_settings
 from app.core.errors import AuthenticationError, AuthorizationError
 from app.core.security.principal import Principal, Scope
 from app.domains.identity.models import Platform
@@ -27,8 +28,6 @@ from tests.fakes.sources import ScriptedMessageSource
 
 
 def build(uow=None, source=None, llm=None, principal=None, settings=None):  # type: ignore[no-untyped-def]
-    from app.core.config import get_settings
-
     embeddings = FakeEmbeddingService()
     embeddings.start()
     return IngestionService(
@@ -59,7 +58,8 @@ async def test_every_stored_message_carries_an_embedding_and_provenance() -> Non
     await build(uow).run(IngestionOptions(), platform=Platform.SLACK)
 
     for stored in uow.messages.upserted:
-        assert stored.embedding is not None and len(stored.embedding) == 384
+        assert stored.embedding is not None
+        assert len(stored.embedding) == get_settings().embedding_dim
         assert stored.embedding_model == "fake-embedder-v1"
         assert stored.filter_prompt_version
         assert stored.sender_user_id and stored.sender_relation_id

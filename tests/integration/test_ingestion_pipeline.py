@@ -53,7 +53,8 @@ async def test_a_full_run_persists_users_relations_and_messages(service, uow) ->
 async def test_stored_messages_carry_a_real_vector(service, uow) -> None:
     await service.run(IngestionOptions(), platform=Platform.SLACK)
     message = (await uow.session.execute(select(Message).limit(1))).scalar_one()
-    assert message.embedding is not None and len(message.embedding) == 384
+    assert message.embedding is not None
+    assert len(message.embedding) == get_settings().embedding_dim
 
 
 async def test_a_second_run_is_a_no_op_against_the_real_constraint(service, uow) -> None:

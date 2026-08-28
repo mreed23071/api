@@ -63,6 +63,7 @@ def test_v1_publishes_the_expected_operations(v1_schema) -> None:
     assert set(published_operations(v1_schema)) == {
         # ingestion and insights
         "run_ingestion",
+        "get_run_status",
         "get_ingestion_config",
         "list_user_summaries",
         "get_user_summary",

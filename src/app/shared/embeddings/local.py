@@ -1,4 +1,11 @@
-"""Non-blocking access to the local embedding model.
+"""In-process embedding adapter: a sentence-transformers model on the CPU.
+
+No longer the default - see `app.shared.embeddings.factory`. It is kept as an
+adapter rather than deleted because it is the only embedder that needs no
+network, which makes it the offline fallback and the one CI could use without
+standing up Ollama. It is also the reason `torch` is still a dependency.
+
+Non-blocking access to the local embedding model.
 
 `model.encode()` is a synchronous, CPU-bound torch call. Running it directly in
 a coroutine would pin the single ASGI event loop thread for the whole batch and
@@ -25,15 +32,15 @@ import asyncio
 import logging
 from collections.abc import Sequence
 from concurrent.futures import Executor, ProcessPoolExecutor, ThreadPoolExecutor
-from functools import lru_cache
 
-from app.core.config import Settings, get_settings
+from app.core.config import Settings
 from app.shared.embeddings import worker
+from app.shared.embeddings.base import EmbeddingError
 
 logger = logging.getLogger(__name__)
 
 
-class EmbeddingService:
+class LocalEmbeddingClient:
     """Owns the executor and the lifecycle of the local model."""
 
     def __init__(self, settings: Settings) -> None:
@@ -104,7 +111,7 @@ class EmbeddingService:
         if not texts:
             return []
         if self._executor is None:
-            raise RuntimeError("EmbeddingService.start() was never called.")
+            raise EmbeddingError("LocalEmbeddingClient.start() was never called.")
 
         loop = asyncio.get_running_loop()
         vectors = await loop.run_in_executor(
@@ -119,7 +126,7 @@ class EmbeddingService:
         self._warm = True
 
         if vectors and len(vectors[0]) != self._dim:
-            raise RuntimeError(
+            raise EmbeddingError(
                 f"Model {self._model_name} produced {len(vectors[0])}-d vectors but the "
                 f"messages.embedding column is {self._dim}-d. Update EMBEDDING_DIM and "
                 "add a migration before changing models."
@@ -128,9 +135,3 @@ class EmbeddingService:
 
     async def embed_one(self, text: str) -> list[float]:
         return (await self.embed([text]))[0]
-
-
-@lru_cache(maxsize=1)
-def get_embedding_service() -> EmbeddingService:
-    """FastAPI dependency: one service (and one executor) per process."""
-    return EmbeddingService(get_settings())

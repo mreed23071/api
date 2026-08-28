@@ -16,6 +16,10 @@ dependencies = [
     "sentence-transformers>=3.3.0",
     "torch>=2.5.0",
     "anthropic>=0.42.0",
+    # Transport for the Ollama adapters (chat + embeddings). Was dev-only when
+    # the only HTTP client was the test suite's.
+    "httpx>=0.27.0",
+    "temporalio>=1.8.0",
 ]
 
 [dependency-groups]
