@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import DateTime, ForeignKey, Index, String, Text, UniqueConstraint
@@ -91,7 +91,7 @@ class Message(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     #: Provider-specific payload. Commit detail for a `kind="commit"` message
     #: lives here rather than in columns: it is one connector's shape, and
     #: modelling it as columns would put GitHub's vocabulary in every row.
-    source_metadata: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    source_metadata: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
 
     sender: Mapped[User | None] = relationship(back_populates="messages", lazy="raise")
     sender_relation: Mapped[UserRelation | None] = relationship(lazy="raise")

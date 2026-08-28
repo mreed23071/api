@@ -8,7 +8,7 @@ to cursors, say - without touching a single service.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
 DEFAULT_LIMIT = 20
@@ -48,7 +48,7 @@ class Paginated[T]:
     def has_more(self) -> bool:
         return self.params.offset + len(self.items) < self.total
 
-    def map(self, fn) -> Paginated:  # type: ignore[no-untyped-def]
+    def map[R](self, fn: Callable[[T], R]) -> Paginated[R]:
         """Project the items, keeping the pagination metadata intact."""
         return Paginated(
             items=[fn(item) for item in self.items], total=self.total, params=self.params

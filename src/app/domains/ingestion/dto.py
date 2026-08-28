@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -30,7 +31,7 @@ class RawMessage(BaseModel):
     conversation_id: str | None = None
     content: str
     sent_at: datetime
-    metadata: dict = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
     @property
     def key(self) -> tuple[Platform, str]:

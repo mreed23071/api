@@ -9,7 +9,7 @@ from app.core.errors import NotFoundError
 from app.core.pagination import PageParams, Paginated
 from app.core.security.principal import Principal, Scope
 from app.domains.identity.dto import IdentityCandidate, IdentityResolution
-from app.domains.identity.models import User, UserRelation
+from app.domains.identity.models import Platform, User, UserRelation
 from app.domains.uow import UnitOfWork
 
 logger = logging.getLogger(__name__)
@@ -74,7 +74,7 @@ class IdentityService:
         """
         self.principal.require(Scope.INGEST_RUN)
 
-        unique: dict[tuple, IdentityCandidate] = {c.key: c for c in candidates}
+        unique: dict[tuple[Platform, str], IdentityCandidate] = {c.key: c for c in candidates}
         resolution = IdentityResolution(
             relations=dict(await self.uow.relations.resolve_many(list(unique.keys())))
         )

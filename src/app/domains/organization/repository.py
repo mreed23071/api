@@ -22,8 +22,9 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Sequence
+from typing import Any, cast
 
-from sqlalchemy import delete, select
+from sqlalchemy import CursorResult, delete, select
 
 from app.core.db.repository import Repository
 from app.domains.organization.models import OrgNode, OrgNodeMember
@@ -169,4 +170,7 @@ class OrgNodeMemberRepository(Repository):
             delete(OrgNodeMember).where(OrgNodeMember.user_id == user_id)
         )
         await self.session.flush()
-        return int(result.rowcount or 0)
+        # DELETE executes to a CursorResult, but `execute`'s declared return
+        # type is the narrower `Result[Any]`, which has no `rowcount` - the
+        # cast reflects what's actually running, not a guess.
+        return int(cast(CursorResult[Any], result).rowcount or 0)

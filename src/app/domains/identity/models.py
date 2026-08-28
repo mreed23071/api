@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import date
 from enum import StrEnum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import Boolean, Date, Enum, ForeignKey, Index, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
@@ -113,7 +113,7 @@ class UserRelation(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     external_email: Mapped[str | None] = mapped_column(String(320))
     is_primary: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     #: Provider-specific payload we do not want to model as columns yet.
-    details: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    details: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
 
     user: Mapped[User | None] = relationship(back_populates="relations", lazy="raise")
 

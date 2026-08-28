@@ -5,8 +5,9 @@ from __future__ import annotations
 import uuid
 from collections.abc import Sequence
 from datetime import datetime
+from typing import Any, cast
 
-from sqlalchemy import Select, delete, func, select, update
+from sqlalchemy import CursorResult, Select, delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from app.core.db.repository import Repository
@@ -131,6 +132,9 @@ class MessageRepository(Repository):
 
         grouped: dict[uuid.UUID, list[Message]] = {user_id: [] for user_id in user_ids}
         for message in (await self.session.execute(statement)).scalars().all():
+            # Narrowed by the `ranked`/`user_ids` join and filter above: every
+            # row here belongs to one of `user_ids`, never an unattributed one.
+            assert message.sender_user_id is not None
             grouped[message.sender_user_id].append(message)
         return grouped
 
@@ -169,7 +173,10 @@ class MessageRepository(Repository):
             .values(sender_user_id=user_id)
         )
         await self.session.flush()
-        return int(result.rowcount or 0)
+        # DELETE/UPDATE statements execute to a CursorResult, but `execute`'s
+        # declared return type is the narrower `Result[Any]`, which has no
+        # `rowcount` - the cast reflects what's actually running, not a guess.
+        return int(cast(CursorResult[Any], result).rowcount or 0)
 
     # -- aggregates, batched --------------------------------------------
     #
@@ -280,7 +287,10 @@ class MessageRepository(Repository):
             delete(Message).where(Message.sender_relation_id == relation_id)
         )
         await self.session.flush()
-        return int(result.rowcount or 0)
+        # DELETE/UPDATE statements execute to a CursorResult, but `execute`'s
+        # declared return type is the narrower `Result[Any]`, which has no
+        # `rowcount` - the cast reflects what's actually running, not a guess.
+        return int(cast(CursorResult[Any], result).rowcount or 0)
 
     async def delete_for_user(self, user_id: uuid.UUID) -> int:
         """Delete every message attributed to one person - the erasure path."""
@@ -288,7 +298,10 @@ class MessageRepository(Repository):
             delete(Message).where(Message.sender_user_id == user_id)
         )
         await self.session.flush()
-        return int(result.rowcount or 0)
+        # DELETE/UPDATE statements execute to a CursorResult, but `execute`'s
+        # declared return type is the narrower `Result[Any]`, which has no
+        # `rowcount` - the cast reflects what's actually running, not a guess.
+        return int(cast(CursorResult[Any], result).rowcount or 0)
 
     # -- browsing -----------------------------------------------------------
 

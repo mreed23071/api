@@ -26,7 +26,7 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -101,7 +101,10 @@ class SeedReport:
 
 def load_fixtures(path: Path | None = None) -> dict[str, Any]:
     """Read the fixture file. Separate from seeding so tests can inspect it."""
-    return json.loads((path or FIXTURES_PATH).read_text(encoding="utf-8"))
+    # json.loads is typed to return Any - it's the fixture file's own
+    # structure, not something worth re-validating field by field here, that
+    # makes this dict[str, Any] rather than a guess.
+    return cast(dict[str, Any], json.loads((path or FIXTURES_PATH).read_text(encoding="utf-8")))
 
 
 async def _existing(session: AsyncSession, model: type[Any]) -> set[uuid.UUID]:

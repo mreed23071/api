@@ -5,6 +5,7 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -21,7 +22,7 @@ class NewMessage(BaseModel):
     conversation_id: str | None = Field(default=None, max_length=255)
     content: str
     sent_at: datetime
-    source_metadata: dict = Field(default_factory=dict)
+    source_metadata: dict[str, Any] = Field(default_factory=dict)
 
     sender_user_id: uuid.UUID
     sender_relation_id: uuid.UUID | None = None
