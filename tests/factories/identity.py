@@ -22,10 +22,17 @@ def make_user(**overrides: Any) -> User:
     }
     user = User(**{**defaults, **overrides})
     # lazy="raise" forbids implicit loading; seed the collections so unit tests
-    # can read them without a session.
-    user.__dict__.setdefault("relations", [])
-    user.__dict__.setdefault("messages", [])
-    user.__dict__.setdefault("notes", [])
+    # can read them without a session. Assigned through the instrumented
+    # attribute (not user.__dict__[...] directly) so SQLAlchemy wraps each in
+    # a real InstrumentedList - a bare list here crashes a real session's
+    # session.add() later, in the integration suite, with "'list' object has
+    # no attribute '_sa_adapter'".
+    if "relations" not in user.__dict__:
+        user.relations = []
+    if "messages" not in user.__dict__:
+        user.messages = []
+    if "notes" not in user.__dict__:
+        user.notes = []
     return user
 
 

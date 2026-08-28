@@ -21,6 +21,7 @@ from fastapi.routing import APIRoute, RouteContext, iter_route_contexts
 
 from tests.conftest import ADMIN_KEY, INGEST_KEY, READER_KEY
 
+
 # `app.routes` holds `_IncludedRouter` wrappers, not flattened `APIRoute`s -
 # `iter_route_contexts` is FastAPI's own way to walk the effective, fully
 # prefixed routes.
@@ -30,6 +31,7 @@ def _api_route_contexts(app) -> list[RouteContext]:  # type: ignore[no-untyped-d
         for context in iter_route_contexts(app.routes)
         if isinstance(context.original_route, APIRoute)
     ]
+
 
 ANONYMOUS: dict[str, str] = {}
 SCHEDULER = {"X-API-Key": INGEST_KEY}
@@ -46,19 +48,16 @@ AUTH_MATRIX: list[tuple[str, str, str, dict[str, str], int]] = [
     # -- unversioned probes: public by design, they carry no data ----------
     ("GET", "/health", "anonymous", ANONYMOUS, OK),
     ("GET", "/api/versions", "anonymous", ANONYMOUS, OK),
-
     # -- ingestion: machine-to-machine only --------------------------------
     ("POST", "/api/v1/ingestion/runs", "anonymous", ANONYMOUS, UNAUTHENTICATED),
     ("POST", "/api/v1/ingestion/runs", "scheduler", SCHEDULER, OK),
     ("POST", "/api/v1/ingestion/runs", "reader", READER, FORBIDDEN),
     ("POST", "/api/v1/ingestion/runs", "admin", ADMIN, OK),
     ("POST", "/api/v1/ingestion/runs", "dev-user", DEV_USER, FORBIDDEN),
-
     ("GET", "/api/v1/ingestion/config", "anonymous", ANONYMOUS, UNAUTHENTICATED),
     ("GET", "/api/v1/ingestion/config", "scheduler", SCHEDULER, OK),
     ("GET", "/api/v1/ingestion/config", "reader", READER, FORBIDDEN),
     ("GET", "/api/v1/ingestion/config", "admin", ADMIN, OK),
-
     # -- insights: personal data. Never anonymous, never the scheduler -----
     ("GET", "/api/v1/insights/users", "anonymous", ANONYMOUS, UNAUTHENTICATED),
     ("GET", "/api/v1/insights/users", "scheduler", SCHEDULER, FORBIDDEN),
@@ -70,7 +69,9 @@ AUTH_MATRIX: list[tuple[str, str, str, dict[str, str], int]] = [
 #: Routes intentionally excluded from the matrix, with the reason. Anything not
 #: listed here and not in the matrix fails the completeness check.
 MATRIX_EXEMPT: dict[str, str] = {
-    "get_readiness": "returns 503 in this suite (no database); covered in tests/api/test_system_routes.py",
+    "get_readiness": (
+        "returns 503 in this suite (no database); covered in tests/api/test_system_routes.py"
+    ),
 }
 
 #: The console surface, deliberately unauthenticated while the two platforms are
@@ -155,9 +156,7 @@ def test_every_route_appears_in_the_matrix(app) -> None:
 
 def test_no_matrix_row_points_at_a_route_that_no_longer_exists(app) -> None:
     live = {
-        (method, route.path)
-        for route in _api_route_contexts(app)
-        for method in route.methods or ()
+        (method, route.path) for route in _api_route_contexts(app) for method in route.methods or ()
     }
     stale = sorted({(m, p) for m, p, _, _, _ in AUTH_MATRIX} - live)
     assert not stale, f"AUTH_MATRIX references routes that no longer exist: {stale}"
@@ -189,9 +188,7 @@ async def test_a_provisionally_open_route_is_actually_open(app, client) -> None:
         for method in (route.methods or set()) - {"HEAD", "OPTIONS"}:
             response = await client.request(method, _concrete(route.path))
             if response.status_code in (401, 403):
-                unexpectedly_closed.append(
-                    f"{method} {route.path} -> {response.status_code}"
-                )
+                unexpectedly_closed.append(f"{method} {route.path} -> {response.status_code}")
 
     assert not unexpectedly_closed, (
         "These routes are declared provisionally open but reject an "

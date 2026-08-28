@@ -44,17 +44,53 @@ _AUTHORS = {
 }
 
 _SEED: list[tuple[Platform, str, str]] = [
-    (Platform.SLACK, "U-ALICE", "Staging deploy of the billing service is green, rolling to production after the 3pm change window."),
+    (
+        Platform.SLACK,
+        "U-ALICE",
+        "Staging deploy of the billing service is green, rolling to production after the 3pm change window.",
+    ),
     (Platform.SLACK, "U-ALICE", "Anyone up for pizza and beers after work on Friday? My treat."),
-    (Platform.SLACK, "U-BEN", "Client escalation on the invoice export: their finance team needs the CSV schema frozen before the contract renewal."),
-    (Platform.GITHUB, "U-BEN", "Opened a PR to add the migration for the messages embedding column - needs review before the sprint ends."),
-    (Platform.GITHUB, "U-CARLA", "Reverted the rollback commit; the incident postmortem is in the shared drive and the action items are in the backlog."),
-    (Platform.TEAMS, "U-CARLA", "My dentist appointment ran long, I will be late to standup, sorry."),
-    (Platform.TEAMS, "U-ALICE", "Roadmap review moved to Thursday. Agenda: Q3 milestones, hiring budget, and the API rate-limit spec."),
+    (
+        Platform.SLACK,
+        "U-BEN",
+        "Client escalation on the invoice export: their finance team needs the CSV schema frozen before the contract renewal.",
+    ),
+    (
+        Platform.GITHUB,
+        "U-BEN",
+        "Opened a PR to add the migration for the messages embedding column - needs review before the sprint ends.",
+    ),
+    (
+        Platform.GITHUB,
+        "U-CARLA",
+        "Reverted the rollback commit; the incident postmortem is in the shared drive and the action items are in the backlog.",
+    ),
+    (
+        Platform.TEAMS,
+        "U-CARLA",
+        "My dentist appointment ran long, I will be late to standup, sorry.",
+    ),
+    (
+        Platform.TEAMS,
+        "U-ALICE",
+        "Roadmap review moved to Thursday. Agenda: Q3 milestones, hiring budget, and the API rate-limit spec.",
+    ),
     (Platform.SLACK, "U-BEN", "Happy birthday Carla! The cake is in the kitchen."),
-    (Platform.SLACK, "U-CARLA", "The nightly ingestion job hit the 30s timeout again - I think the embedding batch size needs tuning in staging."),
-    (Platform.GITHUB, "U-ALICE", "Review comments addressed on the schema PR: renamed the column and added the HNSW index."),
-    (Platform.TEAMS, "U-BEN", "Reminder: onboarding session for the new client is tomorrow at 10, the handover doc is attached to the ticket."),
+    (
+        Platform.SLACK,
+        "U-CARLA",
+        "The nightly ingestion job hit the 30s timeout again - I think the embedding batch size needs tuning in staging.",
+    ),
+    (
+        Platform.GITHUB,
+        "U-ALICE",
+        "Review comments addressed on the schema PR: renamed the column and added the HNSW index.",
+    ),
+    (
+        Platform.TEAMS,
+        "U-BEN",
+        "Reminder: onboarding session for the new client is tomorrow at 10, the handover doc is attached to the ticket.",
+    ),
     (Platform.SLACK, "U-CARLA", "Watched the new season last night, no spoilers please."),
 ]
 

@@ -23,9 +23,9 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
 from app.api.router import API_VERSIONS  # noqa: E402
+from app.core.config import get_settings  # noqa: E402
 from app.core.openapi import build_version_schema  # noqa: E402
 from app.main import app  # noqa: E402
-from app.core.config import get_settings  # noqa: E402
 
 
 def render(version_name: str) -> tuple[str, str]:

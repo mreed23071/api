@@ -148,9 +148,7 @@ async def update_user(
         "survives the deletion - worth keeping wherever the request came from."
     ),
 )
-async def forget_user(
-    user_id: UserId, service: DirectoryServiceDep
-) -> ForgetUserResponse:
+async def forget_user(user_id: UserId, service: DirectoryServiceDep) -> ForgetUserResponse:
     return ForgetUserResponse.from_result(await service.forget_person(user_id))
 
 
@@ -173,12 +171,9 @@ async def list_user_accounts(
     response_model=list[MessageRead],
     summary="List the messages attributed to one person",
 )
-async def list_user_messages(
-    user_id: UserId, service: DirectoryServiceDep
-) -> list[MessageRead]:
+async def list_user_messages(user_id: UserId, service: DirectoryServiceDep) -> list[MessageRead]:
     return [
-        MessageRead.from_entity(message)
-        for message in await service.list_messages_for(user_id)
+        MessageRead.from_entity(message) for message in await service.list_messages_for(user_id)
     ]
 
 
@@ -187,9 +182,7 @@ async def list_user_messages(
     response_model=list[NoteRead],
     summary="List the notes written about one person",
 )
-async def list_user_notes(
-    user_id: UserId, service: DirectoryServiceDep
-) -> list[NoteRead]:
+async def list_user_notes(user_id: UserId, service: DirectoryServiceDep) -> list[NoteRead]:
     return [NoteRead.from_entity(note) for note in await service.list_notes(user_id)]
 
 
@@ -206,9 +199,7 @@ async def list_user_notes(
 async def create_user_note(
     user_id: UserId, body: NoteCreate, service: DirectoryServiceDep
 ) -> NoteRead:
-    return NoteRead.from_entity(
-        await service.add_note(user_id, body.body, body.author)
-    )
+    return NoteRead.from_entity(await service.add_note(user_id, body.body, body.author))
 
 
 notes_router = APIRouter(prefix="/notes", tags=["directory"], responses=AUTH_RESPONSES)

@@ -16,21 +16,77 @@ from app.shared.llm.base import LLMError, LLMRequest, LLMResponse, LLMTask
 
 BUSINESS_MARKERS = frozenset(
     {
-        "deploy", "deployment", "release", "sprint", "standup", "ticket", "jira",
-        "pr", "review", "merge", "rollback", "incident", "outage", "postmortem",
-        "roadmap", "milestone", "deadline", "client", "customer", "invoice",
-        "contract", "budget", "meeting", "agenda", "spec", "requirements",
-        "api", "schema", "migration", "staging", "production", "backlog",
-        "estimate", "onboarding", "handover", "escalation", "sla", "kpi",
+        "deploy",
+        "deployment",
+        "release",
+        "sprint",
+        "standup",
+        "ticket",
+        "jira",
+        "pr",
+        "review",
+        "merge",
+        "rollback",
+        "incident",
+        "outage",
+        "postmortem",
+        "roadmap",
+        "milestone",
+        "deadline",
+        "client",
+        "customer",
+        "invoice",
+        "contract",
+        "budget",
+        "meeting",
+        "agenda",
+        "spec",
+        "requirements",
+        "api",
+        "schema",
+        "migration",
+        "staging",
+        "production",
+        "backlog",
+        "estimate",
+        "onboarding",
+        "handover",
+        "escalation",
+        "sla",
+        "kpi",
     }
 )
 
 PERSONAL_MARKERS = frozenset(
     {
-        "birthday", "wedding", "vacation", "holiday", "beer", "pizza", "lunch",
-        "dinner", "party", "weekend", "gym", "netflix", "dog", "cat", "baby",
-        "hangover", "concert", "date", "girlfriend", "boyfriend", "husband",
-        "wife", "sick", "doctor", "dentist", "meme", "lol", "haha",
+        "birthday",
+        "wedding",
+        "vacation",
+        "holiday",
+        "beer",
+        "pizza",
+        "lunch",
+        "dinner",
+        "party",
+        "weekend",
+        "gym",
+        "netflix",
+        "dog",
+        "cat",
+        "baby",
+        "hangover",
+        "concert",
+        "date",
+        "girlfriend",
+        "boyfriend",
+        "husband",
+        "wife",
+        "sick",
+        "doctor",
+        "dentist",
+        "meme",
+        "lol",
+        "haha",
     }
 )
 
@@ -98,13 +154,10 @@ class StubLLMClient:
             return "No messages on record for this user."
 
         counter = Counter(
-            token
-            for body in bodies
-            for token in _tokens(body)
-            if token in BUSINESS_MARKERS
+            token for body in bodies for token in _tokens(body) if token in BUSINESS_MARKERS
         )
         topics = ", ".join(topic for topic, _ in counter.most_common(4)) or "general updates"
         return (
             f"Communicated {len(bodies)} retained message(s), most often about {topics}. "
-            f"Most recent message: \"{bodies[-1][:160]}\"."
+            f'Most recent message: "{bodies[-1][:160]}".'
         )

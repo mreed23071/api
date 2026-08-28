@@ -27,7 +27,7 @@ class MessagePreview(BaseModel):
     sent_at: datetime
 
     @classmethod
-    def from_entity(cls, message: Message) -> "MessagePreview":
+    def from_entity(cls, message: Message) -> MessagePreview:
         return cls.model_validate(message)
 
 
@@ -85,7 +85,7 @@ class MessageRead(BaseModel):
     commit: CommitDetail | None = None
 
     @classmethod
-    def from_entity(cls, message: Message) -> "MessageRead":
+    def from_entity(cls, message: Message) -> MessageRead:
         """Build from a row, lifting commit detail out of the metadata blob.
 
         The blob is connector-supplied, so it is validated rather than trusted:

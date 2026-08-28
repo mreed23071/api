@@ -3,17 +3,13 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Generic, TypeVar
 
 from pydantic import BaseModel, Field
 
 from app.core.pagination import Paginated
 
-T = TypeVar("T")
-S = TypeVar("S", bound=BaseModel)
 
-
-class Page(BaseModel, Generic[S]):
+class Page[S: BaseModel](BaseModel):
     """The v1 pagination envelope.
 
     Offset-based. A future version can switch to cursors by publishing a
@@ -28,7 +24,7 @@ class Page(BaseModel, Generic[S]):
     has_more: bool = Field(description="True when another page exists after this one.")
 
     @classmethod
-    def build(cls, page: Paginated[T], mapper: Callable[[T], S]) -> "Page[S]":
+    def build[T](cls, page: Paginated[T], mapper: Callable[[T], S]) -> Page[S]:
         return cls(
             items=[mapper(item) for item in page.items],
             total=page.total,

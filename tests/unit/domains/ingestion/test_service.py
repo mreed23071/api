@@ -138,9 +138,9 @@ async def test_dry_run_rolls_everything_back() -> None:
     result = await build(uow).run(IngestionOptions(dry_run=True))
 
     assert result.dry_run is True
-    assert result.retained > 0        # the pipeline really ran
+    assert result.retained > 0  # the pipeline really ran
     assert result.embedded > 0
-    assert result.persisted == 0      # ...and nothing was kept
+    assert result.persisted == 0  # ...and nothing was kept
     assert result.users_provisioned == 0
     assert uow.rollbacks >= 1
 

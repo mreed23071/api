@@ -41,10 +41,7 @@ AccountId = Annotated[uuid.UUID, Path(description="The account's id.")]
 async def list_unlinked_accounts(
     service: DirectoryServiceDep,
 ) -> list[UnlinkedAccountRead]:
-    return [
-        UnlinkedAccountRead.from_view(view)
-        for view in await service.list_unlinked_accounts()
-    ]
+    return [UnlinkedAccountRead.from_view(view) for view in await service.list_unlinked_accounts()]
 
 
 @router.post(
@@ -60,9 +57,7 @@ async def list_unlinked_accounts(
         "ones do not displace it."
     ),
 )
-async def create_account(
-    body: AccountCreate, service: DirectoryServiceDep
-) -> UserRelationRead:
+async def create_account(body: AccountCreate, service: DirectoryServiceDep) -> UserRelationRead:
     relation = await service.create_account(
         NewAccount(
             user_id=body.user_id,
@@ -89,9 +84,7 @@ async def link_account(
     service: DirectoryServiceDep,
     user_id: Annotated[uuid.UUID, Body(embed=True, description="Who to attribute it to.")],
 ) -> UserRelationRead:
-    return UserRelationRead.from_entity(
-        await service.link_account(account_id, user_id)
-    )
+    return UserRelationRead.from_entity(await service.link_account(account_id, user_id))
 
 
 @router.post(
@@ -104,9 +97,7 @@ async def link_account(
         "and can be reattributed."
     ),
 )
-async def unlink_account(
-    account_id: AccountId, service: DirectoryServiceDep
-) -> UserRelationRead:
+async def unlink_account(account_id: AccountId, service: DirectoryServiceDep) -> UserRelationRead:
     return UserRelationRead.from_entity(await service.unlink_account(account_id))
 
 

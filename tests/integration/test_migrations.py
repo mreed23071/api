@@ -16,9 +16,7 @@ async def test_every_table_exists(session) -> None:
 
 
 async def test_the_vector_extension_is_installed(session) -> None:
-    result = await session.execute(
-        text("SELECT 1 FROM pg_extension WHERE extname = 'vector'")
-    )
+    result = await session.execute(text("SELECT 1 FROM pg_extension WHERE extname = 'vector'"))
     assert result.scalar_one_or_none() == 1
 
 

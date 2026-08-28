@@ -10,9 +10,6 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Generic, TypeVar
-
-T = TypeVar("T")
 
 DEFAULT_LIMIT = 20
 MAX_LIMIT = 100
@@ -37,10 +34,10 @@ class PageParams:
             raise ValueError(f"offset must be >= 0, got {self.offset}")
 
 
-# NB: no `slots=True` here - combining it with `Generic` is a known CPython
+# NB: no `slots=True` here - combining it with a generic is a known CPython
 # sharp edge. `PageParams` above is not generic, so it keeps slots.
 @dataclass(frozen=True)
-class Paginated(Generic[T]):
+class Paginated[T]:
     """A slice of a result set plus the total it was drawn from."""
 
     items: Sequence[T]
@@ -53,4 +50,6 @@ class Paginated(Generic[T]):
 
     def map(self, fn) -> Paginated:  # type: ignore[no-untyped-def]
         """Project the items, keeping the pagination metadata intact."""
-        return Paginated(items=[fn(item) for item in self.items], total=self.total, params=self.params)
+        return Paginated(
+            items=[fn(item) for item in self.items], total=self.total, params=self.params
+        )

@@ -5,6 +5,7 @@ Revises:
 Create Date: 2026-08-25
 
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -47,8 +48,12 @@ def upgrade() -> None:
         sa.Column("job_title", sa.String(length=255), nullable=True),
         sa.Column("timezone", sa.String(length=64), nullable=True),
         sa.Column("is_active", sa.Boolean(), nullable=False, server_default=sa.text("true")),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
         sa.PrimaryKeyConstraint("id", name="pk_users"),
         sa.UniqueConstraint("email", name="uq_users_email"),
     )
@@ -68,9 +73,15 @@ def upgrade() -> None:
         sa.Column("external_handle", sa.String(length=255), nullable=True),
         sa.Column("external_email", sa.String(length=320), nullable=True),
         sa.Column("is_primary", sa.Boolean(), nullable=False, server_default=sa.text("false")),
-        sa.Column("details", postgresql.JSONB(), nullable=False, server_default=sa.text("'{}'::jsonb")),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "details", postgresql.JSONB(), nullable=False, server_default=sa.text("'{}'::jsonb")
+        ),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
         sa.ForeignKeyConstraint(
             ["user_id"],
             ["users.id"],
@@ -84,9 +95,7 @@ def upgrade() -> None:
         ),
     )
     op.create_index("ix_user_relations_user_id", "user_relations", ["user_id"])
-    op.create_index(
-        "ix_user_relations_user_id_platform", "user_relations", ["user_id", "platform"]
-    )
+    op.create_index("ix_user_relations_user_id_platform", "user_relations", ["user_id", "platform"])
 
     op.create_table(
         "messages",
@@ -116,8 +125,12 @@ def upgrade() -> None:
             nullable=False,
             server_default=sa.text("'{}'::jsonb"),
         ),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
         sa.ForeignKeyConstraint(
             ["sender_user_id"],
             ["users.id"],
@@ -139,9 +152,7 @@ def upgrade() -> None:
     op.create_index("ix_messages_sender_user_id", "messages", ["sender_user_id"])
     op.create_index("ix_messages_conversation_id", "messages", ["conversation_id"])
     op.create_index("ix_messages_sent_at", "messages", ["sent_at"])
-    op.create_index(
-        "ix_messages_sender_user_id_sent_at", "messages", ["sender_user_id", "sent_at"]
-    )
+    op.create_index("ix_messages_sender_user_id_sent_at", "messages", ["sender_user_id", "sent_at"])
     # ANN index for semantic search. Encoder output is L2-normalised, so cosine
     # is the matching operator class.
     op.create_index(

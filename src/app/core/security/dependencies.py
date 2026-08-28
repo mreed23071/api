@@ -46,7 +46,7 @@ CurrentPrincipal = Annotated[Principal, Depends(get_principal)]
 def require_scopes(*scopes: Scope) -> Callable[..., Coroutine[Any, Any, Principal]]:
     """Dependency factory for router- or route-level scope enforcement.
 
-        router = APIRouter(dependencies=[Depends(require_scopes(Scope.INGEST_RUN))])
+    router = APIRouter(dependencies=[Depends(require_scopes(Scope.INGEST_RUN))])
     """
 
     async def dependency(principal: CurrentPrincipal) -> Principal:
@@ -56,10 +56,10 @@ def require_scopes(*scopes: Scope) -> Callable[..., Coroutine[Any, Any, Principa
     return dependency
 
 
-def ScopedPrincipal(*scopes: Scope) -> Any:  # noqa: N802 - reads as a type in signatures
+def ScopedPrincipal(*scopes: Scope) -> Any:
     """Annotated type that both enforces scopes and injects the principal.
 
-        async def handler(principal: ScopedPrincipal(Scope.INSIGHTS_READ)) -> ...
+    async def handler(principal: ScopedPrincipal(Scope.INSIGHTS_READ)) -> ...
     """
     return Annotated[Principal, Depends(require_scopes(*scopes))]
 

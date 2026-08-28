@@ -113,9 +113,7 @@ async def test_an_invalid_email_is_rejected_before_the_service_sees_it(client) -
 async def test_a_patch_changes_only_what_it_names(client) -> None:  # type: ignore[no-untyped-def]
     user_id = await seeded_user_id(client)
 
-    response = await client.patch(
-        f"/api/v1/users/{user_id}", json={"job_title": "Staff Engineer"}
-    )
+    response = await client.patch(f"/api/v1/users/{user_id}", json={"job_title": "Staff Engineer"})
 
     assert response.status_code == 200
     assert response.json()["job_title"] == "Staff Engineer"
@@ -166,9 +164,7 @@ async def test_linking_reattributes_the_messages(client) -> None:  # type: ignor
     account_id = (await client.get(f"/api/v1/users/{user_id}/accounts")).json()[0]["id"]
     await client.post(f"/api/v1/accounts/{account_id}/unlink")
 
-    relinked = await client.post(
-        f"/api/v1/accounts/{account_id}/link", json={"user_id": user_id}
-    )
+    relinked = await client.post(f"/api/v1/accounts/{account_id}/link", json={"user_id": user_id})
 
     assert relinked.status_code == 200
     assert relinked.json()["user_id"] == user_id

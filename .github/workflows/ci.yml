@@ -32,7 +32,7 @@ jobs:
           enable-cache: true
       - run: uv sync --group dev
       - name: Unit, API and contract tests
-        run: uv run pytest -m "not integration" --cov --cov-report=term-missing --cov-report=xml
+        run: make test-cov
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -50,7 +50,7 @@ jobs:
       - run: uv sync --group dev --group integration
       # testcontainers starts pgvector itself; the runner only needs Docker,
       # which ubuntu-latest already has.
-      - run: uv run pytest -m integration
+      - run: make test-integration
 
   contract:
     name: OpenAPI drift

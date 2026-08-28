@@ -45,9 +45,8 @@ class OrgNodeRepository(Repository):
         instant: without it their order could differ between calls, which makes
         tests flaky for no reason.
         """
-        statement = (
-            self.scoped(select(OrgNode), OrgNode)
-            .order_by(OrgNode.created_at.asc(), OrgNode.id.asc())
+        statement = self.scoped(select(OrgNode), OrgNode).order_by(
+            OrgNode.created_at.asc(), OrgNode.id.asc()
         )
         return (await self.session.execute(statement)).scalars().all()
 

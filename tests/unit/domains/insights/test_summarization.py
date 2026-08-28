@@ -30,9 +30,9 @@ def test_transcript_is_oldest_first() -> None:
         make_message(user, content="oldest", sent_at=now - timedelta(days=1)),
     ]
     lines = SummarizationAgent.render_transcript(user, messages).splitlines()
-    assert lines.index("[" + f"{messages[1].sent_at:%Y-%m-%d %H:%M}" + " slack] oldest") < lines.index(
-        "[" + f"{messages[0].sent_at:%Y-%m-%d %H:%M}" + " slack] newest"
-    )
+    assert lines.index(
+        "[" + f"{messages[1].sent_at:%Y-%m-%d %H:%M}" + " slack] oldest"
+    ) < lines.index("[" + f"{messages[0].sent_at:%Y-%m-%d %H:%M}" + " slack] newest")
 
 
 def test_long_history_is_truncated_from_the_front() -> None:
@@ -51,9 +51,7 @@ def test_long_history_is_truncated_from_the_front() -> None:
 async def test_summarize_uses_the_summarize_task_and_configured_prompt() -> None:
     llm = RecordingLLMClient()
     user = make_user()
-    await SummarizationAgent(llm, system_prompt="Be terse.").summarize(
-        user, [make_message(user)]
-    )
+    await SummarizationAgent(llm, system_prompt="Be terse.").summarize(user, [make_message(user)])
     assert llm.requests[0].task is LLMTask.SUMMARIZE
     assert llm.requests[0].system == "Be terse."
     assert llm.requests[0].metadata["user_id"] == str(user.id)

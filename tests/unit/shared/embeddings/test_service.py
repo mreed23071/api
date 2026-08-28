@@ -76,9 +76,7 @@ async def test_embedding_before_start_is_a_programming_error(patched_worker) -> 
 async def test_dimension_mismatch_fails_loudly(monkeypatch) -> None:
     """A model swap must not silently write vectors the column cannot hold."""
     monkeypatch.setattr(worker, "init_worker", lambda *args: None)
-    monkeypatch.setattr(
-        worker, "encode_texts", lambda texts, *a: [[0.0] * 16 for _ in texts]
-    )
+    monkeypatch.setattr(worker, "encode_texts", lambda texts, *a: [[0.0] * 16 for _ in texts])
     service = build()
     service.start()
     try:

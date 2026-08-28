@@ -47,7 +47,7 @@ class UserDetail(BaseModel):
     updated_at: datetime
 
     @classmethod
-    def from_entity(cls, user: User) -> "UserDetail":
+    def from_entity(cls, user: User) -> UserDetail:
         """Build from an ORM row. `from_attributes` reads them by attribute."""
         return cls.model_validate(user)
 
@@ -69,7 +69,7 @@ class UserListItem(UserDetail):
     )
 
     @classmethod
-    def from_view(cls, view: PersonView) -> "UserListItem":
+    def from_view(cls, view: PersonView) -> UserListItem:
         """Flatten the domain view - a person plus three aggregates - into one row."""
         return cls(
             **UserDetail.from_entity(view.user).model_dump(),
@@ -119,7 +119,7 @@ class ForgetUserResponse(BaseModel):
     deleted_accounts: int
 
     @classmethod
-    def from_result(cls, result: ForgetResult) -> "ForgetUserResponse":
+    def from_result(cls, result: ForgetResult) -> ForgetUserResponse:
         return cls(
             deleted_messages=result.deleted_messages,
             deleted_accounts=result.deleted_accounts,
@@ -137,7 +137,7 @@ class UnlinkedAccountRead(UserRelationRead):
     last_seen_at: datetime | None = None
 
     @classmethod
-    def from_view(cls, view: UnlinkedAccountView) -> "UnlinkedAccountRead":
+    def from_view(cls, view: UnlinkedAccountView) -> UnlinkedAccountRead:
         return cls(
             **UserRelationRead.from_entity(view.relation).model_dump(),
             message_count=view.message_count,
@@ -164,7 +164,7 @@ class AccountDeleteResponse(BaseModel):
     deleted_messages: int
 
     @classmethod
-    def from_result(cls, result: AccountDeletionResult) -> "AccountDeleteResponse":
+    def from_result(cls, result: AccountDeletionResult) -> AccountDeleteResponse:
         return cls(deleted_messages=result.deleted_messages)
 
 
@@ -180,7 +180,7 @@ class NoteRead(BaseModel):
     created_at: datetime
 
     @classmethod
-    def from_entity(cls, note: PersonNote) -> "NoteRead":
+    def from_entity(cls, note: PersonNote) -> NoteRead:
         return cls.model_validate(note)
 
 

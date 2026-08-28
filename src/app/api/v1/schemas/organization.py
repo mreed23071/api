@@ -22,14 +22,12 @@ class OrgNodeRead(BaseModel):
     id: uuid.UUID
     name: str
     subtitle: str | None = None
-    parent_id: uuid.UUID | None = Field(
-        default=None, description="Null when this node is a root."
-    )
+    parent_id: uuid.UUID | None = Field(default=None, description="Null when this node is a root.")
     member_ids: list[uuid.UUID] = Field(default_factory=list)
     created_at: datetime
 
     @classmethod
-    def from_view(cls, view: OrgNodeView) -> "OrgNodeRead":
+    def from_view(cls, view: OrgNodeView) -> OrgNodeRead:
         return cls(
             id=view.id,
             name=view.name,
@@ -70,7 +68,7 @@ class OrgNodeUpdate(BaseModel):
     )
 
     @model_validator(mode="after")
-    def _parent_requires_reparent(self) -> "OrgNodeUpdate":
+    def _parent_requires_reparent(self) -> OrgNodeUpdate:
         if self.parent_id is not None and not self.reparent:
             raise ValueError(
                 "parent_id was supplied without reparent=true, so it would be "
@@ -92,7 +90,7 @@ class OrgNodeDeleteResponse(BaseModel):
     )
 
     @classmethod
-    def from_result(cls, result: DeletionResult) -> "OrgNodeDeleteResponse":
+    def from_result(cls, result: DeletionResult) -> OrgNodeDeleteResponse:
         return cls(id=result.id, promoted=result.promoted)
 
 

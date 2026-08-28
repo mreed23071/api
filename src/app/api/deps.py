@@ -59,16 +59,12 @@ def get_directory_service(uow: UowDep, principal: CurrentPrincipal) -> Directory
 DirectoryServiceDep = Annotated[DirectoryService, Depends(get_directory_service)]
 
 
-def get_organization_service(
-    uow: UowDep, principal: CurrentPrincipal
-) -> OrganizationService:
+def get_organization_service(uow: UowDep, principal: CurrentPrincipal) -> OrganizationService:
     """The department hierarchy and its membership."""
     return OrganizationService(uow, principal)
 
 
-OrganizationServiceDep = Annotated[
-    OrganizationService, Depends(get_organization_service)
-]
+OrganizationServiceDep = Annotated[OrganizationService, Depends(get_organization_service)]
 
 
 def get_message_service(uow: UowDep, principal: CurrentPrincipal) -> MessageService:

@@ -78,9 +78,7 @@ async def test_unlinked_accounts_and_orphaned_messages_survive_the_load(session)
 async def test_commit_detail_round_trips_through_the_metadata_blob(session) -> None:  # type: ignore[no-untyped-def]
     await seed_database(session)
 
-    row = await session.execute(
-        select(Message).where(Message.kind == "commit").limit(1)
-    )
+    row = await session.execute(select(Message).where(Message.kind == "commit").limit(1))
     commit = row.scalars().one()
 
     assert commit.source_metadata["commit"]["sha"]

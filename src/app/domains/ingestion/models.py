@@ -87,6 +87,9 @@ class IngestionRunDecision(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     keep: Mapped[bool] = mapped_column(Boolean, nullable=False)
     category: Mapped[str | None] = mapped_column(String(64))
     reason: Mapped[str | None] = mapped_column(Text)
+    #: True when the agent failed and this is the fail-closed default, not a
+    #: real judgement - see FilterDecisionDto, where the value originates.
+    is_fallback: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     run: Mapped[IngestionRun] = relationship(back_populates="decisions", lazy="raise")
 

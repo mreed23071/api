@@ -46,9 +46,7 @@ async def list_org_nodes(service: OrganizationServiceDep) -> list[OrgNodeRead]:
     status_code=status.HTTP_201_CREATED,
     summary="Create a department",
 )
-async def create_org_node(
-    body: OrgNodeCreate, service: OrganizationServiceDep
-) -> OrgNodeRead:
+async def create_org_node(body: OrgNodeCreate, service: OrganizationServiceDep) -> OrgNodeRead:
     view = await service.create_node(
         NewOrgNode(name=body.name, subtitle=body.subtitle, parent_id=body.parent_id)
     )

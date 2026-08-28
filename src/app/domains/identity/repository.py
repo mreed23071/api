@@ -180,9 +180,9 @@ class UserRelationRepository(Repository):
 
     async def counts_by_platform(self) -> dict[Platform, int]:
         """How many accounts are known on each platform, linked or not."""
-        statement = self.scoped(
-            select(UserRelation.platform, func.count()), UserRelation
-        ).group_by(UserRelation.platform)
+        statement = self.scoped(select(UserRelation.platform, func.count()), UserRelation).group_by(
+            UserRelation.platform
+        )
         rows = await self.session.execute(statement)
         return {platform: int(count) for platform, count in rows.all()}
 

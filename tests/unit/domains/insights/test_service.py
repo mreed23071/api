@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from app.core.config import get_settings
-from app.core.errors import AuthorizationError
+from app.core.errors import AuthenticationError, AuthorizationError
 from app.core.pagination import PageParams
 from app.core.security.principal import Principal, Scope
 from app.domains.insights.service import NO_MESSAGES_SUMMARY, UserInsightsService
@@ -100,7 +100,5 @@ async def test_reading_summaries_requires_both_scopes() -> None:
 
 
 async def test_anonymous_callers_cannot_read_summaries() -> None:
-    with pytest.raises(Exception):
-        await build(seeded_uow(), principal=Principal.anonymous()).list_with_summaries(
-            PageParams()
-        )
+    with pytest.raises(AuthenticationError):
+        await build(seeded_uow(), principal=Principal.anonymous()).list_with_summaries(PageParams())

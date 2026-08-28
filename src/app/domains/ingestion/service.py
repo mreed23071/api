@@ -282,6 +282,7 @@ class IngestionService:
                 keep=decision.keep,
                 category=decision.category,
                 reason=decision.reason,
+                is_fallback=decision.is_fallback,
             )
             for decision in result.decisions
         ]
@@ -289,7 +290,7 @@ class IngestionService:
         try:
             async with self.uow.transaction():
                 await self.uow.runs.add(entity)
-        except Exception:  # noqa: BLE001 - a lost receipt must not fail the run
+        except Exception:
             logger.exception("could not record the ingestion run", extra={"run_id": result.run_id})
 
     async def history(self, *, limit: int = 20) -> Sequence[IngestionRun]:
@@ -344,9 +345,7 @@ CONNECTED_WITHIN = timedelta(days=7)
 DEGRADED_WITHIN = timedelta(days=30)
 
 
-def _health_of(
-    account_count: int, last_seen: datetime | None, now: datetime
-) -> ConnectorStatus:
+def _health_of(account_count: int, last_seen: datetime | None, now: datetime) -> ConnectorStatus:
     """Infer a platform's status from its account count and last delivery."""
     if account_count == 0:
         return ConnectorStatus.DISCONNECTED

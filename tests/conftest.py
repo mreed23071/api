@@ -29,11 +29,11 @@ os.environ.setdefault(
     ),
 )
 
-import pytest  # noqa: E402
+import pytest
 
-from app.core.config import get_settings, reset_settings_cache  # noqa: E402
-from app.core.security.dependencies import reset_auth_cache  # noqa: E402
-from app.core.security.principal import (  # noqa: E402
+from app.core.config import get_settings, reset_settings_cache
+from app.core.security.dependencies import reset_auth_cache
+from app.core.security.principal import (
     Principal,
     PrincipalKind,
     Scope,
@@ -82,9 +82,7 @@ def ingest_principal() -> Principal:
 
 @pytest.fixture
 def reader_principal() -> Principal:
-    return make_principal(
-        Scope.INSIGHTS_READ, Scope.MESSAGES_READ, kind=PrincipalKind.USER
-    )
+    return make_principal(Scope.INSIGHTS_READ, Scope.MESSAGES_READ, kind=PrincipalKind.USER)
 
 
 @pytest.fixture
@@ -126,9 +124,7 @@ def seeded_uow():  # type: ignore[no-untyped-def]
     return FakeUnitOfWork(
         users=[user],
         relations=[relation],
-        messages=[
-            make_message(user, sender_relation_id=relation.id) for _ in range(2)
-        ],
+        messages=[make_message(user, sender_relation_id=relation.id) for _ in range(2)],
     )
 
 

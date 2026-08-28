@@ -97,9 +97,7 @@ class ApiKeyAuthProvider:
         self._records = tuple(records)
 
     async def authenticate(self, request: Request) -> Principal | None:
-        presented = request.headers.get(API_KEY_HEADER) or request.headers.get(
-            LEGACY_CRON_HEADER
-        )
+        presented = request.headers.get(API_KEY_HEADER) or request.headers.get(LEGACY_CRON_HEADER)
         if not presented:
             return None
 

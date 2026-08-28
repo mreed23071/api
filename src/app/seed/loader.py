@@ -225,9 +225,7 @@ async def seed_database(
                 id=message_id,
                 kind=row.get("kind", "message"),
                 sender_user_id=(
-                    stable_id("user", row["sender_user_id"])
-                    if row.get("sender_user_id")
-                    else None
+                    stable_id("user", row["sender_user_id"]) if row.get("sender_user_id") else None
                 ),
                 sender_relation_id=(
                     stable_id("relation", row["sender_relation_id"])
@@ -274,8 +272,7 @@ async def seed_database(
     # -- departments and membership ----------------------------------------
     known_nodes = await _existing(session, OrgNode)
     known_members = {
-        m.user_id
-        for m in (await session.execute(select(OrgNodeMember))).scalars().all()
+        m.user_id for m in (await session.execute(select(OrgNodeMember))).scalars().all()
     }
     for row in _order_nodes(data.get("org_nodes", [])):
         node_id = stable_id("org_node", row["id"])
@@ -286,9 +283,7 @@ async def seed_database(
                     name=row["name"],
                     subtitle=row.get("subtitle") or None,
                     parent_id=(
-                        stable_id("org_node", row["parent_id"])
-                        if row.get("parent_id")
-                        else None
+                        stable_id("org_node", row["parent_id"]) if row.get("parent_id") else None
                     ),
                     created_at=_dt(row.get("created_at")),
                 )
@@ -339,6 +334,7 @@ async def seed_database(
                 keep=decision["keep"],
                 category=decision.get("category"),
                 reason=decision.get("reason"),
+                is_fallback=decision.get("is_fallback", False),
             )
             for decision in row.get("decisions", [])
         ]

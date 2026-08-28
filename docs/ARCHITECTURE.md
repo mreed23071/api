@@ -253,7 +253,7 @@ transaction boundaries**, through `UnitOfWork.transaction()`:
 
 ```python
 async with self.uow.transaction():
-    ...                      # committed on clean exit, rolled back on exception
+    ...  # committed on clean exit, rolled back on exception
 ```
 
 Nested calls open a SAVEPOINT, so a service can compose operations that each

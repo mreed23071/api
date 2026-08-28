@@ -14,7 +14,9 @@ logger = logging.getLogger(__name__)
 
 def build_llm_client(settings: Settings) -> LLMClient:
     if settings.llm_provider == "anthropic":
-        api_key = settings.anthropic_api_key.get_secret_value() if settings.anthropic_api_key else ""
+        api_key = (
+            settings.anthropic_api_key.get_secret_value() if settings.anthropic_api_key else ""
+        )
         if not api_key:
             if settings.is_production:
                 raise RuntimeError(

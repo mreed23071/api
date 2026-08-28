@@ -80,9 +80,7 @@ SOURCE_COVERAGE: dict[str, list[str] | Untested] = {
     "app/core/security/provisional.py": [f"{UNIT}/core/security/test_provisional.py"],
     # -- domains -----------------------------------------------------------
     "app/domains/uow.py": [f"{INTEGRATION}/test_unit_of_work.py"],
-    "app/domains/identity/directory.py": [
-        f"{UNIT}/domains/identity/test_directory.py"
-    ],
+    "app/domains/identity/directory.py": [f"{UNIT}/domains/identity/test_directory.py"],
     "app/domains/identity/dto.py": [
         f"{UNIT}/domains/identity/test_service.py",
         f"{UNIT}/domains/identity/test_directory.py",
@@ -94,12 +92,8 @@ SOURCE_COVERAGE: dict[str, list[str] | Untested] = {
         f"{UNIT}/domains/ingestion/test_service.py",
         f"{UNIT}/domains/ingestion/test_connectors.py",
     ],
-    "app/domains/ingestion/models.py": [
-        f"{INTEGRATION}/domains/test_ingestion_run_models.py"
-    ],
-    "app/domains/ingestion/repository.py": [
-        f"{INTEGRATION}/domains/test_ingestion_run_models.py"
-    ],
+    "app/domains/ingestion/models.py": [f"{INTEGRATION}/domains/test_ingestion_run_models.py"],
+    "app/domains/ingestion/repository.py": [f"{INTEGRATION}/domains/test_ingestion_run_models.py"],
     "app/domains/ingestion/filtering.py": [f"{UNIT}/domains/ingestion/test_filtering.py"],
     "app/domains/ingestion/service.py": [
         f"{UNIT}/domains/ingestion/test_service.py",
@@ -127,15 +121,11 @@ SOURCE_COVERAGE: dict[str, list[str] | Untested] = {
         f"{UNIT}/domains/messaging/test_browse.py",
     ],
     "app/domains/organization/dto.py": [f"{UNIT}/domains/organization/test_service.py"],
-    "app/domains/organization/models.py": [
-        f"{INTEGRATION}/domains/test_organization_models.py"
-    ],
+    "app/domains/organization/models.py": [f"{INTEGRATION}/domains/test_organization_models.py"],
     "app/domains/organization/repository.py": [
         f"{INTEGRATION}/domains/test_organization_models.py"
     ],
-    "app/domains/organization/service.py": [
-        f"{UNIT}/domains/organization/test_service.py"
-    ],
+    "app/domains/organization/service.py": [f"{UNIT}/domains/organization/test_service.py"],
     "app/domains/organization/tree.py": [f"{UNIT}/domains/organization/test_tree.py"],
     # -- shared ------------------------------------------------------------
     "app/shared/embeddings/service.py": [f"{UNIT}/shared/embeddings/test_service.py"],
@@ -162,9 +152,7 @@ SOURCE_COVERAGE: dict[str, list[str] | Untested] = {
 
 def source_modules() -> list[str]:
     return sorted(
-        str(path.relative_to(SRC))
-        for path in APP.rglob("*.py")
-        if path.name != "__init__.py"
+        str(path.relative_to(SRC)) for path in APP.rglob("*.py") if path.name != "__init__.py"
     )
 
 

@@ -48,9 +48,7 @@ ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
     500: {"model": ErrorResponse, "description": "Unexpected server error."},
 }
 
-AUTH_RESPONSES: dict[int | str, dict[str, Any]] = {
-    key: ERROR_RESPONSES[key] for key in (401, 403)
-}
+AUTH_RESPONSES: dict[int | str, dict[str, Any]] = {key: ERROR_RESPONSES[key] for key in (401, 403)}
 
 
 def _request_id(request: Request | None) -> str | None:
@@ -106,9 +104,7 @@ def register_exception_handlers(app: FastAPI, *, auth_schemes: tuple[str, ...] =
                 "request rejected",
                 extra={"error_code": exc.code.value, "http_status": exc.status_code},
             )
-        return _envelope(
-            request, exc.status_code, exc.code, exc.message, exc.details, headers
-        )
+        return _envelope(request, exc.status_code, exc.code, exc.message, exc.details, headers)
 
     @app.exception_handler(RequestValidationError)
     async def _validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:

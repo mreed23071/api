@@ -4,7 +4,7 @@
 .DEFAULT_GOAL := help
 UV ?= uv
 
-.PHONY: help install lint format typecheck test test-integration test-all cov openapi openapi-check migrate revision run up down check
+.PHONY: help install lint format typecheck test test-integration test-all test-cov cov cov-all openapi openapi-check migrate revision run up down check
 
 help:  ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
@@ -30,6 +30,9 @@ test-integration:  ## Integration suite against a real pgvector container
 
 test-all:  ## Everything
 	$(UV) run pytest
+
+test-cov:  ## Fast suite with coverage as XML - what CI's "test" job runs
+	$(UV) run pytest -m "not integration" --cov --cov-report=term-missing --cov-report=xml
 
 cov:  ## Fast suite with a coverage report (terminal + HTML in htmlcov/)
 	$(UV) run pytest -m "not integration" --cov --cov-report=term-missing --cov-report=html

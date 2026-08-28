@@ -11,9 +11,11 @@ from app.domains.identity.models import Platform
 from app.domains.ingestion.dto import (
     ConnectorHealth,
     ConnectorStatus,
-    FilterDecision as FilterDecisionDto,
     IngestionOptions,
     IngestionRunResult,
+)
+from app.domains.ingestion.dto import (
+    FilterDecision as FilterDecisionDto,
 )
 from app.domains.ingestion.models import IngestionRun
 
@@ -31,7 +33,7 @@ class FilterDecisionRead(BaseModel):
     )
 
     @classmethod
-    def from_dto(cls, decision: FilterDecisionDto) -> "FilterDecisionRead":
+    def from_dto(cls, decision: FilterDecisionDto) -> FilterDecisionRead:
         return cls(**decision.model_dump())
 
 
@@ -92,7 +94,7 @@ class IngestionRunResponse(BaseModel):
     decisions: list[FilterDecisionRead] = Field(default_factory=list)
 
     @classmethod
-    def from_result(cls, result: IngestionRunResult) -> "IngestionRunResponse":
+    def from_result(cls, result: IngestionRunResult) -> IngestionRunResponse:
         return cls(
             run_id=result.run_id,
             started_at=result.started_at,
@@ -160,7 +162,7 @@ class IngestionRunSummary(BaseModel):
     decisions: list[FilterDecisionRead] = Field(default_factory=list)
 
     @classmethod
-    def from_entity(cls, run: IngestionRun) -> "IngestionRunSummary":
+    def from_entity(cls, run: IngestionRun) -> IngestionRunSummary:
         """Build from a stored row, including its filtering decisions.
 
         `validation_alias="id"` maps the row's primary key onto the `run_id`
@@ -190,6 +192,7 @@ class IngestionRunSummary(BaseModel):
                     keep=decision.keep,
                     category=decision.category or "unknown",
                     reason=decision.reason,
+                    is_fallback=decision.is_fallback,
                 )
                 for decision in run.decisions
             ],
@@ -212,7 +215,7 @@ class ConnectorRead(BaseModel):
     account_count: int = 0
 
     @classmethod
-    def from_dto(cls, health: ConnectorHealth) -> "ConnectorRead":
+    def from_dto(cls, health: ConnectorHealth) -> ConnectorRead:
         return cls(
             platform=health.platform,
             status=health.status,

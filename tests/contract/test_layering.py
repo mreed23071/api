@@ -51,9 +51,7 @@ def rel(path: Path) -> str:
 def test_core_never_imports_a_bounded_context_or_the_api(path: Path) -> None:
     """`core` is infrastructure. If it needs a domain type, the design is wrong."""
     offenders = {
-        name
-        for name in imported_modules(path)
-        if name.startswith(("app.domains", "app.api"))
+        name for name in imported_modules(path) if name.startswith(("app.domains", "app.api"))
     }
     assert not offenders, f"{rel(path)} imports {sorted(offenders)}"
 
@@ -79,9 +77,7 @@ def test_domains_never_import_fastapi(path: Path) -> None:
 @pytest.mark.parametrize("path", modules("shared"), ids=rel)
 def test_shared_never_imports_a_bounded_context_or_the_api(path: Path) -> None:
     offenders = {
-        name
-        for name in imported_modules(path)
-        if name.startswith(("app.domains", "app.api"))
+        name for name in imported_modules(path) if name.startswith(("app.domains", "app.api"))
     }
     assert not offenders, f"{rel(path)} imports {sorted(offenders)}"
 
@@ -116,8 +112,7 @@ def _calls(node: ast.AST) -> list[ast.Call]:
 
 def _calls_scoped(node: ast.AST) -> bool:
     return any(
-        isinstance(call.func, ast.Attribute) and call.func.attr == "scoped"
-        for call in _calls(node)
+        isinstance(call.func, ast.Attribute) and call.func.attr == "scoped" for call in _calls(node)
     )
 
 
@@ -147,9 +142,7 @@ def test_every_reading_repository_method_routes_through_scoped(path: Path) -> No
 
     for klass in [node for node in ast.walk(tree) if isinstance(node, ast.ClassDef)]:
         methods = [
-            node
-            for node in klass.body
-            if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef)
+            node for node in klass.body if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef)
         ]
         scoped_methods = {node.name for node in methods if _calls_scoped(node)}
 

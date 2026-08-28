@@ -11,9 +11,12 @@ from __future__ import annotations
 import uuid
 from collections import Counter
 
-from app.seed.loader import SEED_NAMESPACE, load_fixtures, stable_id
-from app.seed.loader import _order_nodes  # noqa: PLC2701 - ordering is worth pinning
-
+from app.seed.loader import (
+    SEED_NAMESPACE,
+    _order_nodes,
+    load_fixtures,
+    stable_id,
+)
 
 # -- deterministic identifiers --------------------------------------------
 
@@ -105,9 +108,7 @@ def test_every_reference_points_at_something_that_exists() -> None:
         if message["sender_user_id"] and message["sender_user_id"] not in people:
             dangling.append(f"message {message['id']} -> user {message['sender_user_id']}")
         if message["sender_relation_id"] and message["sender_relation_id"] not in accounts:
-            dangling.append(
-                f"message {message['id']} -> account {message['sender_relation_id']}"
-            )
+            dangling.append(f"message {message['id']} -> account {message['sender_relation_id']}")
     for note in data["person_notes"]:
         if note["user_id"] not in people:
             dangling.append(f"note {note['id']} -> user {note['user_id']}")
@@ -118,9 +119,7 @@ def test_every_reference_points_at_something_that_exists() -> None:
             if member not in people:
                 dangling.append(f"node {node['id']} -> member {member}")
 
-    assert not dangling, "fixtures reference rows that do not exist:\n  " + "\n  ".join(
-        dangling
-    )
+    assert not dangling, "fixtures reference rows that do not exist:\n  " + "\n  ".join(dangling)
 
 
 def test_nobody_is_filed_into_two_departments() -> None:

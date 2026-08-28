@@ -33,6 +33,7 @@ def _contains(term: str) -> str:
     """
     return f"%{term.strip().translate(_LIKE_WILDCARDS)}%"
 
+
 #: Name of the constraint that makes ingestion idempotent. Referenced by the
 #: upsert and asserted by an integration test, so a rename cannot silently turn
 #: the cron endpoint into a duplicate-writer.
@@ -135,9 +136,9 @@ class MessageRepository(Repository):
 
     async def count_for_user(self, user_id: uuid.UUID) -> int:
         """How many messages one person has. Counted in the database, not loaded."""
-        statement = self.scoped(
-            select(func.count()).select_from(Message), Message
-        ).where(Message.sender_user_id == user_id)
+        statement = self.scoped(select(func.count()).select_from(Message), Message).where(
+            Message.sender_user_id == user_id
+        )
         return int((await self.session.execute(statement)).scalar_one())
 
     # -- attribution --------------------------------------------------------
@@ -148,9 +149,7 @@ class MessageRepository(Repository):
     # `sender_relation_id` alongside `sender_user_id` is that provenance never
     # moves, so only one column ever changes.
 
-    async def reattribute(
-        self, relation_id: uuid.UUID, user_id: uuid.UUID | None
-    ) -> int:
+    async def reattribute(self, relation_id: uuid.UUID, user_id: uuid.UUID | None) -> int:
         """Point every message from one account at a person, or at nobody.
 
         One `UPDATE ... WHERE sender_relation_id = ...` regardless of how many
@@ -225,9 +224,9 @@ class MessageRepository(Repository):
 
     async def counts_by_platform(self) -> dict[Platform, int]:
         """How many messages each platform has contributed."""
-        statement = self.scoped(
-            select(Message.platform, func.count()), Message
-        ).group_by(Message.platform)
+        statement = self.scoped(select(Message.platform, func.count()), Message).group_by(
+            Message.platform
+        )
         rows = await self.session.execute(statement)
         return {platform: int(count) for platform, count in rows.all()}
 
@@ -257,9 +256,7 @@ class MessageRepository(Repository):
     async def last_sent_by_relation(self) -> dict[uuid.UUID, datetime]:
         """When each external account last sent anything."""
         statement = (
-            self.scoped(
-                select(Message.sender_relation_id, func.max(Message.sent_at)), Message
-            )
+            self.scoped(select(Message.sender_relation_id, func.max(Message.sent_at)), Message)
             .where(Message.sender_relation_id.is_not(None))
             .group_by(Message.sender_relation_id)
         )

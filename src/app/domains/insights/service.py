@@ -69,9 +69,7 @@ class UserInsightsService:
         """
         self.principal.require(Scope.INSIGHTS_READ, Scope.MESSAGES_READ)
 
-        page = await self.identity.list_users(
-            params, active_only=active_only, with_relations=True
-        )
+        page = await self.identity.list_users(params, active_only=active_only, with_relations=True)
         messages_by_user = await self.messages.recent_for_users(
             [user.id for user in page.items], per_user_limit=messages_per_user
         )

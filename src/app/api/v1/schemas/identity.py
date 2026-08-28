@@ -26,7 +26,7 @@ class UserRelationRead(BaseModel):
     created_at: datetime
 
     @classmethod
-    def from_entity(cls, relation: UserRelation) -> "UserRelationRead":
+    def from_entity(cls, relation: UserRelation) -> UserRelationRead:
         return cls.model_validate(relation)
 
 
@@ -44,7 +44,7 @@ class UserRead(BaseModel):
     updated_at: datetime
 
     @classmethod
-    def from_entity(cls, user: User) -> "UserRead":
+    def from_entity(cls, user: User) -> UserRead:
         return cls.model_validate(user)
 
 

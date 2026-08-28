@@ -28,9 +28,7 @@ class MessageService:
         self.uow = uow
         self.principal = principal
 
-    async def unseen(
-        self, keys: Sequence[tuple[Platform, str]]
-    ) -> list[tuple[Platform, str]]:
+    async def unseen(self, keys: Sequence[tuple[Platform, str]]) -> list[tuple[Platform, str]]:
         """Filter a batch down to what we have not stored yet."""
         self.principal.require(Scope.INGEST_RUN)
         known = await self.uow.messages.existing_keys(keys)
@@ -50,9 +48,7 @@ class MessageService:
         issue one query per person to get it.
         """
         self.principal.require(Scope.MESSAGES_READ)
-        return await self.uow.messages.latest_for_users(
-            user_ids, per_user_limit=per_user_limit
-        )
+        return await self.uow.messages.latest_for_users(user_ids, per_user_limit=per_user_limit)
 
     async def browse(self, filters: MessageFilters, page: PageParams) -> Paginated[Message]:
         """One page of messages matching a filter set, newest first, plus the total.

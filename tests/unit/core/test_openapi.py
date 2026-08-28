@@ -15,7 +15,8 @@ from app.core.openapi import (
 def build_app(*names: str) -> FastAPI:
     app = FastAPI(generate_unique_id_function=custom_generate_unique_id)
     for index, name in enumerate(names):
-        async def handler() -> dict:  # noqa: ANN202
+
+        async def handler() -> dict:
             return {}
 
         handler.__name__ = name

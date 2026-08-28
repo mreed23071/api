@@ -160,9 +160,7 @@ class OrganizationService:
 
         async with self.uow.transaction():
             await self.uow.org_members.remove_for_user(user_id)
-            await self.uow.org_members.add(
-                OrgNodeMember(org_node_id=node_id, user_id=user_id)
-            )
+            await self.uow.org_members.add(OrgNodeMember(org_node_id=node_id, user_id=user_id))
 
         members = await self.uow.org_members.for_node(node_id)
         return self._view(node, [m.user_id for m in members])
@@ -218,9 +216,7 @@ class OrganizationService:
         if await self.uow.users.get(user_id) is None:
             raise NotFoundError("User not found.", details={"user_id": str(user_id)})
 
-    async def _check_reparent(
-        self, node_id: uuid.UUID, next_parent_id: uuid.UUID | None
-    ) -> None:
+    async def _check_reparent(self, node_id: uuid.UUID, next_parent_id: uuid.UUID | None) -> None:
         """Refuse a move that would detach a subtree from the tree.
 
         The whole tree is loaded for this, which is the honest cost of the
@@ -234,8 +230,7 @@ class OrganizationService:
         nodes: Sequence[OrgNode] = await self.uow.org_nodes.list_all()
         if would_create_cycle(nodes, node_id, next_parent_id):
             raise ValidationError(
-                "A department cannot report to itself or to one of its own "
-                "sub-departments.",
+                "A department cannot report to itself or to one of its own sub-departments.",
                 details={"org_node_id": str(node_id), "parent_id": str(next_parent_id)},
             )
 

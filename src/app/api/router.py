@@ -119,7 +119,9 @@ def default_version() -> ApiVersion:
 
 
 def all_tags_metadata() -> list[dict[str, Any]]:
-    seen: dict[str, dict[str, Any]] = {"system": {"name": "system", "description": "Probes and service metadata."}}
+    seen: dict[str, dict[str, Any]] = {
+        "system": {"name": "system", "description": "Probes and service metadata."}
+    }
     for version in API_VERSIONS:
         for tag in version.tags_metadata:
             seen.setdefault(tag["name"], tag)

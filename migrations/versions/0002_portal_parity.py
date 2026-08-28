@@ -15,6 +15,7 @@ the console can express a state the database could not:
 The new tables are notes, the department hierarchy, and ingestion run history.
 
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -32,9 +33,7 @@ UUID = postgresql.UUID(as_uuid=True)
 
 
 def _id_column() -> sa.Column:
-    return sa.Column(
-        "id", UUID, server_default=sa.text("gen_random_uuid()"), nullable=False
-    )
+    return sa.Column("id", UUID, server_default=sa.text("gen_random_uuid()"), nullable=False)
 
 
 def _timestamps() -> tuple[sa.Column, sa.Column]:
@@ -92,9 +91,7 @@ def upgrade() -> None:
             ondelete="CASCADE",
         ),
     )
-    op.create_index(
-        "ix_person_notes_user_id_created_at", "person_notes", ["user_id", "created_at"]
-    )
+    op.create_index("ix_person_notes_user_id_created_at", "person_notes", ["user_id", "created_at"])
 
     # -- the department hierarchy, as an adjacency list ---------------------
     op.create_table(
@@ -191,9 +188,7 @@ def upgrade() -> None:
             ondelete="CASCADE",
         ),
     )
-    op.create_index(
-        "ix_ingestion_run_decisions_run_id", "ingestion_run_decisions", ["run_id"]
-    )
+    op.create_index("ix_ingestion_run_decisions_run_id", "ingestion_run_decisions", ["run_id"])
 
 
 def downgrade() -> None:

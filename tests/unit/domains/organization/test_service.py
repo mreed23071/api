@@ -67,9 +67,7 @@ async def test_a_node_cannot_be_moved_under_its_own_descendant() -> None:
     svc, _ = service(org_nodes=[engineering, platform])
 
     with pytest.raises(ValidationError, match="sub-departments"):
-        await svc.update_node(
-            engineering.id, OrgNodePatch(parent_id=platform.id, reparent=True)
-        )
+        await svc.update_node(engineering.id, OrgNodePatch(parent_id=platform.id, reparent=True))
 
 
 async def test_a_node_can_be_promoted_to_a_root() -> None:
@@ -116,9 +114,7 @@ async def test_assigning_a_person_moves_them_out_of_their_old_department() -> No
     svc, uow = service(
         users=[amara],
         org_nodes=[engineering, finance],
-        org_members=[
-            OrgNodeMember(id=uuid.uuid4(), org_node_id=engineering.id, user_id=amara.id)
-        ],
+        org_members=[OrgNodeMember(id=uuid.uuid4(), org_node_id=engineering.id, user_id=amara.id)],
     )
 
     view = await svc.assign_member(finance.id, amara.id)
@@ -142,9 +138,7 @@ async def test_removing_someone_from_a_department_they_are_not_in_is_refused() -
     svc, _ = service(
         users=[amara],
         org_nodes=[engineering, finance],
-        org_members=[
-            OrgNodeMember(id=uuid.uuid4(), org_node_id=engineering.id, user_id=amara.id)
-        ],
+        org_members=[OrgNodeMember(id=uuid.uuid4(), org_node_id=engineering.id, user_id=amara.id)],
     )
 
     with pytest.raises(NotFoundError):

@@ -50,11 +50,43 @@ async def test_a_decision_records_a_message_that_was_never_persisted(session) ->
     assert decision.external_message_id == "slack-never-stored"
 
 
-async def test_deleting_a_run_removes_its_decisions(session) -> None:
+async def test_a_fallback_decision_round_trips(session) -> None:
+    """Regression: is_fallback used to exist only in memory for the duration
+    of one run and was never persisted, so every historical decision failed
+    to deserialize on the next read - a 500 the browser reported as CORS."""
     run = await _run(session)
     session.add(
-        IngestionRunDecision(run_id=run.id, external_message_id="slack-1", keep=True)
+        IngestionRunDecision(
+            run_id=run.id,
+            external_message_id="slack-agent-failed",
+            keep=False,
+            category="unclear",
+            reason="Agent unavailable; fail-closed default applied.",
+            is_fallback=True,
+        )
     )
+    await session.flush()
+
+    stored = await session.execute(
+        select(IngestionRunDecision).where(IngestionRunDecision.run_id == run.id)
+    )
+    assert stored.scalars().one().is_fallback is True
+
+
+async def test_a_decision_defaults_to_not_a_fallback(session) -> None:
+    run = await _run(session)
+    session.add(IngestionRunDecision(run_id=run.id, external_message_id="slack-normal", keep=True))
+    await session.flush()
+
+    stored = await session.execute(
+        select(IngestionRunDecision).where(IngestionRunDecision.run_id == run.id)
+    )
+    assert stored.scalars().one().is_fallback is False
+
+
+async def test_deleting_a_run_removes_its_decisions(session) -> None:
+    run = await _run(session)
+    session.add(IngestionRunDecision(run_id=run.id, external_message_id="slack-1", keep=True))
     await session.flush()
 
     await session.delete(run)

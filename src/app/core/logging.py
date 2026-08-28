@@ -21,8 +21,7 @@ run_id_var: ContextVar[str | None] = ContextVar("run_id", default=None)
 
 #: LogRecord attributes that are not user-supplied `extra` fields.
 _RESERVED = frozenset(
-    vars(logging.LogRecord("", 0, "", 0, "", (), None)).keys()
-    | {"message", "asctime", "taskName"}
+    vars(logging.LogRecord("", 0, "", 0, "", (), None)).keys() | {"message", "asctime", "taskName"}
 )
 
 

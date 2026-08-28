@@ -2,19 +2,18 @@
 
 from __future__ import annotations
 
-from typing import Annotated
-
 import uuid
 from datetime import datetime
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Path, Query
 
 from app.api.deps import InsightsServiceDep, PageParamsDep
-from app.domains.insights.dto import SummaryWindow
 from app.api.errors import AUTH_RESPONSES
 from app.api.v1.schemas.insights import PersonSummaryResponse, UserSummariesResponse
 from app.core.security.dependencies import require_scopes
 from app.core.security.principal import Scope
+from app.domains.insights.dto import SummaryWindow
 
 router = APIRouter(prefix="/insights", tags=["insights"], responses=AUTH_RESPONSES)
 
@@ -70,9 +69,7 @@ async def get_user_summary(
     range_from: Annotated[
         datetime | None, Query(description="Inclusive start of the window.")
     ] = None,
-    range_to: Annotated[
-        datetime | None, Query(description="Inclusive end of the window.")
-    ] = None,
+    range_to: Annotated[datetime | None, Query(description="Inclusive end of the window.")] = None,
     recent: Annotated[
         int, Query(ge=1, le=50, description="How many recent messages to include.")
     ] = 5,

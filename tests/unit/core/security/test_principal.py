@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import FrozenInstanceError
+
 import pytest
 
 from app.core.errors import AuthenticationError, AuthorizationError
@@ -49,7 +51,7 @@ def test_admin_satisfies_every_scope() -> None:
 
 def test_principal_is_immutable() -> None:
     principal = make_principal(Scope.ADMIN)
-    with pytest.raises(Exception):
+    with pytest.raises(FrozenInstanceError):
         principal.subject = "someone-else"  # type: ignore[misc]
 
 

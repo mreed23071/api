@@ -35,7 +35,7 @@ class UserSummaryRead(BaseModel):
     recent_messages: list[MessagePreview] = Field(default_factory=list)
 
     @classmethod
-    def from_dto(cls, entry: UserCommunicationSummary) -> "UserSummaryRead":
+    def from_dto(cls, entry: UserCommunicationSummary) -> UserSummaryRead:
         return cls(
             user=UserRead.from_entity(entry.user),
             relations=[UserRelationRead.from_entity(r) for r in entry.relations],
@@ -55,7 +55,7 @@ class UserSummariesResponse(BaseModel):
     llm_model: str
 
     @classmethod
-    def from_result(cls, result: UserSummariesResult) -> "UserSummariesResponse":
+    def from_result(cls, result: UserSummariesResult) -> UserSummariesResponse:
         return cls(
             page=Page.build(result.page, UserSummaryRead.from_dto),
             llm_provider=result.llm_provider,
@@ -87,16 +87,14 @@ class PersonSummaryResponse(BaseModel):
     llm_model: str | None = None
 
     @classmethod
-    def from_dto(cls, summary: PersonSummary) -> "PersonSummaryResponse":
+    def from_dto(cls, summary: PersonSummary) -> PersonSummaryResponse:
         return cls(
             user_id=summary.user_id,
             summary=summary.summary,
             summary_error=summary.summary_error,
             generated_at=summary.generated_at,
             message_count=summary.message_count,
-            recent_messages=[
-                MessagePreview.from_entity(m) for m in summary.recent_messages
-            ],
+            recent_messages=[MessagePreview.from_entity(m) for m in summary.recent_messages],
             range_from=summary.window.starting,
             range_to=summary.window.ending,
             llm_provider=summary.llm_provider,

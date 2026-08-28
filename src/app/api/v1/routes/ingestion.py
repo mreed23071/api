@@ -86,6 +86,4 @@ async def list_ingestion_runs(
     service: IngestionServiceDep,
     limit: Annotated[int, Query(ge=1, le=100, description="How many runs to return.")] = 20,
 ) -> list[IngestionRunSummary]:
-    return [
-        IngestionRunSummary.from_entity(run) for run in await service.history(limit=limit)
-    ]
+    return [IngestionRunSummary.from_entity(run) for run in await service.history(limit=limit)]

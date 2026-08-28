@@ -58,7 +58,10 @@ class FakeUserRepository:
             user.created_at = datetime.now(UTC)
         if getattr(user, "updated_at", None) is None:
             user.updated_at = datetime.now(UTC)
-        user.__dict__.setdefault("relations", [])
+        # Through the instrumented attribute, not user.__dict__[...] directly -
+        # see the matching comment in tests/factories/identity.py.
+        if "relations" not in user.__dict__:
+            user.relations = []
         self.users.append(user)
         return user
 
@@ -79,11 +82,7 @@ class FakeUserRelationRepository:
 
     async def resolve(self, platform: Platform, external_id: str) -> UserRelation | None:
         return next(
-            (
-                r
-                for r in self.relations
-                if r.platform == platform and r.external_id == external_id
-            ),
+            (r for r in self.relations if r.platform == platform and r.external_id == external_id),
             None,
         )
 
@@ -275,9 +274,7 @@ class FakeMessageRepository:
 
     async def delete_for_relation(self, relation_id: uuid.UUID) -> int:
         before = len(self.messages)
-        self.messages[:] = [
-            m for m in self.messages if m.sender_relation_id != relation_id
-        ]
+        self.messages[:] = [m for m in self.messages if m.sender_relation_id != relation_id]
         return before - len(self.messages)
 
     async def delete_for_user(self, user_id: uuid.UUID) -> int:
@@ -432,9 +429,7 @@ class FakeUnitOfWork:
 
     def _cascade_delete(self, user_id: uuid.UUID) -> None:
         """What the database's ON DELETE CASCADE would do."""
-        self.relations.relations[:] = [
-            r for r in self.relations.relations if r.user_id != user_id
-        ]
+        self.relations.relations[:] = [r for r in self.relations.relations if r.user_id != user_id]
         self.messages.messages[:] = [
             m for m in self.messages.messages if m.sender_user_id != user_id
         ]

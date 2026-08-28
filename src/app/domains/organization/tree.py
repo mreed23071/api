@@ -125,9 +125,7 @@ def depth_by_id(nodes: Sequence[HasParent]) -> dict[uuid.UUID, int]:
     return depths
 
 
-def eligible_parents(
-    nodes: Sequence[HasParent], node_id: uuid.UUID
-) -> list[uuid.UUID]:
+def eligible_parents(nodes: Sequence[HasParent], node_id: uuid.UUID) -> list[uuid.UUID]:
     """The departments this one could legally be moved under.
 
     Everything except itself and everything beneath it. The `|` between the two

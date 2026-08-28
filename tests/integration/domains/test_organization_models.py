@@ -58,12 +58,17 @@ async def test_deleting_a_node_orphans_its_children_rather_than_removing_them(
     """SET NULL, not CASCADE. Losing a subtree to one delete is unrecoverable."""
     root = await _node(session, "Acme")
     child = await _node(session, "Engineering", root)
+    # Captured before expire_all(): child is expired below, and evaluating an
+    # attribute on an expired instance triggers a refresh load - one that
+    # isn't awaited when it happens while evaluating a plain argument
+    # expression, which is a MissingGreenlet under the async engine.
+    child_id = child.id
 
     await session.delete(root)
     await session.flush()
     session.expire_all()
 
-    survivor = await session.get(OrgNode, child.id)
+    survivor = await session.get(OrgNode, child_id)
     assert survivor is not None, "the child must survive its parent"
     assert survivor.parent_id is None
 
@@ -79,7 +84,5 @@ async def test_deleting_a_node_removes_its_memberships(session) -> None:
     await session.delete(node)
     await session.flush()
 
-    remaining = await session.execute(
-        select(OrgNodeMember).where(OrgNodeMember.user_id == user.id)
-    )
+    remaining = await session.execute(select(OrgNodeMember).where(OrgNodeMember.user_id == user.id))
     assert remaining.scalars().all() == []

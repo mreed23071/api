@@ -54,9 +54,7 @@ async def test_an_unbounded_window_covers_everything() -> None:
 async def test_a_window_narrows_what_the_summary_is_built_from() -> None:
     svc, _, amara_id = person_with_history()
 
-    summary = await svc.summarize_person(
-        amara_id, SummaryWindow(starting=NOW - timedelta(days=30))
-    )
+    summary = await svc.summarize_person(amara_id, SummaryWindow(starting=NOW - timedelta(days=30)))
 
     assert summary.message_count == 2
 
@@ -74,9 +72,7 @@ async def test_a_window_containing_nothing_explains_itself() -> None:
     """Not an error - there is simply nothing in that slice to describe."""
     svc, _, amara_id = person_with_history()
 
-    summary = await svc.summarize_person(
-        amara_id, SummaryWindow(starting=NOW + timedelta(days=1))
-    )
+    summary = await svc.summarize_person(amara_id, SummaryWindow(starting=NOW + timedelta(days=1)))
 
     assert summary.message_count == 0
     assert summary.summary is None

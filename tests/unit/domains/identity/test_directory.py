@@ -112,9 +112,7 @@ async def test_the_paged_directory_offset_moves_the_window() -> None:
 async def test_creating_a_person_fills_in_the_defaults_a_form_leaves_blank() -> None:
     svc, _ = service()
 
-    person = await svc.create_person(
-        NewPerson(full_name="Amara Okafor", email="Amara@Example.com")
-    )
+    person = await svc.create_person(NewPerson(full_name="Amara Okafor", email="Amara@Example.com"))
 
     assert person.email == "amara@example.com", "email is the merge key; normalise it"
     assert person.display_name == "Amara", "what a colleague would call her"
@@ -293,7 +291,7 @@ async def test_notes_come_back_newest_first() -> None:
 
     notes = await svc.list_notes(amara.id)
 
-    assert [n.body for n in notes][0] == "Second observation."
+    assert next(n.body for n in notes) == "Second observation."
 
 
 async def test_an_empty_note_is_refused() -> None:

@@ -241,9 +241,7 @@ class DirectoryService:
                 "deleted_accounts": len(accounts),
             },
         )
-        return ForgetResult(
-            deleted_messages=message_count, deleted_accounts=len(accounts)
-        )
+        return ForgetResult(deleted_messages=message_count, deleted_accounts=len(accounts))
 
     async def list_messages_for(self, user_id: uuid.UUID) -> Sequence[Message]:
         """Every message attributed to one person, newest first.
@@ -315,9 +313,7 @@ class DirectoryService:
             )
         return relation
 
-    async def link_account(
-        self, relation_id: uuid.UUID, user_id: uuid.UUID
-    ) -> UserRelation:
+    async def link_account(self, relation_id: uuid.UUID, user_id: uuid.UUID) -> UserRelation:
         """Attribute an account to a person, and every message it ever sent."""
         require_console_access(self.principal)
         relation = await self._require_relation(relation_id)
@@ -435,9 +431,7 @@ class DirectoryService:
         """Fetch an account, or raise `NotFoundError`."""
         relation = await self.uow.relations.get(relation_id)
         if relation is None:
-            raise NotFoundError(
-                "Account not found.", details={"account_id": str(relation_id)}
-            )
+            raise NotFoundError("Account not found.", details={"account_id": str(relation_id)})
         return relation
 
     @staticmethod

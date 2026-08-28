@@ -52,9 +52,7 @@ def test_operation_ids_are_bare_function_names(app) -> None:
 
 def test_operation_ids_are_globally_unique(app) -> None:
     """They are the only thing keeping SDK method names distinct across versions."""
-    ids = [
-        operation_id_for(route) for route in _api_route_contexts(app) if route.include_in_schema
-    ]
+    ids = [operation_id_for(route) for route in _api_route_contexts(app) if route.include_in_schema]
     assert len(ids) == len(set(ids))
 
 

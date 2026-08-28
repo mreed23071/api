@@ -13,7 +13,7 @@ Note the direction of dependencies: nothing here imports `app.domains` or
 aggregates them lives in `app.domains.uow`.
 """
 
-from app.core.db.base import Base, NAMING_CONVENTION
+from app.core.db.base import NAMING_CONVENTION, Base
 from app.core.db.engine import (
     SessionDep,
     dispose_engine,

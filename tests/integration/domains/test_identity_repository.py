@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, InvalidRequestError
 
 from app.core.pagination import PageParams
 from app.domains.identity.models import Platform
@@ -27,9 +27,7 @@ async def test_email_is_unique(uow) -> None:
 
 async def test_an_external_identity_belongs_to_exactly_one_user(uow) -> None:
     first, second = await uow.users.add(make_user()), await uow.users.add(make_user())
-    await uow.relations.add(
-        make_relation(first, platform=Platform.SLACK, external_id="U-SHARED")
-    )
+    await uow.relations.add(make_relation(first, platform=Platform.SLACK, external_id="U-SHARED"))
     with pytest.raises(IntegrityError):
         await uow.relations.add(
             make_relation(second, platform=Platform.SLACK, external_id="U-SHARED")
@@ -45,9 +43,7 @@ async def test_the_same_external_id_on_a_different_platform_is_fine(uow) -> None
 
 async def test_resolve_many_is_one_query_for_a_whole_batch(uow) -> None:
     user = await uow.users.add(make_user())
-    slack = await uow.relations.add(
-        make_relation(user, platform=Platform.SLACK, external_id="U-A")
-    )
+    slack = await uow.relations.add(make_relation(user, platform=Platform.SLACK, external_id="U-A"))
     github = await uow.relations.add(
         make_relation(user, platform=Platform.GITHUB, external_id="gh-a")
     )
@@ -110,5 +106,5 @@ async def test_relations_raise_rather_than_lazy_load(uow) -> None:
     uow.session.expire_all()
 
     page = await uow.users.list_users(PageParams(), with_relations=False)
-    with pytest.raises(Exception):
+    with pytest.raises(InvalidRequestError):
         _ = page.items[0].relations

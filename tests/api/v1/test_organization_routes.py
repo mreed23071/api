@@ -37,9 +37,7 @@ async def test_a_department_needs_a_name(client) -> None:  # type: ignore[no-unt
 
 
 async def test_creating_under_an_unknown_parent_is_a_404(client) -> None:  # type: ignore[no-untyped-def]
-    response = await client.post(
-        "/api/v1/org/nodes", json={"name": "Orphan", "parent_id": UNKNOWN}
-    )
+    response = await client.post("/api/v1/org/nodes", json={"name": "Orphan", "parent_id": UNKNOWN})
 
     assert response.status_code == 404
 
@@ -48,9 +46,7 @@ async def test_renaming_leaves_the_parent_alone(client) -> None:  # type: ignore
     root = await create(client, "Acme")
     child = await create(client, "Engineering", root)
 
-    response = await client.patch(
-        f"/api/v1/org/nodes/{child}", json={"name": "Engineering Group"}
-    )
+    response = await client.patch(f"/api/v1/org/nodes/{child}", json={"name": "Engineering Group"})
 
     assert response.status_code == 200
     assert response.json()["name"] == "Engineering Group"
