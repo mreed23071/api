@@ -111,7 +111,7 @@ async def test_a_completed_run_is_recorded_with_its_decisions() -> None:
     uow = FakeUnitOfWork()
     svc = build(uow)
 
-    await svc.run(IngestionOptions())
+    await svc.run(IngestionOptions(), platform=Platform.SLACK)
 
     assert len(uow.runs.runs) == 1
     assert uow.runs.runs[0].decisions, "the filtering verdicts are the audit trail"
@@ -122,7 +122,7 @@ async def test_a_dry_run_is_still_recorded() -> None:
     uow = FakeUnitOfWork()
     svc = build(uow)
 
-    await svc.run(IngestionOptions(dry_run=True))
+    await svc.run(IngestionOptions(dry_run=True), platform=Platform.SLACK)
 
     assert len(uow.runs.runs) == 1
     assert uow.runs.runs[0].dry_run is True

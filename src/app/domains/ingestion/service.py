@@ -81,8 +81,14 @@ class IngestionService:
         self.identity = IdentityService(uow, principal)
         self.messages = MessageService(uow, principal)
 
-    async def run(self, options: IngestionOptions) -> IngestionRunResult:
+    async def run(self, options: IngestionOptions, *, platform: Platform) -> IngestionRunResult:
         """Execute one ingestion cycle and return a report of what it did.
+
+        `platform` names which pipeline this is - it comes from the route, not
+        from `options`, because it is routing-determined (which connector was
+        injected) rather than a caller-adjustable override. Recorded on the
+        result and the persisted run so the history list can tell pipelines
+        apart.
 
         Five steps, in this order for reasons that matter:
 
@@ -122,6 +128,7 @@ class IngestionService:
             finished_at=started_at,
             duration_ms=0,
             dry_run=options.dry_run,
+            platform=platform,
             filter_provider=agent.provider,
             filter_prompt_version=self.settings.prompt_version,
             embedding_model=self.embeddings.model_name,
@@ -232,6 +239,7 @@ class IngestionService:
                     conversation_id=message.conversation_id,
                     content=message.content,
                     sent_at=message.sent_at,
+                    kind=message.kind,
                     source_metadata=message.metadata,
                     sender_user_id=relation.user_id,
                     sender_relation_id=relation.id,
@@ -263,6 +271,7 @@ class IngestionService:
             finished_at=result.finished_at,
             duration_ms=result.duration_ms,
             dry_run=result.dry_run,
+            platform=result.platform,
             fetched=result.fetched,
             already_ingested=result.already_ingested,
             evaluated=result.evaluated,
@@ -293,10 +302,12 @@ class IngestionService:
         except Exception:
             logger.exception("could not record the ingestion run", extra={"run_id": result.run_id})
 
-    async def history(self, *, limit: int = 20) -> Sequence[IngestionRun]:
-        """The most recent runs, newest first."""
+    async def history(
+        self, *, limit: int = 20, platform: Platform | None = None
+    ) -> Sequence[IngestionRun]:
+        """The most recent runs, newest first, optionally scoped to one platform."""
         require_console_access(self.principal)
-        return await self.uow.runs.list_recent(limit=limit)
+        return await self.uow.runs.list_recent(limit=limit, platform=platform)
 
     async def connectors(self) -> list[ConnectorHealth]:
         """One health row per platform, inferred from what has actually arrived.

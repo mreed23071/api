@@ -7,17 +7,21 @@ declarative and every dependency has exactly one override point in tests
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Annotated
 
 from fastapi import Depends, Query
 
 from app.core.config import Settings, get_settings
 from app.core.db.engine import SessionDep
+from app.core.errors import NotFoundError
 from app.core.pagination import MAX_LIMIT, PageParams
 from app.core.security.dependencies import CurrentPrincipal
 from app.domains.identity.directory import DirectoryService
+from app.domains.identity.models import Platform
+from app.domains.ingestion.dto import RawMessage
 from app.domains.ingestion.service import IngestionService
-from app.domains.ingestion.sources import MessageSource, MockMessageService
+from app.domains.ingestion.sources import MessageSource, MockChatSource, MockGitHubCommitSource
 from app.domains.insights.service import UserInsightsService
 from app.domains.messaging.service import MessageService
 from app.domains.organization.service import OrganizationService
@@ -90,12 +94,48 @@ def get_page_params(
 PageParamsDep = Annotated[PageParams, Depends(get_page_params)]
 
 
-def get_message_source() -> MessageSource:
-    """The connector the ingestion pipeline pulls from.
+#: One pipeline per platform, not one pipeline for all of them - each entry is
+#: swapped for a real connector independently, on its own schedule, without
+#: touching the others. `Callable[[], MessageSource]`, not an instance: a fresh
+#: connector per request, same as every other per-request dependency here.
+_MOCK_SOURCES: dict[Platform, Callable[[], MessageSource]] = {
+    Platform.GITHUB: MockGitHubCommitSource,
+    Platform.SLACK: lambda: MockChatSource(Platform.SLACK, name="slack-mock"),
+    Platform.TEAMS: lambda: MockChatSource(Platform.TEAMS, name="teams-mock"),
+}
 
-    Swapping in a real Slack/GitHub connector is a change to this one function.
+
+class _NoConnector:
+    """Stands in for routes that build an `IngestionService` without ever
+    calling `.run()` on it - `/connectors` and the unfiltered `/runs` list.
+    Those never touch `.source`, so this only exists to satisfy the type."""
+
+    name = "none"
+
+    async def fetch(self, *, limit: int | None = None) -> list[RawMessage]:
+        return []
+
+
+def get_message_source(platform: Platform | None = None) -> MessageSource:
+    """The connector one platform's ingestion pipeline pulls from.
+
+    `platform` is resolved from the request the same way any other path or
+    query parameter is - FastAPI matches it by name against whatever the route
+    this dependency is used from declares (a path param for `/runs/{platform}`
+    and `/config/{platform}`, the optional query param for `/runs`). Routes
+    with no `platform` at all - `/connectors` - get `None`, which is fine
+    since those never call `.run()`. Swapping in a real Slack/GitHub/Teams
+    connector is a change to `_MOCK_SOURCES`, not to any route.
     """
-    return MockMessageService()
+    if platform is None:
+        return _NoConnector()
+    try:
+        return _MOCK_SOURCES[platform]()
+    except KeyError:
+        raise NotFoundError(
+            f"No connector configured for platform '{platform.value}'.",
+            details={"platform": platform.value},
+        ) from None
 
 
 MessageSourceDep = Annotated[MessageSource, Depends(get_message_source)]

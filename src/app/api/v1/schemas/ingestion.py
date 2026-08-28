@@ -73,6 +73,7 @@ class IngestionRunResponse(BaseModel):
     finished_at: datetime
     duration_ms: int
     dry_run: bool
+    platform: Platform | None = None
 
     fetched: int = Field(description="Messages returned by the source connector.")
     already_ingested: int = Field(description="Skipped: previously stored.")
@@ -101,6 +102,7 @@ class IngestionRunResponse(BaseModel):
             finished_at=result.finished_at,
             duration_ms=result.duration_ms,
             dry_run=result.dry_run,
+            platform=result.platform,
             fetched=result.fetched,
             already_ingested=result.already_ingested,
             evaluated=result.evaluated,
@@ -121,6 +123,7 @@ class IngestionRunResponse(BaseModel):
 class IngestionConfigResponse(BaseModel):
     """The knobs the ingestion pipeline is currently running with."""
 
+    platform: Platform
     filter_system_prompt: str
     prompt_version: str
     llm_provider: str
@@ -145,6 +148,9 @@ class IngestionRunSummary(BaseModel):
     finished_at: datetime | None = None
     duration_ms: int
     dry_run: bool
+    platform: Platform | None = Field(
+        default=None, description="Null only for runs recorded before per-platform pipelines."
+    )
     status: str = Field(description='"success", "partial" or "failed".')
 
     fetched: int
@@ -174,6 +180,7 @@ class IngestionRunSummary(BaseModel):
             finished_at=run.finished_at,
             duration_ms=run.duration_ms,
             dry_run=run.dry_run,
+            platform=run.platform,
             status=run.status,
             fetched=run.fetched,
             already_ingested=run.already_ingested,

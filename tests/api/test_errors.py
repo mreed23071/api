@@ -29,7 +29,7 @@ async def test_validation_failure_uses_the_envelope(client) -> None:
 
 
 async def test_missing_credentials_use_the_envelope(client) -> None:
-    response = await client.post("/api/v1/ingestion/runs", json={})
+    response = await client.post("/api/v1/ingestion/runs/slack", json={})
     assert response.status_code == 401
     assert assert_envelope(response.json())["code"] == "unauthenticated"
 
@@ -43,13 +43,13 @@ async def test_insufficient_scope_uses_the_envelope(client) -> None:
 
 
 async def test_401_carries_a_valid_challenge_header(client) -> None:
-    response = await client.post("/api/v1/ingestion/runs", json={})
+    response = await client.post("/api/v1/ingestion/runs/slack", json={})
     assert "ApiKey" in response.headers["WWW-Authenticate"]
 
 
 async def test_error_response_carries_the_request_id_for_correlation(client) -> None:
     response = await client.post(
-        "/api/v1/ingestion/runs", json={}, headers={"X-Request-Id": "trace-xyz"}
+        "/api/v1/ingestion/runs/slack", json={}, headers={"X-Request-Id": "trace-xyz"}
     )
     assert response.json()["error"]["request_id"] == "trace-xyz"
 

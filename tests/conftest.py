@@ -137,18 +137,19 @@ def embeddings():  # type: ignore[no-untyped-def]
 
 @pytest.fixture
 def app(seeded_uow, embeddings):  # type: ignore[no-untyped-def]
-    from app.api.deps import get_message_source, get_uow
+    from app.api.deps import get_uow
     from app.main import create_app
     from app.shared.embeddings.service import get_embedding_service
     from app.shared.llm.factory import get_llm_client
     from app.shared.llm.stub import StubLLMClient
-    from tests.fakes.sources import ScriptedMessageSource
 
     instance = create_app(get_settings())
     instance.dependency_overrides[get_uow] = lambda: seeded_uow
     instance.dependency_overrides[get_llm_client] = StubLLMClient
     instance.dependency_overrides[get_embedding_service] = lambda: embeddings
-    instance.dependency_overrides[get_message_source] = lambda: ScriptedMessageSource([])
+    # get_message_source is left un-overridden: it's the real per-platform mock
+    # registry, deterministic and side-effect-free, so route tests exercise it
+    # the same way production does.
     return instance
 
 

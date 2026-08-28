@@ -21,6 +21,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db.base import Base
 from app.core.db.mixins import TimestampMixin, UUIDPrimaryKeyMixin
+from app.domains.identity.models import Platform, platform_enum
 
 
 class IngestionRun(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -41,6 +42,10 @@ class IngestionRun(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     #: A dry run performs every step and deliberately saves nothing, so a policy
     #: change can be tested against real traffic without retaining anything.
     dry_run: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    #: Which pipeline this run belongs to. Nullable only for runs recorded
+    #: before ingestion was split into one pipeline per platform.
+    platform: Mapped[Platform | None] = mapped_column(platform_enum)
 
     fetched: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     already_ingested: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

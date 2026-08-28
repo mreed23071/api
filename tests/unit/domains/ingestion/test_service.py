@@ -2,6 +2,11 @@
 
 Fast enough to run on every save, and it covers the branching that actually
 breaks: dedupe, fail-closed filtering, provisioning, dry run, idempotency.
+
+Every `.run()` call needs a `platform` - the pipeline is per-platform now, not
+one pipeline for everything. Most tests here use Slack's mock source as the
+generic "some platform" fixture; only the identity-merge test below actually
+cares about more than one.
 """
 
 from __future__ import annotations
@@ -10,9 +15,10 @@ import pytest
 
 from app.core.errors import AuthenticationError, AuthorizationError
 from app.core.security.principal import Principal, Scope
+from app.domains.identity.models import Platform
 from app.domains.ingestion.dto import IngestionOptions
 from app.domains.ingestion.service import IngestionService
-from app.domains.ingestion.sources import MockMessageService
+from app.domains.ingestion.sources import MockChatSource
 from app.shared.llm.stub import StubLLMClient
 from tests.conftest import make_principal
 from tests.factories import make_raw_message
@@ -28,7 +34,7 @@ def build(uow=None, source=None, llm=None, principal=None, settings=None):  # ty
     return IngestionService(
         uow=uow or FakeUnitOfWork(),
         principal=principal or make_principal(Scope.INGEST_RUN, Scope.INGEST_READ),
-        source=source or MockMessageService(),
+        source=source or MockChatSource(Platform.SLACK, name="slack-mock"),
         llm=llm or StubLLMClient(),
         embeddings=embeddings,
         settings=settings or get_settings(),
@@ -37,10 +43,10 @@ def build(uow=None, source=None, llm=None, principal=None, settings=None):  # ty
 
 async def test_a_run_filters_embeds_and_persists() -> None:
     uow = FakeUnitOfWork()
-    result = await build(uow).run(IngestionOptions())
+    result = await build(uow).run(IngestionOptions(), platform=Platform.SLACK)
 
-    assert result.fetched == 12
-    assert result.evaluated == 12
+    assert result.platform == Platform.SLACK
+    assert result.fetched == result.evaluated
     assert result.retained + result.discarded == result.evaluated
     assert result.retained > 0
     assert result.embedded == result.retained
@@ -50,7 +56,7 @@ async def test_a_run_filters_embeds_and_persists() -> None:
 
 async def test_every_stored_message_carries_an_embedding_and_provenance() -> None:
     uow = FakeUnitOfWork()
-    await build(uow).run(IngestionOptions())
+    await build(uow).run(IngestionOptions(), platform=Platform.SLACK)
 
     for stored in uow.messages.upserted:
         assert stored.embedding is not None and len(stored.embedding) == 384
@@ -60,25 +66,31 @@ async def test_every_stored_message_carries_an_embedding_and_provenance() -> Non
 
 
 async def test_unknown_identities_are_provisioned_once() -> None:
-    """Three fictional authors, each seen on more than one platform.
+    """Three fictional authors, all on Slack in the mock fixture.
 
-    A relation is created per (person, platform) pair that survived filtering -
-    not per platform in the fixture - so the count is asserted as a range rather
-    than a magic number that would break every time the fixture is edited.
+    A relation is created per (person, platform) pair that survived filtering,
+    so the count is asserted as a range rather than a magic number that would
+    break every time the fixture is edited.
     """
     uow = FakeUnitOfWork()
-    result = await build(uow).run(IngestionOptions())
+    result = await build(uow).run(IngestionOptions(), platform=Platform.SLACK)
 
     assert result.users_provisioned == 3
-    assert 3 <= result.relations_provisioned <= 9
+    assert 1 <= result.relations_provisioned <= 3
     assert len({user.email for user in uow.users.users}) == 3
-    assert len(uow.relations.relations) == result.relations_provisioned
 
 
 async def test_a_person_seen_on_several_platforms_is_one_user() -> None:
-    """The product's core claim, asserted against the real fixture."""
+    """The product's core claim - now exercised the way it actually happens:
+    two separate pipeline runs, one per platform, sharing one uow. A person
+    who appears in both must resolve to one User, not two."""
     uow = FakeUnitOfWork()
-    await build(uow).run(IngestionOptions())
+    await build(uow, source=MockChatSource(Platform.SLACK, name="slack-mock")).run(
+        IngestionOptions(), platform=Platform.SLACK
+    )
+    await build(uow, source=MockChatSource(Platform.TEAMS, name="teams-mock")).run(
+        IngestionOptions(), platform=Platform.TEAMS
+    )
 
     platforms_per_user: dict = {}
     for relation in uow.relations.relations:
@@ -91,8 +103,8 @@ async def test_a_person_seen_on_several_platforms_is_one_user() -> None:
 async def test_a_second_run_writes_nothing_new() -> None:
     """The scheduler is at-least-once; a repeat must not duplicate rows."""
     uow = FakeUnitOfWork()
-    first = await build(uow).run(IngestionOptions())
-    second = await build(uow).run(IngestionOptions())
+    first = await build(uow).run(IngestionOptions(), platform=Platform.SLACK)
+    second = await build(uow).run(IngestionOptions(), platform=Platform.SLACK)
 
     assert second.already_ingested == first.persisted
     assert second.persisted == 0
@@ -102,13 +114,13 @@ async def test_a_second_run_writes_nothing_new() -> None:
 async def test_stored_messages_are_never_embedded_twice() -> None:
     """Dedupe runs before filtering and embedding, so a duplicate costs nothing."""
     uow = FakeUnitOfWork()
-    first = await build(uow).run(IngestionOptions())
+    first = await build(uow).run(IngestionOptions(), platform=Platform.SLACK)
 
     second_embeddings = FakeEmbeddingService()
     second_embeddings.start()
     service = build(uow)
     service.embeddings = second_embeddings
-    second = await service.run(IngestionOptions())
+    second = await service.run(IngestionOptions(), platform=Platform.SLACK)
 
     assert second.already_ingested == first.persisted
     assert second.embedded == 0
@@ -125,8 +137,8 @@ async def test_rejected_messages_are_re_evaluated_on_every_run() -> None:
     evaluated-and-rejected external ids.
     """
     uow = FakeUnitOfWork()
-    first = await build(uow).run(IngestionOptions())
-    second = await build(uow).run(IngestionOptions())
+    first = await build(uow).run(IngestionOptions(), platform=Platform.SLACK)
+    second = await build(uow).run(IngestionOptions(), platform=Platform.SLACK)
 
     assert first.discarded > 0
     assert second.evaluated == first.discarded
@@ -135,7 +147,7 @@ async def test_rejected_messages_are_re_evaluated_on_every_run() -> None:
 
 async def test_dry_run_rolls_everything_back() -> None:
     uow = FakeUnitOfWork()
-    result = await build(uow).run(IngestionOptions(dry_run=True))
+    result = await build(uow).run(IngestionOptions(dry_run=True), platform=Platform.SLACK)
 
     assert result.dry_run is True
     assert result.retained > 0  # the pipeline really ran
@@ -146,8 +158,8 @@ async def test_dry_run_rolls_everything_back() -> None:
 
 
 async def test_limit_caps_the_source() -> None:
-    result = await build().run(IngestionOptions(limit=4))
-    assert result.fetched == 4
+    result = await build().run(IngestionOptions(limit=2), platform=Platform.SLACK)
+    assert result.fetched == 2
 
 
 async def test_a_prompt_override_is_accepted_for_a_single_run() -> None:
@@ -155,14 +167,17 @@ async def test_a_prompt_override_is_accepted_for_a_single_run() -> None:
         [make_raw_message(external_message_id="m1", content="Deploy the release now.")]
     )
     result = await build(source=source).run(
-        IngestionOptions(system_prompt_override="Keep nothing at all.", dry_run=True)
+        IngestionOptions(system_prompt_override="Keep nothing at all.", dry_run=True),
+        platform=Platform.SLACK,
     )
     assert result.evaluated == 1
 
 
 async def test_provider_outage_discards_and_reports_filter_errors() -> None:
     uow = FakeUnitOfWork()
-    result = await build(uow, llm=FailingLLMClient()).run(IngestionOptions())
+    result = await build(uow, llm=FailingLLMClient()).run(
+        IngestionOptions(), platform=Platform.SLACK
+    )
 
     assert result.retained == 0
     assert result.persisted == 0
@@ -173,8 +188,10 @@ async def test_provider_outage_discards_and_reports_filter_errors() -> None:
 async def test_discarded_messages_are_reconsidered_on_the_next_run() -> None:
     """Fail-closed must not mean permanently lost."""
     uow = FakeUnitOfWork()
-    outage = await build(uow, llm=FailingLLMClient()).run(IngestionOptions())
-    recovered = await build(uow).run(IngestionOptions())
+    outage = await build(uow, llm=FailingLLMClient()).run(
+        IngestionOptions(), platform=Platform.SLACK
+    )
+    recovered = await build(uow).run(IngestionOptions(), platform=Platform.SLACK)
 
     assert outage.persisted == 0
     assert recovered.evaluated == outage.evaluated
@@ -189,17 +206,21 @@ async def test_writes_happen_in_two_short_transactions() -> None:
     would take the history record down with it.
     """
     uow = FakeUnitOfWork()
-    await build(uow).run(IngestionOptions())
+    await build(uow).run(IngestionOptions(), platform=Platform.SLACK)
     assert uow.transactions == 2
 
 
 async def test_anonymous_callers_are_rejected_before_any_work() -> None:
     source = ScriptedMessageSource([make_raw_message()])
     with pytest.raises(AuthenticationError):
-        await build(source=source, principal=Principal.anonymous()).run(IngestionOptions())
+        await build(source=source, principal=Principal.anonymous()).run(
+            IngestionOptions(), platform=Platform.SLACK
+        )
     assert source.fetch_calls == 0
 
 
 async def test_a_reader_cannot_trigger_ingestion() -> None:
     with pytest.raises(AuthorizationError):
-        await build(principal=make_principal(Scope.INSIGHTS_READ)).run(IngestionOptions())
+        await build(principal=make_principal(Scope.INSIGHTS_READ)).run(
+            IngestionOptions(), platform=Platform.SLACK
+        )

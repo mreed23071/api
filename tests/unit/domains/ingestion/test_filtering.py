@@ -11,8 +11,9 @@ import json
 import pytest
 
 from app.core.config import DEFAULT_FILTER_PROMPT
+from app.domains.identity.models import Platform
 from app.domains.ingestion.filtering import MessageFilterAgent
-from app.domains.ingestion.sources import MockMessageService
+from app.domains.ingestion.sources import MockChatSource
 from app.shared.llm.stub import StubLLMClient
 from tests.factories import make_raw_message
 from tests.fakes import FailingLLMClient, RecordingLLMClient, ScriptedLLMClient
@@ -38,7 +39,7 @@ async def test_business_retained_and_personal_dropped() -> None:
 
 
 async def test_every_message_receives_exactly_one_decision_in_order() -> None:
-    messages = list(await MockMessageService().fetch())
+    messages = list(await MockChatSource(Platform.SLACK, name="slack-mock").fetch())
     decisions = await agent().filter(messages)
     assert [d.id for d in decisions] == [m.external_message_id for m in messages]
 

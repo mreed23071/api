@@ -11,10 +11,10 @@ from sqlalchemy import func, select
 
 from app.core.config import get_settings
 from app.core.security.principal import Scope
-from app.domains.identity.models import User, UserRelation
+from app.domains.identity.models import Platform, User, UserRelation
 from app.domains.ingestion.dto import IngestionOptions
 from app.domains.ingestion.service import IngestionService
-from app.domains.ingestion.sources import MockMessageService
+from app.domains.ingestion.sources import MockChatSource
 from app.domains.messaging.models import Message
 from app.shared.llm.stub import StubLLMClient
 from tests.conftest import make_principal
@@ -30,7 +30,7 @@ def service(uow):  # type: ignore[no-untyped-def]
     return IngestionService(
         uow=uow,
         principal=make_principal(Scope.INGEST_RUN, Scope.INGEST_READ),
-        source=MockMessageService(),
+        source=MockChatSource(Platform.SLACK, name="slack-mock"),
         llm=StubLLMClient(),
         embeddings=embeddings,
         settings=get_settings(),
@@ -42,7 +42,7 @@ async def count(session, model) -> int:  # type: ignore[no-untyped-def]
 
 
 async def test_a_full_run_persists_users_relations_and_messages(service, uow) -> None:
-    result = await service.run(IngestionOptions())
+    result = await service.run(IngestionOptions(), platform=Platform.SLACK)
 
     assert result.persisted > 0
     assert await count(uow.session, User) == result.users_provisioned == 3
@@ -51,21 +51,21 @@ async def test_a_full_run_persists_users_relations_and_messages(service, uow) ->
 
 
 async def test_stored_messages_carry_a_real_vector(service, uow) -> None:
-    await service.run(IngestionOptions())
+    await service.run(IngestionOptions(), platform=Platform.SLACK)
     message = (await uow.session.execute(select(Message).limit(1))).scalar_one()
     assert message.embedding is not None and len(message.embedding) == 384
 
 
 async def test_a_second_run_is_a_no_op_against_the_real_constraint(service, uow) -> None:
-    first = await service.run(IngestionOptions())
-    second = await service.run(IngestionOptions())
+    first = await service.run(IngestionOptions(), platform=Platform.SLACK)
+    second = await service.run(IngestionOptions(), platform=Platform.SLACK)
 
     assert second.persisted == 0
     assert await count(uow.session, Message) == first.persisted
 
 
 async def test_dry_run_leaves_the_database_untouched(service, uow) -> None:
-    result = await service.run(IngestionOptions(dry_run=True))
+    result = await service.run(IngestionOptions(dry_run=True), platform=Platform.SLACK)
 
     assert result.retained > 0
     assert await count(uow.session, Message) == 0
@@ -77,7 +77,7 @@ async def test_summaries_read_back_what_ingestion_wrote(service, uow) -> None:
     from app.core.pagination import PageParams
     from app.domains.insights.service import UserInsightsService
 
-    await service.run(IngestionOptions())
+    await service.run(IngestionOptions(), platform=Platform.SLACK)
 
     insights = UserInsightsService(
         uow,

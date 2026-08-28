@@ -391,8 +391,13 @@ class FakeIngestionRunRepository:
         self.runs.append(run)
         return run
 
-    async def list_recent(self, *, limit: int = 20) -> list[IngestionRun]:
-        return sorted(self.runs, key=lambda r: r.started_at, reverse=True)[:limit]
+    async def list_recent(
+        self, *, limit: int = 20, platform: Platform | None = None
+    ) -> list[IngestionRun]:
+        matching = (
+            self.runs if platform is None else [r for r in self.runs if r.platform == platform]
+        )
+        return sorted(matching, key=lambda r: r.started_at, reverse=True)[:limit]
 
     async def get(self, run_id: uuid.UUID) -> IngestionRun | None:
         return next((r for r in self.runs if r.id == run_id), None)

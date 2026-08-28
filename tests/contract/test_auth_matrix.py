@@ -16,6 +16,8 @@ Caller legend:
 
 from __future__ import annotations
 
+import re
+
 import pytest
 from fastapi.routing import APIRoute, RouteContext, iter_route_contexts
 
@@ -33,6 +35,15 @@ def _api_route_contexts(app) -> list[RouteContext]:  # type: ignore[no-untyped-d
     ]
 
 
+# AUTH_MATRIX rows are concrete, executable paths (e.g. `/ingestion/runs/slack`)
+# since `test_auth_matrix` fires them at the app verbatim - but FastAPI's
+# `route.path` is the template (`/ingestion/runs/{platform}`). Matching one
+# against the other needs the template turned into a pattern, not a string
+# comparison.
+def _template_pattern(route_path: str) -> re.Pattern[str]:
+    return re.compile("^" + re.sub(r"\{[^}]+\}", r"[^/]+", route_path) + "$")
+
+
 ANONYMOUS: dict[str, str] = {}
 SCHEDULER = {"X-API-Key": INGEST_KEY}
 READER = {"X-API-Key": READER_KEY}
@@ -48,16 +59,16 @@ AUTH_MATRIX: list[tuple[str, str, str, dict[str, str], int]] = [
     # -- unversioned probes: public by design, they carry no data ----------
     ("GET", "/health", "anonymous", ANONYMOUS, OK),
     ("GET", "/api/versions", "anonymous", ANONYMOUS, OK),
-    # -- ingestion: machine-to-machine only --------------------------------
-    ("POST", "/api/v1/ingestion/runs", "anonymous", ANONYMOUS, UNAUTHENTICATED),
-    ("POST", "/api/v1/ingestion/runs", "scheduler", SCHEDULER, OK),
-    ("POST", "/api/v1/ingestion/runs", "reader", READER, FORBIDDEN),
-    ("POST", "/api/v1/ingestion/runs", "admin", ADMIN, OK),
-    ("POST", "/api/v1/ingestion/runs", "dev-user", DEV_USER, FORBIDDEN),
-    ("GET", "/api/v1/ingestion/config", "anonymous", ANONYMOUS, UNAUTHENTICATED),
-    ("GET", "/api/v1/ingestion/config", "scheduler", SCHEDULER, OK),
-    ("GET", "/api/v1/ingestion/config", "reader", READER, FORBIDDEN),
-    ("GET", "/api/v1/ingestion/config", "admin", ADMIN, OK),
+    # -- ingestion: machine-to-machine only, one pipeline per platform ------
+    ("POST", "/api/v1/ingestion/runs/slack", "anonymous", ANONYMOUS, UNAUTHENTICATED),
+    ("POST", "/api/v1/ingestion/runs/slack", "scheduler", SCHEDULER, OK),
+    ("POST", "/api/v1/ingestion/runs/slack", "reader", READER, FORBIDDEN),
+    ("POST", "/api/v1/ingestion/runs/slack", "admin", ADMIN, OK),
+    ("POST", "/api/v1/ingestion/runs/slack", "dev-user", DEV_USER, FORBIDDEN),
+    ("GET", "/api/v1/ingestion/config/slack", "anonymous", ANONYMOUS, UNAUTHENTICATED),
+    ("GET", "/api/v1/ingestion/config/slack", "scheduler", SCHEDULER, OK),
+    ("GET", "/api/v1/ingestion/config/slack", "reader", READER, FORBIDDEN),
+    ("GET", "/api/v1/ingestion/config/slack", "admin", ADMIN, OK),
     # -- insights: personal data. Never anonymous, never the scheduler -----
     ("GET", "/api/v1/insights/users", "anonymous", ANONYMOUS, UNAUTHENTICATED),
     ("GET", "/api/v1/insights/users", "scheduler", SCHEDULER, FORBIDDEN),
@@ -136,7 +147,7 @@ async def test_auth_matrix(client, method, path, caller, headers, expected) -> N
 
 def test_every_route_appears_in_the_matrix(app) -> None:
     """A new endpoint must declare who may call it, or this fails."""
-    covered = {(method, path) for method, path, _, _, _ in AUTH_MATRIX}
+    covered = [(method, path) for method, path, _, _, _ in AUTH_MATRIX]
 
     missing = []
     for route in _api_route_contexts(app):
@@ -144,8 +155,9 @@ def test_every_route_appears_in_the_matrix(app) -> None:
             continue
         if route.name in MATRIX_EXEMPT or route.name in PROVISIONALLY_OPEN:
             continue
+        pattern = _template_pattern(route.path)
         for method in route.methods - {"HEAD", "OPTIONS"}:
-            if (method, route.path) not in covered:
+            if not any(m == method and pattern.match(p) for m, p in covered):
                 missing.append(f"{method} {route.path} ({route.name})")
 
     assert not missing, (
@@ -155,10 +167,16 @@ def test_every_route_appears_in_the_matrix(app) -> None:
 
 
 def test_no_matrix_row_points_at_a_route_that_no_longer_exists(app) -> None:
-    live = {
-        (method, route.path) for route in _api_route_contexts(app) for method in route.methods or ()
-    }
-    stale = sorted({(m, p) for m, p, _, _, _ in AUTH_MATRIX} - live)
+    live = [
+        (method, _template_pattern(route.path))
+        for route in _api_route_contexts(app)
+        for method in route.methods or ()
+    ]
+    stale = sorted(
+        (m, p)
+        for m, p, _, _, _ in AUTH_MATRIX
+        if not any(m == lm and lp.match(p) for lm, lp in live)
+    )
     assert not stale, f"AUTH_MATRIX references routes that no longer exist: {stale}"
 
 

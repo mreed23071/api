@@ -31,6 +31,11 @@ class RawMessage(BaseModel):
     conversation_id: str | None = None
     content: str
     sent_at: datetime
+    #: "message" or "commit". A connector that fetches something other than
+    #: chat messages (GitHub commits, so far) sets this, and puts the extra
+    #: structure - sha, files touched, diff stats - in `metadata["commit"]`,
+    #: shaped to match `CommitDetail` in `api/v1/schemas/messaging.py`.
+    kind: str = "message"
     metadata: dict[str, Any] = Field(default_factory=dict)
 
     @property
@@ -90,6 +95,9 @@ class IngestionRunResult:
     finished_at: datetime
     duration_ms: int
     dry_run: bool
+    #: Which platform this run pulled from. `None` only for runs recorded
+    #: before per-platform pipelines existed.
+    platform: Platform | None = None
 
     fetched: int = 0
     already_ingested: int = 0

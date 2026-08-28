@@ -22,6 +22,7 @@ class NewMessage(BaseModel):
     conversation_id: str | None = Field(default=None, max_length=255)
     content: str
     sent_at: datetime
+    kind: str = "message"
     source_metadata: dict[str, Any] = Field(default_factory=dict)
 
     sender_user_id: uuid.UUID

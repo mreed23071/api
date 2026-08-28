@@ -13,6 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.core.db.repository import Repository
+from app.domains.identity.models import Platform
 from app.domains.ingestion.models import IngestionRun
 
 
@@ -30,7 +31,9 @@ class IngestionRunRepository(Repository):
         await self.session.flush()
         return run
 
-    async def list_recent(self, *, limit: int = 20) -> Sequence[IngestionRun]:
+    async def list_recent(
+        self, *, limit: int = 20, platform: Platform | None = None
+    ) -> Sequence[IngestionRun]:
         """The most recent runs, newest first, each with its decisions loaded.
 
         `selectinload` fetches the decisions in a second query keyed by run id,
@@ -48,6 +51,8 @@ class IngestionRunRepository(Repository):
             .order_by(IngestionRun.started_at.desc())
             .limit(limit)
         )
+        if platform is not None:
+            statement = statement.where(IngestionRun.platform == platform)
         return (await self.session.execute(statement)).scalars().all()
 
     async def get(self, run_id: uuid.UUID) -> IngestionRun | None:
