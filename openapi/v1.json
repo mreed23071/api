@@ -1,0 +1,4400 @@
+{
+  "components": {
+    "schemas": {
+      "AccountCreate": {
+        "description": "An external account attached to a person by hand.\n\nNo `external_id`: nobody has authenticated against this account, so the\nplatform has not issued one. The server synthesises a unique placeholder.",
+        "properties": {
+          "external_email": {
+            "anyOf": [
+              {
+                "format": "email",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Email"
+          },
+          "external_handle": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "External Handle",
+            "type": "string"
+          },
+          "platform": {
+            "$ref": "#/components/schemas/Platform"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "platform",
+          "external_handle"
+        ],
+        "title": "AccountCreate",
+        "type": "object"
+      },
+      "AccountDeleteResponse": {
+        "description": "What deleting an account destroyed along with it.",
+        "properties": {
+          "deleted_messages": {
+            "title": "Deleted Messages",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "deleted_messages"
+        ],
+        "title": "AccountDeleteResponse",
+        "type": "object"
+      },
+      "Body_link_account": {
+        "properties": {
+          "user_id": {
+            "description": "Who to attribute it to.",
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id"
+        ],
+        "title": "Body_link_account",
+        "type": "object"
+      },
+      "CommitDetail": {
+        "description": "The extra structure a commit carries that a chat message does not.\n\nStored in the message's `source_metadata` rather than in columns, because it\nis one connector's vocabulary. Putting GitHub's shape into the messages\ntable would mean every Slack row carrying empty commit columns forever.",
+        "properties": {
+          "additions": {
+            "default": 0,
+            "title": "Additions",
+            "type": "integer"
+          },
+          "ai_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Summary"
+          },
+          "ai_summary_generated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Summary Generated At"
+          },
+          "branch": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branch"
+          },
+          "deletions": {
+            "default": 0,
+            "title": "Deletions",
+            "type": "integer"
+          },
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/CommitFile"
+            },
+            "title": "Files",
+            "type": "array"
+          },
+          "repository": {
+            "title": "Repository",
+            "type": "string"
+          },
+          "sha": {
+            "title": "Sha",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "sha",
+          "repository"
+        ],
+        "title": "CommitDetail",
+        "type": "object"
+      },
+      "CommitFile": {
+        "description": "One file touched by a commit.",
+        "properties": {
+          "additions": {
+            "default": 0,
+            "title": "Additions",
+            "type": "integer"
+          },
+          "deletions": {
+            "default": 0,
+            "title": "Deletions",
+            "type": "integer"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "status": {
+            "description": "\"added\", \"modified\" or \"removed\".",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "status"
+        ],
+        "title": "CommitFile",
+        "type": "object"
+      },
+      "ConnectorRead": {
+        "description": "One platform's contribution, as the integrations screen shows it.\n\n`status` is inferred from stored data - account count and how recently\nanything arrived. Nothing polls a connector or checks a credential, because\nno real connector exists yet, so a platform can read \"connected\" here while\nits token expired an hour ago.",
+        "properties": {
+          "account_count": {
+            "default": 0,
+            "title": "Account Count",
+            "type": "integer"
+          },
+          "last_sync_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Sync At"
+          },
+          "messages_contributed": {
+            "default": 0,
+            "title": "Messages Contributed",
+            "type": "integer"
+          },
+          "platform": {
+            "$ref": "#/components/schemas/Platform"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ConnectorStatus"
+          }
+        },
+        "required": [
+          "platform",
+          "status"
+        ],
+        "title": "ConnectorRead",
+        "type": "object"
+      },
+      "ConnectorStatus": {
+        "description": "How healthy a platform integration looks, judged only by what arrived.\n\nNothing here polls a connector or checks a credential - no real connector\nexists yet. These values are inferred from the data already stored, and the\ndistinction matters: a platform can look CONNECTED here while its API token\nexpired an hour ago. When real connectors land, this becomes a reported\nstatus and these rules go away.",
+        "enum": [
+          "connected",
+          "degraded",
+          "needs_attention",
+          "disconnected"
+        ],
+        "title": "ConnectorStatus",
+        "type": "string"
+      },
+      "DeletedResponse": {
+        "description": "Confirms which record a delete removed, so a client can reconcile.",
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "title": "DeletedResponse",
+        "type": "object"
+      },
+      "ErrorCode": {
+        "description": "Stable, machine-readable error identifiers.\n\nThese are part of the public API contract: clients branch on them. Add new\nmembers freely; never rename or repurpose an existing one.",
+        "enum": [
+          "internal_error",
+          "not_found",
+          "conflict",
+          "validation_failed",
+          "unauthenticated",
+          "forbidden",
+          "rate_limited",
+          "upstream_failed",
+          "service_unavailable",
+          "configuration_error"
+        ],
+        "title": "ErrorCode",
+        "type": "string"
+      },
+      "ErrorDetail": {
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/ErrorCode",
+            "description": "Stable machine-readable identifier."
+          },
+          "details": {
+            "additionalProperties": true,
+            "title": "Details",
+            "type": "object"
+          },
+          "message": {
+            "description": "Human-readable explanation. Not for parsing.",
+            "title": "Message",
+            "type": "string"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Correlates this response with the server logs.",
+            "title": "Request Id"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorDetail",
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorDetail"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "ErrorResponse",
+        "type": "object"
+      },
+      "FilterDecisionRead": {
+        "description": "One verdict from the filtering agent.",
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_fallback": {
+            "description": "True when the agent failed and this is the fail-closed default, not a real judgement.",
+            "title": "Is Fallback",
+            "type": "boolean"
+          },
+          "keep": {
+            "title": "Keep",
+            "type": "boolean"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "required": [
+          "id",
+          "keep",
+          "category",
+          "is_fallback"
+        ],
+        "title": "FilterDecisionRead",
+        "type": "object"
+      },
+      "ForgetUserResponse": {
+        "description": "What erasure removed. The only record that survives the cascade.",
+        "properties": {
+          "deleted_accounts": {
+            "title": "Deleted Accounts",
+            "type": "integer"
+          },
+          "deleted_messages": {
+            "title": "Deleted Messages",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "deleted_messages",
+          "deleted_accounts"
+        ],
+        "title": "ForgetUserResponse",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "IngestionConfigResponse": {
+        "description": "The knobs the ingestion pipeline is currently running with.",
+        "properties": {
+          "embedding_dim": {
+            "title": "Embedding Dim",
+            "type": "integer"
+          },
+          "embedding_executor": {
+            "title": "Embedding Executor",
+            "type": "string"
+          },
+          "embedding_model": {
+            "title": "Embedding Model",
+            "type": "string"
+          },
+          "embedding_workers": {
+            "title": "Embedding Workers",
+            "type": "integer"
+          },
+          "filter_system_prompt": {
+            "title": "Filter System Prompt",
+            "type": "string"
+          },
+          "llm_provider": {
+            "title": "Llm Provider",
+            "type": "string"
+          },
+          "prompt_version": {
+            "title": "Prompt Version",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "filter_system_prompt",
+          "prompt_version",
+          "llm_provider",
+          "embedding_model",
+          "embedding_dim",
+          "embedding_executor",
+          "embedding_workers",
+          "source"
+        ],
+        "title": "IngestionConfigResponse",
+        "type": "object"
+      },
+      "IngestionRunRequest": {
+        "description": "Optional per-run overrides for the scheduler.",
+        "properties": {
+          "dry_run": {
+            "default": false,
+            "description": "Run source, filtering and embedding, then roll back instead of persisting.",
+            "title": "Dry Run",
+            "type": "boolean"
+          },
+          "limit": {
+            "anyOf": [
+              {
+                "maximum": 1000.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Cap on messages pulled this run.",
+            "title": "Limit"
+          },
+          "system_prompt_override": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Overrides INGESTION_FILTER_SYSTEM_PROMPT for this run only. Intended for tuning against dry_run; changing retention policy for a persisted run should be a configuration change, not a request parameter.",
+            "title": "System Prompt Override"
+          }
+        },
+        "title": "IngestionRunRequest",
+        "type": "object"
+      },
+      "IngestionRunResponse": {
+        "description": "Machine-readable run report for the scheduler's logs and alerting.",
+        "properties": {
+          "already_ingested": {
+            "description": "Skipped: previously stored.",
+            "title": "Already Ingested",
+            "type": "integer"
+          },
+          "decisions": {
+            "items": {
+              "$ref": "#/components/schemas/FilterDecisionRead"
+            },
+            "title": "Decisions",
+            "type": "array"
+          },
+          "discarded": {
+            "description": "Rejected by the policy.",
+            "title": "Discarded",
+            "type": "integer"
+          },
+          "dry_run": {
+            "title": "Dry Run",
+            "type": "boolean"
+          },
+          "duration_ms": {
+            "title": "Duration Ms",
+            "type": "integer"
+          },
+          "embedded": {
+            "description": "Vectors generated locally this run.",
+            "title": "Embedded",
+            "type": "integer"
+          },
+          "embedding_model": {
+            "title": "Embedding Model",
+            "type": "string"
+          },
+          "evaluated": {
+            "description": "Messages sent to the filtering agent.",
+            "title": "Evaluated",
+            "type": "integer"
+          },
+          "fetched": {
+            "description": "Messages returned by the source connector.",
+            "title": "Fetched",
+            "type": "integer"
+          },
+          "filter_errors": {
+            "description": "Messages dropped because the agent failed, not because the policy rejected them. Alert on this.",
+            "title": "Filter Errors",
+            "type": "integer"
+          },
+          "filter_prompt_version": {
+            "title": "Filter Prompt Version",
+            "type": "string"
+          },
+          "filter_provider": {
+            "title": "Filter Provider",
+            "type": "string"
+          },
+          "finished_at": {
+            "format": "date-time",
+            "title": "Finished At",
+            "type": "string"
+          },
+          "persisted": {
+            "description": "Rows actually written.",
+            "title": "Persisted",
+            "type": "integer"
+          },
+          "relations_provisioned": {
+            "title": "Relations Provisioned",
+            "type": "integer"
+          },
+          "retained": {
+            "description": "Classified as worth keeping.",
+            "title": "Retained",
+            "type": "integer"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "users_provisioned": {
+            "title": "Users Provisioned",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "run_id",
+          "started_at",
+          "finished_at",
+          "duration_ms",
+          "dry_run",
+          "fetched",
+          "already_ingested",
+          "evaluated",
+          "retained",
+          "discarded",
+          "filter_errors",
+          "embedded",
+          "persisted",
+          "users_provisioned",
+          "relations_provisioned",
+          "filter_provider",
+          "filter_prompt_version",
+          "embedding_model"
+        ],
+        "title": "IngestionRunResponse",
+        "type": "object"
+      },
+      "IngestionRunSummary": {
+        "description": "One past run, as the history list shows it.\n\nBuilt from the stored row rather than from the in-memory result, so the\nhistory screen and a run's own response cannot drift apart.",
+        "properties": {
+          "already_ingested": {
+            "title": "Already Ingested",
+            "type": "integer"
+          },
+          "decisions": {
+            "items": {
+              "$ref": "#/components/schemas/FilterDecisionRead"
+            },
+            "title": "Decisions",
+            "type": "array"
+          },
+          "discarded": {
+            "title": "Discarded",
+            "type": "integer"
+          },
+          "dry_run": {
+            "title": "Dry Run",
+            "type": "boolean"
+          },
+          "duration_ms": {
+            "title": "Duration Ms",
+            "type": "integer"
+          },
+          "embedded": {
+            "title": "Embedded",
+            "type": "integer"
+          },
+          "embedding_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embedding Model"
+          },
+          "evaluated": {
+            "title": "Evaluated",
+            "type": "integer"
+          },
+          "fetched": {
+            "title": "Fetched",
+            "type": "integer"
+          },
+          "filter_errors": {
+            "title": "Filter Errors",
+            "type": "integer"
+          },
+          "filter_provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filter Provider"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "persisted": {
+            "title": "Persisted",
+            "type": "integer"
+          },
+          "retained": {
+            "title": "Retained",
+            "type": "integer"
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "status": {
+            "description": "\"success\", \"partial\" or \"failed\".",
+            "title": "Status",
+            "type": "string"
+          },
+          "users_provisioned": {
+            "title": "Users Provisioned",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "run_id",
+          "started_at",
+          "duration_ms",
+          "dry_run",
+          "status",
+          "fetched",
+          "already_ingested",
+          "evaluated",
+          "retained",
+          "discarded",
+          "embedded",
+          "persisted",
+          "users_provisioned",
+          "filter_errors"
+        ],
+        "title": "IngestionRunSummary",
+        "type": "object"
+      },
+      "MessagePreview": {
+        "description": "Trimmed message embedded in summary responses.\n\nThe embedding is deliberately absent from every v1 read model: 384 floats\nper message is hundreds of kilobytes on a page, and no client can use them.\nVector access, when it exists, belongs on a search endpoint.",
+        "properties": {
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "platform": {
+            "$ref": "#/components/schemas/Platform"
+          },
+          "sent_at": {
+            "format": "date-time",
+            "title": "Sent At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "platform",
+          "content",
+          "sent_at"
+        ],
+        "title": "MessagePreview",
+        "type": "object"
+      },
+      "MessageRead": {
+        "description": "A stored message in full, as the browser and person view show it.\n\nStill no embedding: 384 floats per message is hundreds of kilobytes on a\npage and no client can use them. Vector access belongs on a search endpoint.",
+        "properties": {
+          "commit": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CommitDetail"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "conversation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversation Id"
+          },
+          "embedding_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embedding Model"
+          },
+          "external_message_id": {
+            "title": "External Message Id",
+            "type": "string"
+          },
+          "filter_category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filter Category"
+          },
+          "filter_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filter Reason"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "description": "\"message\" or \"commit\".",
+            "title": "Kind",
+            "type": "string"
+          },
+          "platform": {
+            "$ref": "#/components/schemas/Platform"
+          },
+          "sender_relation_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sender Relation Id"
+          },
+          "sender_user_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null while the sending account is unattributed.",
+            "title": "Sender User Id"
+          },
+          "sent_at": {
+            "format": "date-time",
+            "title": "Sent At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "platform",
+          "external_message_id",
+          "content",
+          "sent_at"
+        ],
+        "title": "MessageRead",
+        "type": "object"
+      },
+      "NoteCreate": {
+        "description": "A new observation about a person.",
+        "properties": {
+          "author": {
+            "description": "Who wrote it. Supplied by the client until operators are rows in their own right, at which point it comes from the caller instead.",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Author",
+            "type": "string"
+          },
+          "body": {
+            "description": "The note itself.",
+            "minLength": 1,
+            "title": "Body",
+            "type": "string"
+          }
+        },
+        "required": [
+          "body",
+          "author"
+        ],
+        "title": "NoteCreate",
+        "type": "object"
+      },
+      "NoteRead": {
+        "description": "A note somebody wrote about a person.",
+        "properties": {
+          "author": {
+            "title": "Author",
+            "type": "string"
+          },
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "user_id",
+          "author",
+          "body",
+          "created_at"
+        ],
+        "title": "NoteRead",
+        "type": "object"
+      },
+      "OrgMemberAssign": {
+        "description": "File a person into a department.\n\nA move, not an add: a person belongs to exactly one department, so this\nremoves any previous membership. The client is expected to confirm with the\nuser first when they are moving somebody who already has a department.",
+        "properties": {
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id"
+        ],
+        "title": "OrgMemberAssign",
+        "type": "object"
+      },
+      "OrgNodeCreate": {
+        "description": "A new department, optionally beneath an existing one.",
+        "properties": {
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "subtitle": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtitle"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "OrgNodeCreate",
+        "type": "object"
+      },
+      "OrgNodeDeleteResponse": {
+        "description": "What deleting a department did to the departments beneath it.",
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "promoted": {
+            "description": "How many sub-departments moved up to the deleted node's parent. Worth showing in a confirmation: deleting a leaf and deleting a division are different acts.",
+            "title": "Promoted",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "promoted"
+        ],
+        "title": "OrgNodeDeleteResponse",
+        "type": "object"
+      },
+      "OrgNodeRead": {
+        "description": "One department, with the ids of the people filed into it.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "member_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Member Ids",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null when this node is a root.",
+            "title": "Parent Id"
+          },
+          "subtitle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtitle"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "created_at"
+        ],
+        "title": "OrgNodeRead",
+        "type": "object"
+      },
+      "OrgNodeUpdate": {
+        "description": "A partial update, including the awkward case of moving to a root.\n\n`parent_id` has three meanings a client might intend - leave it alone, move\nit under X, or make it a root - and a plain optional field can only express\ntwo. `reparent` disambiguates: when it is true the `parent_id` sent is\napplied, including null.\n\nThe validator rejects sending `parent_id` without `reparent`, rather than\nsilently ignoring it. A caller that meant to move a department and did not\nshould get an error, not a success that changed nothing.",
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "reparent": {
+            "default": false,
+            "description": "Set true to apply `parent_id`, including null to make this a root.",
+            "title": "Reparent",
+            "type": "boolean"
+          },
+          "subtitle": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtitle"
+          }
+        },
+        "title": "OrgNodeUpdate",
+        "type": "object"
+      },
+      "Page_MessageRead_": {
+        "properties": {
+          "has_more": {
+            "description": "True when another page exists after this one.",
+            "title": "Has More",
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MessageRead"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "description": "Total matching records, ignoring pagination.",
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset",
+          "has_more"
+        ],
+        "title": "Page[MessageRead]",
+        "type": "object"
+      },
+      "Page_UserSummaryRead_": {
+        "properties": {
+          "has_more": {
+            "description": "True when another page exists after this one.",
+            "title": "Has More",
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/UserSummaryRead"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "description": "Total matching records, ignoring pagination.",
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset",
+          "has_more"
+        ],
+        "title": "Page[UserSummaryRead]",
+        "type": "object"
+      },
+      "PersonSummaryResponse": {
+        "description": "One person's generated summary for one window of their history.\n\nNo human-readable label for the window. The mock returned one (\"since\n2026-05-01\"), but the console is localised and a sentence composed on the\nserver cannot be translated on the client - so the dates travel and the\nconsole builds the phrase from its own tokens.\n\n`summary` and `summary_error` are mutually exclusive: a generation that\nfails degrades this one entry rather than the request.",
+        "properties": {
+          "generated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generated At"
+          },
+          "llm_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Model"
+          },
+          "llm_provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Provider"
+          },
+          "message_count": {
+            "default": 0,
+            "title": "Message Count",
+            "type": "integer"
+          },
+          "range_from": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Range From"
+          },
+          "range_to": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Range To"
+          },
+          "recent_messages": {
+            "items": {
+              "$ref": "#/components/schemas/MessagePreview"
+            },
+            "title": "Recent Messages",
+            "type": "array"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "summary_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary Error"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id"
+        ],
+        "title": "PersonSummaryResponse",
+        "type": "object"
+      },
+      "Platform": {
+        "description": "Third-party systems we can ingest identities and messages from.",
+        "enum": [
+          "slack",
+          "github",
+          "teams",
+          "email",
+          "linear",
+          "other"
+        ],
+        "title": "Platform",
+        "type": "string"
+      },
+      "UnlinkedAccountRead": {
+        "description": "An unattributed account, with the context needed to claim it.\n\nThe counts are the point: deciding whose Slack handle this is remains\nguesswork without knowing how much it has said and when it last spoke.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "external_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Email"
+          },
+          "external_handle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Handle"
+          },
+          "external_id": {
+            "title": "External Id",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "is_primary": {
+            "default": false,
+            "title": "Is Primary",
+            "type": "boolean"
+          },
+          "last_seen_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Seen At"
+          },
+          "message_count": {
+            "default": 0,
+            "title": "Message Count",
+            "type": "integer"
+          },
+          "platform": {
+            "$ref": "#/components/schemas/Platform"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          }
+        },
+        "required": [
+          "id",
+          "platform",
+          "external_id",
+          "created_at"
+        ],
+        "title": "UnlinkedAccountRead",
+        "type": "object"
+      },
+      "UserCreate": {
+        "description": "A person created by hand rather than discovered by a connector.",
+        "properties": {
+          "address": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "email": {
+            "format": "email",
+            "title": "Email",
+            "type": "string"
+          },
+          "employment_start": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employment Start"
+          },
+          "full_name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Full Name",
+            "type": "string"
+          },
+          "job_title": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Title"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          }
+        },
+        "required": [
+          "full_name",
+          "email"
+        ],
+        "title": "UserCreate",
+        "type": "object"
+      },
+      "UserDetail": {
+        "description": "One person's full record, as the profile screen shows it.",
+        "properties": {
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "email": {
+            "format": "email",
+            "title": "Email",
+            "type": "string"
+          },
+          "employment_end": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employment End"
+          },
+          "employment_start": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employment Start"
+          },
+          "full_name": {
+            "title": "Full Name",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "job_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Title"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "full_name",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "UserDetail",
+        "type": "object"
+      },
+      "UserListItem": {
+        "description": "A person plus the counts the directory list shows beside them.\n\nExtends `UserDetail` rather than repeating it, so a field added to the\nprofile appears in the list automatically instead of being forgotten.",
+        "properties": {
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "department_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The department they are filed into, if any.",
+            "title": "Department Id"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "email": {
+            "format": "email",
+            "title": "Email",
+            "type": "string"
+          },
+          "employment_end": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employment End"
+          },
+          "employment_start": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employment Start"
+          },
+          "full_name": {
+            "title": "Full Name",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "job_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Title"
+          },
+          "last_message_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Message At"
+          },
+          "message_count": {
+            "default": 0,
+            "title": "Message Count",
+            "type": "integer"
+          },
+          "platforms": {
+            "description": "Platforms this person has an account on.",
+            "items": {
+              "$ref": "#/components/schemas/Platform"
+            },
+            "title": "Platforms",
+            "type": "array"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "full_name",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "UserListItem",
+        "type": "object"
+      },
+      "UserRead": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "email": {
+            "format": "email",
+            "title": "Email",
+            "type": "string"
+          },
+          "full_name": {
+            "title": "Full Name",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "job_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Title"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "full_name",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "UserRead",
+        "type": "object"
+      },
+      "UserRelationRead": {
+        "description": "A third-party account linked to an internal user.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "external_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Email"
+          },
+          "external_handle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Handle"
+          },
+          "external_id": {
+            "title": "External Id",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "is_primary": {
+            "default": false,
+            "title": "Is Primary",
+            "type": "boolean"
+          },
+          "platform": {
+            "$ref": "#/components/schemas/Platform"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          }
+        },
+        "required": [
+          "id",
+          "platform",
+          "external_id",
+          "created_at"
+        ],
+        "title": "UserRelationRead",
+        "type": "object"
+      },
+      "UserSummariesResponse": {
+        "description": "A page of summaries, with the provenance of the generation.",
+        "properties": {
+          "llm_model": {
+            "title": "Llm Model",
+            "type": "string"
+          },
+          "llm_provider": {
+            "description": "Which adapter produced these summaries.",
+            "title": "Llm Provider",
+            "type": "string"
+          },
+          "page": {
+            "$ref": "#/components/schemas/Page_UserSummaryRead_"
+          }
+        },
+        "required": [
+          "page",
+          "llm_provider",
+          "llm_model"
+        ],
+        "title": "UserSummariesResponse",
+        "type": "object"
+      },
+      "UserSummaryRead": {
+        "description": "One user plus the agent's read of their communication history.",
+        "properties": {
+          "generated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generated At"
+          },
+          "message_count": {
+            "description": "Messages considered when summarising.",
+            "title": "Message Count",
+            "type": "integer"
+          },
+          "recent_messages": {
+            "items": {
+              "$ref": "#/components/schemas/MessagePreview"
+            },
+            "title": "Recent Messages",
+            "type": "array"
+          },
+          "relations": {
+            "description": "Every third-party identity linked to this user.",
+            "items": {
+              "$ref": "#/components/schemas/UserRelationRead"
+            },
+            "title": "Relations",
+            "type": "array"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Agent-generated summary; null when generation failed.",
+            "title": "Summary"
+          },
+          "summary_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why the summary is missing, when it is.",
+            "title": "Summary Error"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserRead"
+          }
+        },
+        "required": [
+          "user",
+          "message_count"
+        ],
+        "title": "UserSummaryRead",
+        "type": "object"
+      },
+      "UserUpdate": {
+        "description": "A partial update. Every field is optional; omitted ones are left alone.\n\nAn omitted field and a field sent as null are different requests, and this\nshape can only express the first. Nothing on a person is meaningfully\ncleared by an edit - a job title is emptied by sending `\"\"` - so that is\nsufficient here, unlike the department patch where \"no parent\" is a real\nvalue and needs its own flag.",
+        "properties": {
+          "address": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "employment_end": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employment End"
+          },
+          "employment_start": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employment Start"
+          },
+          "full_name": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Name"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
+          "job_title": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Title"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          }
+        },
+        "title": "UserUpdate",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "ApiKey": {
+        "description": "Service credential for machine callers (scheduler, backend jobs). The legacy `X-Cron-Token` header is also accepted. Grants whatever scopes were issued with the key, e.g. `ingest:run`.",
+        "in": "header",
+        "name": "X-API-Key",
+        "type": "apiKey"
+      },
+      "DevUser": {
+        "description": "Local development only: impersonate a user by name. Defaults to `insights:read, messages:read`; add the `X-Dev-Scopes` header (comma-separated) to override. Disabled whenever DEV_AUTH_ENABLED=false.",
+        "in": "header",
+        "name": "X-Dev-User",
+        "type": "apiKey"
+      }
+    }
+  },
+  "info": {
+    "description": "Versioned under `/api/{version}`. Probes (`/health`, `/ready`) are unversioned infrastructure contracts. Every error shares one envelope; see the `ErrorResponse` schema.",
+    "title": "threadline API v1",
+    "version": "v1"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/accounts": {
+      "post": {
+        "description": "For accounts a connector has not observed. The server synthesises the external id, because nobody has authenticated against this account and the platform has therefore not issued one.\n\nThe first account attached to somebody becomes their primary; later ones do not displace it.",
+        "operationId": "create_account",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRelationRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "Attach an external account to a person by hand",
+        "tags": [
+          "directory"
+        ]
+      }
+    },
+    "/api/v1/accounts/unlinked": {
+      "get": {
+        "description": "External identities ingestion has seen but that no person has been matched to yet. Each carries how many messages it has sent and when it last spoke, which is what makes attributing it a decision rather than a guess.",
+        "operationId": "list_unlinked_accounts",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UnlinkedAccountRead"
+                  },
+                  "title": "Response List Unlinked Accounts",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "List accounts nobody has been attributed to",
+        "tags": [
+          "directory"
+        ]
+      }
+    },
+    "/api/v1/accounts/{account_id}": {
+      "delete": {
+        "description": "Destructive, and distinct from unlinking: this keeps nothing. The response counts the messages destroyed alongside it.",
+        "operationId": "delete_account",
+        "parameters": [
+          {
+            "description": "The account's id.",
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "description": "The account's id.",
+              "format": "uuid",
+              "title": "Account Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountDeleteResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "Delete an account and every message that arrived on it",
+        "tags": [
+          "directory"
+        ]
+      }
+    },
+    "/api/v1/accounts/{account_id}/link": {
+      "post": {
+        "description": "Every message that ever arrived on this account is reattributed to that person. The record of which account each message actually came from is untouched, so provenance survives the move.",
+        "operationId": "link_account",
+        "parameters": [
+          {
+            "description": "The account's id.",
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "description": "The account's id.",
+              "format": "uuid",
+              "title": "Account Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_link_account"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRelationRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "Attribute an account to a person",
+        "tags": [
+          "directory"
+        ]
+      }
+    },
+    "/api/v1/accounts/{account_id}/unlink": {
+      "post": {
+        "description": "The messages stay and return to the unresolved pool. Use this when an account was attributed to the wrong person - the history is preserved and can be reattributed.",
+        "operationId": "unlink_account",
+        "parameters": [
+          {
+            "description": "The account's id.",
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "description": "The account's id.",
+              "format": "uuid",
+              "title": "Account Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRelationRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "Detach an account from its person",
+        "tags": [
+          "directory"
+        ]
+      }
+    },
+    "/api/v1/connectors": {
+      "get": {
+        "description": "One row per platform, including platforms with nothing on them - a platform silently missing from this list would look identical to one that is working.\n\n`status` is **inferred** from stored data: how many accounts exist and how recently anything arrived. Nothing polls a connector or checks a credential, because no real connector exists yet, so a platform can read `connected` here while its token expired an hour ago.",
+        "operationId": "list_connectors",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ConnectorRead"
+                  },
+                  "title": "Response List Connectors",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "List every platform and what it has contributed",
+        "tags": [
+          "ingestion"
+        ]
+      }
+    },
+    "/api/v1/ingestion/config": {
+      "get": {
+        "description": "Confirms which prompt, model and executor a deployment picked up.",
+        "operationId": "get_ingestion_config",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngestionConfigResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "Inspect the active ingestion configuration",
+        "tags": [
+          "ingestion"
+        ]
+      }
+    },
+    "/api/v1/ingestion/runs": {
+      "get": {
+        "description": "Newest first, each with the filtering verdicts it recorded. That trail is what makes tuning the filter policy a reviewable act rather than a guess - it is the evidence behind every retention decision.\n\nDry runs appear here too. They deliberately store no messages, but the record of what they *would* have stored is the entire point of running one.",
+        "operationId": "list_ingestion_runs",
+        "parameters": [
+          {
+            "description": "How many runs to return.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "description": "How many runs to return.",
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/IngestionRunSummary"
+                  },
+                  "title": "Response List Ingestion Runs",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "List past ingestion runs",
+        "tags": [
+          "ingestion"
+        ]
+      },
+      "post": {
+        "description": "Invoked by the external scheduler. Pulls messages from the configured source, filters them with the agentic policy, generates embeddings locally on a worker pool, and stores the survivors.\n\nIdempotent: messages already stored are skipped by `(platform, external_message_id)`, so retries and overlapping windows are safe.\n\nSynchronous - the response waits for the whole pipeline. Acceptable for the fixture connector; a real one needs this to become a queued job.",
+        "operationId": "run_ingestion",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/IngestionRunRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngestionRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "Run one ingestion cycle",
+        "tags": [
+          "ingestion"
+        ]
+      }
+    },
+    "/api/v1/insights/users": {
+      "get": {
+        "description": "Returns a page of users together with a concise, agent-generated summary of their communication history.\n\nThis response contains personal data: names, email addresses, linked third-party accounts, verbatim message excerpts and a behavioural summary. It requires both `insights:read` and `messages:read`.\n\nSummaries are generated per request and are not cached, so latency and cost scale with page size.",
+        "operationId": "list_user_summaries",
+        "parameters": [
+          {
+            "description": "Exclude deactivated users.",
+            "in": "query",
+            "name": "active_only",
+            "required": false,
+            "schema": {
+              "default": true,
+              "description": "Exclude deactivated users.",
+              "title": "Active Only",
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Messages considered per user.",
+            "in": "query",
+            "name": "messages_per_user",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "description": "Messages considered per user.",
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Messages Per User",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Items per page.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "description": "Items per page.",
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Items to skip.",
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "description": "Items to skip.",
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserSummariesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "List users with agent-generated communication summaries",
+        "tags": [
+          "insights"
+        ]
+      }
+    },
+    "/api/v1/insights/users/{user_id}/summary": {
+      "get": {
+        "description": "The single-person counterpart to the list endpoint. Both bounds are optional and inclusive; omitting them summarises everything retained.\n\nNothing is cached: every call reaches the model. That is free and deterministic under the stub provider and would not be with a real one, so persisting summaries against an input fingerprint is deliberate later work rather than an omission.\n\nA window containing no messages is not an error - it returns a `summary_error` explaining there was nothing to describe.",
+        "operationId": "get_user_summary",
+        "parameters": [
+          {
+            "description": "The person to summarise.",
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "description": "The person to summarise.",
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Inclusive start of the window.",
+            "in": "query",
+            "name": "range_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Inclusive start of the window.",
+              "title": "Range From"
+            }
+          },
+          {
+            "description": "Inclusive end of the window.",
+            "in": "query",
+            "name": "range_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Inclusive end of the window.",
+              "title": "Range To"
+            }
+          },
+          {
+            "description": "How many recent messages to include.",
+            "in": "query",
+            "name": "recent",
+            "required": false,
+            "schema": {
+              "default": 5,
+              "description": "How many recent messages to include.",
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Recent",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonSummaryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "Summarise one person's communication history",
+        "tags": [
+          "insights"
+        ]
+      }
+    },
+    "/api/v1/messages": {
+      "get": {
+        "description": "Every filter is optional; omitting all of them returns the most recent messages. The date bounds are inclusive, and the search is a case-insensitive substring match against the message body - wildcard characters in it are treated literally.\n\nOffset-paged: `limit` and `offset` bound the query in the database, so the response size never grows with the size of the table.",
+        "operationId": "browse_messages",
+        "parameters": [
+          {
+            "description": "Restrict to one platform.",
+            "in": "query",
+            "name": "platform",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Platform"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Restrict to one platform.",
+              "title": "Platform"
+            }
+          },
+          {
+            "description": "Filtering verdict, e.g. 'business'.",
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtering verdict, e.g. 'business'.",
+              "title": "Category"
+            }
+          },
+          {
+            "description": "Inclusive lower bound on when it was sent.",
+            "in": "query",
+            "name": "sent_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Inclusive lower bound on when it was sent.",
+              "title": "Sent From"
+            }
+          },
+          {
+            "description": "Inclusive upper bound on when it was sent.",
+            "in": "query",
+            "name": "sent_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Inclusive upper bound on when it was sent.",
+              "title": "Sent To"
+            }
+          },
+          {
+            "description": "Case-insensitive substring of the body.",
+            "in": "query",
+            "name": "search",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Case-insensitive substring of the body.",
+              "title": "Search"
+            }
+          },
+          {
+            "description": "Items per page.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "description": "Items per page.",
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Items to skip.",
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "description": "Items to skip.",
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_MessageRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "Browse stored messages",
+        "tags": [
+          "messaging"
+        ]
+      }
+    },
+    "/api/v1/notes/{note_id}": {
+      "delete": {
+        "operationId": "delete_note",
+        "parameters": [
+          {
+            "description": "The note's id.",
+            "in": "path",
+            "name": "note_id",
+            "required": true,
+            "schema": {
+              "description": "The note's id.",
+              "format": "uuid",
+              "title": "Note Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletedResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "Delete a note",
+        "tags": [
+          "directory"
+        ]
+      }
+    },
+    "/api/v1/org/nodes": {
+      "get": {
+        "description": "Returns every department flat, each carrying its own `parent_id` and the ids of the people filed into it. The client rebuilds the tree in one pass.\n\nFlat rather than nested on purpose: the response shape stays the same however deep the hierarchy gets, and moving a department is a one-field change rather than a restructure.",
+        "operationId": "list_org_nodes",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OrgNodeRead"
+                  },
+                  "title": "Response List Org Nodes",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "Fetch the whole department hierarchy",
+        "tags": [
+          "organization"
+        ]
+      },
+      "post": {
+        "operationId": "create_org_node",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgNodeCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgNodeRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "Create a department",
+        "tags": [
+          "organization"
+        ]
+      }
+    },
+    "/api/v1/org/nodes/{node_id}": {
+      "delete": {
+        "description": "Sub-departments move up to the deleted department's parent rather than being deleted or detached. The response says how many moved, which is worth showing in a confirmation: deleting a leaf and deleting a division are different acts.",
+        "operationId": "delete_org_node",
+        "parameters": [
+          {
+            "description": "The department's id.",
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "description": "The department's id.",
+              "format": "uuid",
+              "title": "Node Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgNodeDeleteResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "Delete a department, promoting its children",
+        "tags": [
+          "organization"
+        ]
+      },
+      "patch": {
+        "description": "Send `reparent: true` to apply `parent_id`, including null to make the department a root. Without it, `parent_id` would be ambiguous with 'leave the parent alone'.\n\nReturns 422 if the move would make a department report to itself or to one of its own sub-departments - which would cut that branch loose from the organization.",
+        "operationId": "update_org_node",
+        "parameters": [
+          {
+            "description": "The department's id.",
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "description": "The department's id.",
+              "format": "uuid",
+              "title": "Node Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgNodeUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgNodeRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "Rename a department or move it in the hierarchy",
+        "tags": [
+          "organization"
+        ]
+      }
+    },
+    "/api/v1/org/nodes/{node_id}/members": {
+      "post": {
+        "description": "A move, not an add: a person belongs to exactly one department, so this removes any previous membership. The console is expected to confirm with the user first when the person already has one.",
+        "operationId": "assign_org_member",
+        "parameters": [
+          {
+            "description": "The department's id.",
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "description": "The department's id.",
+              "format": "uuid",
+              "title": "Node Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgMemberAssign"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgNodeRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "File a person into a department",
+        "tags": [
+          "organization"
+        ]
+      }
+    },
+    "/api/v1/org/nodes/{node_id}/members/{user_id}": {
+      "delete": {
+        "description": "Leaves them unassigned. Returns 404 if they are filed into a different department - silently succeeding there would let a stale screen unfile somebody the user was not looking at.",
+        "operationId": "remove_org_member",
+        "parameters": [
+          {
+            "description": "The department's id.",
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "description": "The department's id.",
+              "format": "uuid",
+              "title": "Node Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The person to remove.",
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "description": "The person to remove.",
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgNodeRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "Remove a person from a department",
+        "tags": [
+          "organization"
+        ]
+      }
+    },
+    "/api/v1/users": {
+      "get": {
+        "description": "Returns every person with the counts the directory shows beside them: which platforms they have accounts on, how many messages are attributed to them, when they last said anything, and which department they are filed into.\n\nUnpaged by default - the roster is bounded by headcount, and most callers (the org chart, sender-name lookups, the account-linking picker) need it complete rather than one page of it. Pass `limit` (and optionally `offset`) to page through it instead, for a directory screen that would rather not render the whole roster at once; the total row count and whether more remains are reported on the `X-Total-Count` / `X-Has-More` response headers, since the body stays the same flat array either way.",
+        "operationId": "list_users",
+        "parameters": [
+          {
+            "description": "Page size. Omit for everyone.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 100,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Page size. Omit for everyone.",
+              "title": "Limit"
+            }
+          },
+          {
+            "description": "Items to skip. Ignored unless limit is set.",
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "description": "Items to skip. Ignored unless limit is set.",
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UserListItem"
+                  },
+                  "title": "Response List Users",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "List everyone in the directory",
+        "tags": [
+          "directory"
+        ]
+      },
+      "post": {
+        "description": "For people a connector has not discovered. The email address is normalised to lower case before it is checked for duplicates, because it is the key identity resolution merges on.\n\nReturns 409 if somebody already holds that address.",
+        "operationId": "create_user",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "Create a person by hand",
+        "tags": [
+          "directory"
+        ]
+      }
+    },
+    "/api/v1/users/{user_id}": {
+      "delete": {
+        "description": "Right to be forgotten. Removes the person, their linked accounts, their notes and every message attributed to them. Irreversible.\n\nThe response counts what was destroyed, and is the only record that survives the deletion - worth keeping wherever the request came from.",
+        "operationId": "forget_user",
+        "parameters": [
+          {
+            "description": "The person's id.",
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "description": "The person's id.",
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForgetUserResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "Erase a person and everything retained about them",
+        "tags": [
+          "directory"
+        ]
+      },
+      "get": {
+        "operationId": "get_user",
+        "parameters": [
+          {
+            "description": "The person's id.",
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "description": "The person's id.",
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "Fetch one person's record",
+        "tags": [
+          "directory"
+        ]
+      },
+      "patch": {
+        "description": "A partial update: only the fields present in the body are changed. Clear a text field by sending an empty string rather than null.",
+        "operationId": "update_user",
+        "parameters": [
+          {
+            "description": "The person's id.",
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "description": "The person's id.",
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "Update a person's record",
+        "tags": [
+          "directory"
+        ]
+      }
+    },
+    "/api/v1/users/{user_id}/accounts": {
+      "get": {
+        "operationId": "list_user_accounts",
+        "parameters": [
+          {
+            "description": "The person's id.",
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "description": "The person's id.",
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UserRelationRead"
+                  },
+                  "title": "Response List User Accounts",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "List the external accounts attributed to one person",
+        "tags": [
+          "directory"
+        ]
+      }
+    },
+    "/api/v1/users/{user_id}/messages": {
+      "get": {
+        "operationId": "list_user_messages",
+        "parameters": [
+          {
+            "description": "The person's id.",
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "description": "The person's id.",
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MessageRead"
+                  },
+                  "title": "Response List User Messages",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "List the messages attributed to one person",
+        "tags": [
+          "directory"
+        ]
+      }
+    },
+    "/api/v1/users/{user_id}/notes": {
+      "get": {
+        "operationId": "list_user_notes",
+        "parameters": [
+          {
+            "description": "The person's id.",
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "description": "The person's id.",
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/NoteRead"
+                  },
+                  "title": "Response List User Notes",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "List the notes written about one person",
+        "tags": [
+          "directory"
+        ]
+      },
+      "post": {
+        "description": "Notes are what a human observed, kept separate from the generated summaries: those are derived and can be rebuilt, these cannot.",
+        "operationId": "create_user_note",
+        "parameters": [
+          {
+            "description": "The person's id.",
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "description": "The person's id.",
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NoteCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoteRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "Write a note about a person",
+        "tags": [
+          "directory"
+        ]
+      }
+    }
+  }
+}
