@@ -409,6 +409,9 @@
             "title": "Llm Provider",
             "type": "string"
           },
+          "platform": {
+            "$ref": "#/components/schemas/Platform"
+          },
           "prompt_version": {
             "title": "Prompt Version",
             "type": "string"
@@ -419,6 +422,7 @@
           }
         },
         "required": [
+          "platform",
           "filter_system_prompt",
           "prompt_version",
           "llm_provider",
@@ -539,6 +543,16 @@
             "description": "Rows actually written.",
             "title": "Persisted",
             "type": "integer"
+          },
+          "platform": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Platform"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "relations_provisioned": {
             "title": "Relations Provisioned",
@@ -665,6 +679,17 @@
           "persisted": {
             "title": "Persisted",
             "type": "integer"
+          },
+          "platform": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Platform"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null only for runs recorded before per-platform pipelines."
           },
           "retained": {
             "title": "Retained",
@@ -2492,6 +2517,24 @@
       "get": {
         "description": "One row per platform, including platforms with nothing on them - a platform silently missing from this list would look identical to one that is working.\n\n`status` is **inferred** from stored data: how many accounts exist and how recently anything arrived. Nothing polls a connector or checks a credential, because no real connector exists yet, so a platform can read `connected` here while its token expired an hour ago.",
         "operationId": "list_connectors",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "platform",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Platform"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Platform"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -2526,6 +2569,16 @@
               }
             },
             "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "security": [
@@ -2542,10 +2595,28 @@
         ]
       }
     },
-    "/api/v1/ingestion/config": {
+    "/api/v1/ingestion/config/{platform}": {
       "get": {
-        "description": "Confirms which prompt, model and executor a deployment picked up.",
+        "description": "Confirms which prompt, model, executor and connector a deployment picked up.",
         "operationId": "get_ingestion_config",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "platform",
+            "required": true,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Platform"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Platform"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -2576,6 +2647,16 @@
               }
             },
             "description": "Authenticated but not permitted."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "security": [
@@ -2586,7 +2667,7 @@
             "DevUser": []
           }
         ],
-        "summary": "Inspect the active ingestion configuration",
+        "summary": "Inspect one platform's active ingestion configuration",
         "tags": [
           "ingestion"
         ]
@@ -2594,7 +2675,7 @@
     },
     "/api/v1/ingestion/runs": {
       "get": {
-        "description": "Newest first, each with the filtering verdicts it recorded. That trail is what makes tuning the filter policy a reviewable act rather than a guess - it is the evidence behind every retention decision.\n\nDry runs appear here too. They deliberately store no messages, but the record of what they *would* have stored is the entire point of running one.",
+        "description": "Newest first, each with the filtering verdicts it recorded. That trail is what makes tuning the filter policy a reviewable act rather than a guess - it is the evidence behind every retention decision.\n\nDry runs appear here too. They deliberately store no messages, but the record of what they *would* have stored is the entire point of running one.\n\nUnfiltered by default, across every platform. Pass `platform` to see just one pipeline's history.",
         "operationId": "list_ingestion_runs",
         "parameters": [
           {
@@ -2609,6 +2690,22 @@
               "minimum": 1,
               "title": "Limit",
               "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "platform",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Platform"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Platform"
             }
           }
         ],
@@ -2670,10 +2767,30 @@
         "tags": [
           "ingestion"
         ]
-      },
+      }
+    },
+    "/api/v1/ingestion/runs/{platform}": {
       "post": {
-        "description": "Invoked by the external scheduler. Pulls messages from the configured source, filters them with the agentic policy, generates embeddings locally on a worker pool, and stores the survivors.\n\nIdempotent: messages already stored are skipped by `(platform, external_message_id)`, so retries and overlapping windows are safe.\n\nSynchronous - the response waits for the whole pipeline. Acceptable for the fixture connector; a real one needs this to become a queued job.",
+        "description": "One pipeline per platform, invoked by the external scheduler independently per platform. Pulls messages from that platform's connector, filters them with the agentic policy, generates embeddings locally on a worker pool, and stores the survivors.\n\nIdempotent: messages already stored are skipped by `(platform, external_message_id)`, so retries and overlapping windows are safe.\n\nSynchronous - the response waits for the whole pipeline. Acceptable for the fixture connectors; a real one needs this to become a queued job.\n\n404 if no connector is configured for the platform yet.",
         "operationId": "run_ingestion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "platform",
+            "required": true,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Platform"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Platform"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -2741,7 +2858,7 @@
             "DevUser": []
           }
         ],
-        "summary": "Run one ingestion cycle",
+        "summary": "Run one platform's ingestion cycle",
         "tags": [
           "ingestion"
         ]
