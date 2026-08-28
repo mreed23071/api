@@ -1,0 +1,104 @@
+[project]
+name = "threadline"
+version = "0.1.0"
+description = "Multi-platform message ingestion, private embedding and agentic summarization service"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "pydantic[email]>=2.9.0",
+    "pydantic-settings>=2.6.0",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30.0",
+    "alembic>=1.14.0",
+    "pgvector>=0.3.6",
+    "sentence-transformers>=3.3.0",
+    "torch>=2.5.0",
+    "anthropic>=0.42.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "httpx>=0.27.0",
+    "ruff>=0.8.0",
+    "mypy>=1.13.0",
+]
+# Integration tests only. Kept separate so `make test` needs no Docker and CI can
+# install the fast suite without pulling the testcontainers stack.
+integration = [
+    "testcontainers[postgres]>=4.8.0",
+    "psycopg[binary]>=3.2.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/app"]
+
+[tool.uv]
+package = true
+
+# Pull the CPU-only torch build on Linux. The default PyPI wheel drags in the
+# whole CUDA stack (~2.5GB) which we never use: embeddings run on CPU inside a
+# small container.
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "scripts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+plugins = ["pydantic.mypy"]
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+# --strict-markers: a typo'd marker fails instead of silently selecting nothing.
+addopts = "--strict-markers --strict-config -ra"
+markers = [
+    "integration: needs a real PostgreSQL with pgvector (Docker). Run with `make test-integration`.",
+    "slow: takes more than a second; excluded from the default suite.",
+]
+filterwarnings = ["error::DeprecationWarning:app.*"]
+
+[tool.coverage.run]
+source = ["src/app"]
+branch = true
+omit = [
+    "*/__init__.py",
+    # Loads the real sentence-transformer; see docs/TESTING.md.
+    "src/app/shared/embeddings/worker.py",
+    # Thin adapter over a paid network API.
+    "src/app/shared/llm/anthropic_client.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+# A floor, not a target. Raise it when the suite genuinely improves; never lower
+# it to make a build pass.
+fail_under = 85
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "\\.\\.\\.",
+]

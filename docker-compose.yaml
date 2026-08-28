@@ -1,0 +1,66 @@
+name: threadline
+
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-threadline}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-in-production}
+      POSTGRES_DB: ${POSTGRES_DB:-threadline}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-threadline} -d ${POSTGRES_DB:-threadline}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        EMBEDDING_MODEL_NAME: ${EMBEDDING_MODEL_NAME:-sentence-transformers/all-MiniLM-L6-v2}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Service-to-service DSN. The host is the compose service name, so the
+      # credentials never leave the private compose network.
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-threadline}:${POSTGRES_PASSWORD:-change-me-in-production}@db:5432/${POSTGRES_DB:-threadline}
+      APP_ENV: ${APP_ENV:-local}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      CRON_TOKEN: ${CRON_TOKEN:-local-dev-cron-token}
+      API_KEYS: ${API_KEYS:-[]}
+      DEV_AUTH_ENABLED: ${DEV_AUTH_ENABLED:-true}
+      # Load the console's fixture dataset on first boot, so `docker compose
+      # up` produces a stack with something in it. Idempotent; set to 0 to
+      # bring the stack up empty.
+      SEED_ON_STARTUP: ${SEED_ON_STARTUP:-1}
+      DOCS_ENABLED: ${DOCS_ENABLED:-true}
+      LOG_JSON: ${LOG_JSON:-true}
+      PROMPT_VERSION: ${PROMPT_VERSION:-v1}
+      CORS_ORIGINS: ${CORS_ORIGINS:-["http://localhost:3000"]}
+      EMBEDDING_MODEL_NAME: ${EMBEDDING_MODEL_NAME:-sentence-transformers/all-MiniLM-L6-v2}
+      EMBEDDING_DIM: ${EMBEDDING_DIM:-384}
+      EMBEDDING_BATCH_SIZE: ${EMBEDDING_BATCH_SIZE:-32}
+      EMBEDDING_EXECUTOR: ${EMBEDDING_EXECUTOR:-thread}
+      EMBEDDING_WORKERS: ${EMBEDDING_WORKERS:-1}
+      EMBEDDING_TORCH_THREADS: ${EMBEDDING_TORCH_THREADS:-2}
+      LLM_PROVIDER: ${LLM_PROVIDER:-stub}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-claude-sonnet-4-5}
+      LLM_MAX_TOKENS: ${LLM_MAX_TOKENS:-1024}
+      LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-30}
+      LLM_MAX_CONCURRENCY: ${LLM_MAX_CONCURRENCY:-4}
+      INGESTION_FILTER_SYSTEM_PROMPT: ${INGESTION_FILTER_SYSTEM_PROMPT:-Filter out personal messages and retain only business-related messages.}
+      SUMMARY_SYSTEM_PROMPT: ${SUMMARY_SYSTEM_PROMPT:-You summarize a person's communication history. Produce a concise, factual, third-person summary of at most three sentences covering recurring topics, responsibilities and open threads. Do not invent details.}
+    ports:
+      - "${API_PORT:-8000}:8000"
+
+volumes:
+  postgres-data:

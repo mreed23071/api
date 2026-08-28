@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Coverage
+.coverage
+coverage.xml
+htmlcov/
+
+# Secrets and local config
+.env
+
+# Node / SDK generation
+node_modules/
+
+# Model cache
+.hf-cache/
+
+# Editors
+.idea/
+.vscode/
+
+# Scratch: files the device bridge could not delete
+_to_delete/
+
+# NOTE: openapi/*.json IS committed. CI runs `make openapi-check` and fails on
+# drift, which is what keeps the generated frontend client honest.
+
+# Build/handoff artifacts
+dist/
