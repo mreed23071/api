@@ -138,6 +138,12 @@ class Settings(BaseSettings):
     #: would do against the real API.
     fixtures_service_url: str = "http://fixtures:8095"
     fixtures_timeout_seconds: float = 10.0
+    #: Mirrors the fixtures service's own `FIXTURES_MODE` (same env var, read
+    #: by both containers). `bulk` means the connector is walking a large
+    #: pre-generated dataset instead of the ~10-message default pool, so an
+    #: unscoped console click should pull a real batch rather than a handful -
+    #: see `ingestion_default_limit`.
+    fixtures_mode: Literal["default", "bulk"] = "default"
 
     # -- temporal ----------------------------------------------------------
     #: Durable orchestration for ingestion. The API starts a workflow and
@@ -175,6 +181,18 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.app_env == "production"
+
+    @property
+    def ingestion_default_limit(self) -> int | None:
+        """What a run pulls when the caller doesn't say how much.
+
+        `None` leaves it to the connector/fixtures default (a handful of
+        messages) - fine for the small default pool. In bulk mode that pool is
+        hundreds of thousands of rows, so a console click with no limit should
+        walk it in real batches, not one message at a time. 500 matches the
+        max `count` fixtures-service accepts per call.
+        """
+        return 500 if self.fixtures_mode == "bulk" else None
 
     @property
     def sync_database_url(self) -> str:

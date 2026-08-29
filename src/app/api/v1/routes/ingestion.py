@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+from dataclasses import replace
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Path, Query, status
@@ -61,6 +62,10 @@ async def run_ingestion(
     payload: IngestionRunRequest | None = None,
 ) -> QueuedRunResponse:
     request = payload or IngestionRunRequest()
+    # An explicit `limit` always wins; otherwise fall back to what the current
+    # fixtures mode implies (500 in bulk, connector default otherwise) rather
+    # than leaving it unset. See `Settings.ingestion_default_limit`.
+    limit = request.limit if request.limit is not None else settings.ingestion_default_limit
 
     # Resolve the connector before queueing, so an unconfigured platform is a
     # 404 here rather than a workflow that starts and immediately fails.
@@ -69,7 +74,9 @@ async def run_ingestion(
     if not settings.temporal_enabled:
         # No orchestrator configured - run it inline and report it as already
         # finished. This is the path the test suite and a bare `uvicorn` take.
-        result = await service.run(request.to_options(), platform=platform)
+        options = request.to_options()
+        options = replace(options, limit=limit)
+        result = await service.run(options, platform=platform)
         return QueuedRunResponse(
             run_id=result.run_id,
             platform=platform,
@@ -83,7 +90,7 @@ async def run_ingestion(
         IngestionInput(
             run_id=run_id,
             platform=platform,
-            limit=request.limit,
+            limit=limit,
             system_prompt_override=request.system_prompt_override,
             dry_run=request.dry_run,
         )
