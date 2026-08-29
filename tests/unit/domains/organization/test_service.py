@@ -16,8 +16,8 @@ from tests.factories import make_user
 from tests.fakes.uow import FakeUnitOfWork
 
 
-def node(name: str, parent_id: uuid.UUID | None = None) -> OrgNode:
-    entity = OrgNode(name=name, parent_id=parent_id)
+def node(name: str, parent_id: uuid.UUID | None = None, position: int = 0) -> OrgNode:
+    entity = OrgNode(name=name, parent_id=parent_id, position=position)
     entity.id = uuid.uuid4()
     entity.created_at = datetime.now(UTC)
     return entity
@@ -92,6 +92,63 @@ async def test_a_patch_without_reparent_leaves_the_parent_alone() -> None:
     assert updated.parent_id == engineering.id
 
 
+async def test_reordering_among_current_siblings_needs_no_reparent_flag() -> None:
+    """Position alone, with no `reparent`, is a pure reorder."""
+    parent = node("Engineering")
+    a = node("Alpha Team", parent.id, position=0)
+    b = node("Beta Team", parent.id, position=1)
+    svc, _ = service(org_nodes=[parent, a, b])
+
+    updated = await svc.update_node(b.id, OrgNodePatch(position=0))
+
+    assert updated.parent_id == parent.id  # untouched
+    assert updated.position == 0
+    assert a.position == 1  # pushed down to make room
+
+
+async def test_reparenting_with_an_explicit_position_places_it_there() -> None:
+    old_parent = node("Old")
+    new_parent = node("New")
+    existing = node("Existing", new_parent.id, position=0)
+    moved = node("Moved", old_parent.id, position=0)
+    svc, _ = service(org_nodes=[old_parent, new_parent, existing, moved])
+
+    updated = await svc.update_node(
+        moved.id, OrgNodePatch(parent_id=new_parent.id, reparent=True, position=0)
+    )
+
+    assert updated.parent_id == new_parent.id
+    assert updated.position == 0
+    assert existing.position == 1  # made room for the newcomer
+
+
+async def test_reparenting_with_no_position_appends_to_the_new_parent() -> None:
+    old_parent = node("Old")
+    new_parent = node("New")
+    existing = node("Existing", new_parent.id, position=0)
+    moved = node("Moved", old_parent.id, position=0)
+    svc, _ = service(org_nodes=[old_parent, new_parent, existing, moved])
+
+    updated = await svc.update_node(moved.id, OrgNodePatch(parent_id=new_parent.id, reparent=True))
+
+    assert updated.position == 1  # after the one existing child
+    assert existing.position == 0  # unmoved
+
+
+async def test_reparenting_closes_the_gap_left_in_the_old_parent() -> None:
+    """The sibling left behind must not end up tied with anyone at its old
+    position - that's what the second reindex is for."""
+    old_parent = node("Old")
+    new_parent = node("New")
+    moved = node("Moved", old_parent.id, position=0)
+    left_behind = node("Left Behind", old_parent.id, position=1)
+    svc, _ = service(org_nodes=[old_parent, new_parent, moved, left_behind])
+
+    await svc.update_node(moved.id, OrgNodePatch(parent_id=new_parent.id, reparent=True))
+
+    assert left_behind.position == 0
+
+
 async def test_deleting_a_node_promotes_its_children_to_the_grandparent() -> None:
     """SET NULL would scatter them to roots; promotion keeps the shape."""
     acme = node("Acme")
@@ -105,6 +162,21 @@ async def test_deleting_a_node_promotes_its_children_to_the_grandparent() -> Non
     assert result.promoted == 2
     assert platform.parent_id == acme.id
     assert delivery.parent_id == acme.id
+
+
+async def test_promoted_children_are_appended_after_the_grandparents_own_children() -> None:
+    """Without a reindex, a promoted child and an existing one could tie on
+    the same position - this is what keeps that from happening."""
+    acme = node("Acme")
+    finance = node("Finance", acme.id, position=0)
+    engineering = node("Engineering", acme.id, position=1)
+    platform = node("Platform", engineering.id, position=0)
+    svc, _ = service(org_nodes=[acme, finance, engineering, platform])
+
+    await svc.delete_node(engineering.id)
+
+    assert finance.position == 0  # existing child, unmoved
+    assert platform.position == 1  # promoted, appended after it
 
 
 async def test_assigning_a_person_moves_them_out_of_their_old_department() -> None:

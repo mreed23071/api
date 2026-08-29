@@ -28,12 +28,18 @@ class OrgNodePatch:
     because `None` is a meaningful value here - it means "make this a root".
     Without the flag there is no way to tell "promote to a root" apart from
     "leave the parent alone", and the two are very different edits.
+
+    `position` is independent of `reparent`: sent alone, it reorders the node
+    among its *current* siblings; sent alongside `reparent`, it places the
+    node at that index among its *new* siblings. Omitted during a reparent, it
+    defaults to "append to the end of the new parent's children".
     """
 
     name: str | None = None
     subtitle: str | None = None
     parent_id: uuid.UUID | None = None
     reparent: bool = False
+    position: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -49,6 +55,7 @@ class OrgNodeView:
     name: str
     subtitle: str | None
     parent_id: uuid.UUID | None
+    position: int
     created_at: datetime
     member_ids: list[uuid.UUID] = field(default_factory=list)
 

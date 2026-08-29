@@ -125,6 +125,26 @@ def depth_by_id(nodes: Sequence[HasParent]) -> dict[uuid.UUID, int]:
     return depths
 
 
+def reorder(
+    children: Sequence[uuid.UUID], moved_id: uuid.UUID, target_index: int
+) -> list[uuid.UUID]:
+    """`children`, with `moved_id` removed and reinserted at `target_index`.
+
+    `target_index` is clamped rather than rejected - a drop computed against a
+    slightly stale list (one more sibling than the caller expects, say) should
+    still land somewhere sane rather than raise. `moved_id` not already being
+    in `children` is fine too: that is exactly the reparent case, where the
+    node is moving in from a different parent's list.
+
+    The caller always writes the *entire* returned list back as 0..n-1 - this
+    function only decides the order, not the numbering.
+    """
+    remaining = [child_id for child_id in children if child_id != moved_id]
+    index = max(0, min(target_index, len(remaining)))
+    remaining.insert(index, moved_id)
+    return remaining
+
+
 def eligible_parents(nodes: Sequence[HasParent], node_id: uuid.UUID) -> list[uuid.UUID]:
     """The departments this one could legally be moved under.
 

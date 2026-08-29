@@ -24,7 +24,7 @@ import uuid
 from collections.abc import Sequence
 from typing import Any, cast
 
-from sqlalchemy import CursorResult, delete, select
+from sqlalchemy import CursorResult, delete, func, select, update
 
 from app.core.db.repository import Repository
 from app.domains.organization.models import OrgNode, OrgNodeMember
@@ -34,20 +34,25 @@ class OrgNodeRepository(Repository):
     """Reads and writes rows in the `org_nodes` table."""
 
     async def list_all(self) -> Sequence[OrgNode]:
-        """Fetch every department, oldest first.
+        """Fetch every department, in sibling order.
 
-        Emits one `SELECT * FROM org_nodes ORDER BY created_at, id`. The tree is
+        Emits one `SELECT * FROM org_nodes ORDER BY position, id`. The tree is
         returned flat - each row carries its own `parent_id` - and the caller
         reassembles the shape. That is deliberate: an org chart is bounded by
         headcount, every caller wants the whole thing anyway, and one query is
         cheaper than walking the hierarchy level by level.
 
-        The secondary sort on `id` only matters for rows created in the same
-        instant: without it their order could differ between calls, which makes
-        tests flaky for no reason.
+        `parent_id` does not need to be in the `ORDER BY`: `position` is a
+        strict per-row value assigned within one parent (siblings always get
+        distinct 0..n-1 values), so sorting the whole flat list by `position`
+        alone already preserves correct relative order within every parent
+        once the caller buckets by `parent_id` - which is exactly what
+        assembling the tree does. The secondary sort on `id` only matters for
+        rows that somehow share a position; without it their order could
+        differ between calls, which makes tests flaky for no reason.
         """
         statement = self.scoped(select(OrgNode), OrgNode).order_by(
-            OrgNode.created_at.asc(), OrgNode.id.asc()
+            OrgNode.position.asc(), OrgNode.id.asc()
         )
         return (await self.session.execute(statement)).scalars().all()
 
@@ -76,14 +81,46 @@ class OrgNodeRepository(Repository):
         await self.session.flush()
         return node
 
-    async def children_of(self, node_id: uuid.UUID) -> Sequence[OrgNode]:
-        """Fetch the departments directly beneath one department.
+    async def children_of(self, node_id: uuid.UUID | None) -> Sequence[OrgNode]:
+        """Fetch the departments directly beneath one department, in sibling
+        order - or the root departments, when `node_id` is `None`.
 
-        Direct children only, not the whole subtree. Used when deleting a
-        department, to move its children up to their grandparent.
+        Used when deleting a department (to move its children up to their
+        grandparent) and when reordering (to load one parent's full sibling
+        list before renumbering it).
         """
-        statement = self.scoped(select(OrgNode), OrgNode).where(OrgNode.parent_id == node_id)
+        column = OrgNode.parent_id
+        condition = column.is_(None) if node_id is None else column == node_id
+        statement = (
+            self.scoped(select(OrgNode), OrgNode)
+            .where(condition)
+            .order_by(OrgNode.position.asc(), OrgNode.id.asc())
+        )
         return (await self.session.execute(statement)).scalars().all()
+
+    async def next_position(self, parent_id: uuid.UUID | None) -> int:
+        """How many children `parent_id` already has - i.e. where a new one
+        appended to the end would land. `None` counts root departments."""
+        column = OrgNode.parent_id
+        condition = column.is_(None) if parent_id is None else column == parent_id
+        statement = self.scoped(select(func.count()).select_from(OrgNode), OrgNode).where(
+            condition
+        )
+        return int((await self.session.execute(statement)).scalar_one())
+
+    async def reindex(self, ordered_ids: Sequence[uuid.UUID]) -> None:
+        """Write `position = 0..n-1` to exactly these rows, in this order.
+
+        Callers always pass a parent's *entire* sibling list, never a partial
+        one - a partial reindex would leave the rows not mentioned with a
+        position that no longer means what it used to relative to the ones
+        that changed.
+        """
+        for index, node_id in enumerate(ordered_ids):
+            await self.session.execute(
+                update(OrgNode).where(OrgNode.id == node_id).values(position=index)
+            )
+        await self.session.flush()
 
     async def remove(self, node: OrgNode) -> None:
         """Delete one department.

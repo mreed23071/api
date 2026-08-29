@@ -290,13 +290,22 @@ class FakeOrgNodeRepository:
         self.nodes = nodes
 
     async def list_all(self) -> list[OrgNode]:
-        return sorted(self.nodes, key=lambda n: (n.created_at, str(n.id)))
+        return sorted(self.nodes, key=lambda n: (n.position, str(n.id)))
 
     async def get(self, node_id: uuid.UUID) -> OrgNode | None:
         return next((n for n in self.nodes if n.id == node_id), None)
 
-    async def children_of(self, node_id: uuid.UUID) -> list[OrgNode]:
-        return [n for n in self.nodes if n.parent_id == node_id]
+    async def children_of(self, node_id: uuid.UUID | None) -> list[OrgNode]:
+        matching = [n for n in self.nodes if n.parent_id == node_id]
+        return sorted(matching, key=lambda n: (n.position, str(n.id)))
+
+    async def next_position(self, parent_id: uuid.UUID | None) -> int:
+        return sum(1 for n in self.nodes if n.parent_id == parent_id)
+
+    async def reindex(self, ordered_ids: Sequence[uuid.UUID]) -> None:
+        by_id = {n.id: n for n in self.nodes}
+        for index, node_id in enumerate(ordered_ids):
+            by_id[node_id].position = index
 
     async def add(self, node: OrgNode) -> OrgNode:
         if node.id is None:

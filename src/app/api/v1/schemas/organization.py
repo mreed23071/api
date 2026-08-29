@@ -23,6 +23,7 @@ class OrgNodeRead(BaseModel):
     name: str
     subtitle: str | None = None
     parent_id: uuid.UUID | None = Field(default=None, description="Null when this node is a root.")
+    position: int = Field(description="0-indexed order among this node's siblings.")
     member_ids: list[uuid.UUID] = Field(default_factory=list)
     created_at: datetime
 
@@ -33,6 +34,7 @@ class OrgNodeRead(BaseModel):
             name=view.name,
             subtitle=view.subtitle,
             parent_id=view.parent_id,
+            position=view.position,
             member_ids=view.member_ids,
             created_at=view.created_at,
         )
@@ -65,6 +67,16 @@ class OrgNodeUpdate(BaseModel):
     reparent: bool = Field(
         default=False,
         description="Set true to apply `parent_id`, including null to make this a root.",
+    )
+    position: int | None = Field(
+        default=None,
+        ge=0,
+        description=(
+            "0-indexed target position among the node's siblings. Sent alone, "
+            "reorders among its current siblings. Sent with `reparent`, places "
+            "it at this index among its new ones; omitted during a reparent, "
+            "it appends to the end instead."
+        ),
     )
 
     @model_validator(mode="after")

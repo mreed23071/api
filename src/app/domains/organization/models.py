@@ -63,6 +63,13 @@ class OrgNode(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         nullable=True,
     )
 
+    #: Where this node sits among its siblings - 0-indexed, unique only in
+    #: practice (the service renumbers a whole parent's children together on
+    #: every move, never leaving gaps or ties). Not enforced at the database
+    #: level: a stray duplicate is a cosmetic ordering bug, not a correctness
+    #: one, since every read still produces a total order via `position, id`.
+    position: Mapped[int] = mapped_column(nullable=False)
+
     parent: Mapped[OrgNode | None] = relationship(
         remote_side="OrgNode.id",
         back_populates="children",

@@ -124,6 +124,40 @@ async def test_creating_an_org_node_survives_the_request(
         await outside_connection.commit()
 
 
+async def test_reordering_a_node_survives_the_request(
+    live_client: AsyncClient, outside_connection: AsyncSession
+) -> None:
+    """The org-chart drag-and-drop write path: two siblings, reorder one of
+    them, and check the new `position` is durable - not just the row itself.
+    `update_node` reads the node before writing it (same shape of bug as
+    `create_person`), so this is exactly the case that needs the fix."""
+    suffix = uuid.uuid4().hex[:8]
+    first_name, second_name = f"durability-a-{suffix}", f"durability-b-{suffix}"
+    try:
+        first = await live_client.post("/api/v1/org/nodes", json={"name": first_name})
+        second = await live_client.post("/api/v1/org/nodes", json={"name": second_name})
+        assert first.status_code == second.status_code == 201
+        second_id = second.json()["id"]
+
+        response = await live_client.patch(f"/api/v1/org/nodes/{second_id}", json={"position": 0})
+        assert response.status_code == 200
+        assert response.json()["position"] == 0
+
+        row = await outside_connection.execute(
+            text("SELECT position FROM org_nodes WHERE id = :id"), {"id": second_id}
+        )
+        assert row.scalar_one_or_none() == 0, (
+            "the API reported the reorder succeeded but a second connection "
+            "sees the old position - the write never actually committed"
+        )
+    finally:
+        await outside_connection.execute(
+            text("DELETE FROM org_nodes WHERE name IN (:a, :b)"),
+            {"a": first_name, "b": second_name},
+        )
+        await outside_connection.commit()
+
+
 async def test_a_rejected_write_does_not_commit(
     live_client: AsyncClient, outside_connection: AsyncSession
 ) -> None:

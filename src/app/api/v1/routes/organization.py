@@ -61,6 +61,9 @@ async def create_org_node(body: OrgNodeCreate, service: OrganizationServiceDep) 
         "Send `reparent: true` to apply `parent_id`, including null to make the "
         "department a root. Without it, `parent_id` would be ambiguous with "
         "'leave the parent alone'.\n\n"
+        "Send `position` to place it among its siblings - alone, this reorders "
+        "among its current ones; combined with `reparent`, among its new ones "
+        "(omitted, it appends to the end).\n\n"
         "Returns 422 if the move would make a department report to itself or to "
         "one of its own sub-departments - which would cut that branch loose "
         "from the organization."
@@ -76,6 +79,7 @@ async def update_org_node(
             subtitle=body.subtitle,
             parent_id=body.parent_id,
             reparent=body.reparent,
+            position=body.position,
         ),
     )
     return OrgNodeRead.from_view(view)

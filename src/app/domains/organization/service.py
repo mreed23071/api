@@ -16,7 +16,7 @@ from app.domains.organization.dto import (
     OrgNodeView,
 )
 from app.domains.organization.models import OrgNode, OrgNodeMember
-from app.domains.organization.tree import would_create_cycle
+from app.domains.organization.tree import reorder, would_create_cycle
 from app.domains.uow import UnitOfWork
 
 logger = logging.getLogger(__name__)
@@ -86,19 +86,31 @@ class OrganizationService:
             await self._require_node(new.parent_id)
 
         async with self.uow.transaction():
+            position = await self.uow.org_nodes.next_position(new.parent_id)
             node = await self.uow.org_nodes.add(
-                OrgNode(name=name, subtitle=new.subtitle, parent_id=new.parent_id)
+                OrgNode(
+                    name=name, subtitle=new.subtitle, parent_id=new.parent_id, position=position
+                )
             )
         return self._view(node, [])
 
     async def update_node(self, node_id: uuid.UUID, patch: OrgNodePatch) -> OrgNodeView:
-        """Rename a department, retitle it, or move it somewhere else in the tree.
+        """Rename a department, retitle it, move it, or reorder it among its
+        siblings - any combination, in one call.
 
         A patch only changes the fields it names. `None` means "leave alone" for
         the text fields - but not for the parent, where `None` is a real value
         meaning "make this a root". That is why the patch carries a separate
         `reparent` flag: without it, "promote to root" and "do not touch the
-        parent" would look identical.
+        parent" would look identical. `position` is independent of `reparent`:
+        sent alone it reorders among the *current* siblings, sent alongside
+        `reparent` it places the node among the *new* ones (omitted, it appends).
+
+        Reordering always renumbers a parent's *entire* sibling list (see
+        `tree.reorder`), touching two parents' worth of rows on a reparent - the
+        old one (closing the gap left behind) and the new one (opening a slot).
+        Simple, not partial-shift-optimised: at org-chart scale that is the
+        honest cost of a move, not a real one.
 
         `async with self.uow.transaction():` opens a database transaction and
         closes it at the end of the indented block - committing if the block
@@ -111,6 +123,10 @@ class OrganizationService:
         if patch.reparent:
             await self._check_reparent(node_id, patch.parent_id)
 
+        old_parent_id = node.parent_id
+        new_parent_id = patch.parent_id if patch.reparent else old_parent_id
+        moving = patch.reparent or patch.position is not None
+
         async with self.uow.transaction():
             if patch.name is not None:
                 name = patch.name.strip()
@@ -119,8 +135,32 @@ class OrganizationService:
                 node.name = name
             if patch.subtitle is not None:
                 node.subtitle = patch.subtitle
+
+            if moving:
+                # Not yet re-parented in the database, so when `new_parent_id`
+                # differs from the node's current parent this naturally
+                # excludes it - `reorder` below inserts it fresh either way.
+                new_siblings = [
+                    child.id for child in await self.uow.org_nodes.children_of(new_parent_id)
+                ]
+                target = patch.position if patch.position is not None else len(new_siblings)
+                new_order = reorder(new_siblings, node_id, target)
+                await self.uow.org_nodes.reindex(new_order)
+                # `reindex` writes the database directly; sync the in-memory
+                # object too, so the response below reports the real position
+                # rather than whatever it was before this call.
+                node.position = new_order.index(node_id)
+
             if patch.reparent:
                 node.parent_id = patch.parent_id
+                if old_parent_id != new_parent_id:
+                    old_siblings = [
+                        child.id
+                        for child in await self.uow.org_nodes.children_of(old_parent_id)
+                        if child.id != node_id
+                    ]
+                    await self.uow.org_nodes.reindex(old_siblings)
+
             await self.uow.flush()
 
         members = await self.uow.org_members.for_node(node_id)
@@ -133,15 +173,34 @@ class OrganizationService:
         `ON DELETE SET NULL` and would scatter the children to the roots. A
         department disappearing should move its sub-departments up one level,
         not detach them from the organization.
+
+        The promoted children keep their relative order but move to the end of
+        their new parent's existing children - appending, then reindexing the
+        whole new sibling set, is what keeps two children from ending up tied
+        on the same position (one promoted, one already there).
         """
         require_console_access(self.principal)
         node = await self._require_node(node_id)
         children = await self.uow.org_nodes.children_of(node_id)
 
         async with self.uow.transaction():
-            for child in children:
-                child.parent_id = node.parent_id
-            await self.uow.flush()
+            if children:
+                # Captured before reparenting touches this set, and excludes
+                # the node being deleted itself (still its parent's child at
+                # this point) - so it is exactly the grandparent's *other*
+                # existing children, in their existing order. The promoted
+                # children are appended after.
+                existing_siblings = [
+                    sibling.id
+                    for sibling in await self.uow.org_nodes.children_of(node.parent_id)
+                    if sibling.id != node_id
+                ]
+                for child in children:
+                    child.parent_id = node.parent_id
+                await self.uow.flush()
+                await self.uow.org_nodes.reindex(
+                    existing_siblings + [child.id for child in children]
+                )
             await self.uow.org_nodes.remove(node)
 
         return DeletionResult(id=node_id, promoted=len(children))
@@ -250,6 +309,7 @@ class OrganizationService:
             name=node.name,
             subtitle=node.subtitle,
             parent_id=node.parent_id,
+            position=node.position,
             created_at=node.created_at,
             member_ids=list(member_ids),
         )

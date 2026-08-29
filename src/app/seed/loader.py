@@ -22,6 +22,7 @@ from __future__ import annotations
 import json
 import logging
 import uuid
+from collections import Counter
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from datetime import date, datetime
@@ -274,23 +275,30 @@ async def seed_database(
 
     # -- departments and membership ----------------------------------------
     known_nodes = await _existing(session, OrgNode)
+    # Seeds `position` per parent from whatever already exists, so a fixture
+    # added to a *half*-seeded database (some nodes already present) still
+    # appends after them instead of colliding on the same position.
+    sibling_count: dict[uuid.UUID | None, int] = Counter(
+        row[0] for row in (await session.execute(select(OrgNode.parent_id))).all()
+    )
     known_members = {
         m.user_id for m in (await session.execute(select(OrgNodeMember))).scalars().all()
     }
     for row in _order_nodes(data.get("org_nodes", [])):
         node_id = stable_id("org_node", row["id"])
         if node_id not in known_nodes:
+            parent_id = stable_id("org_node", row["parent_id"]) if row.get("parent_id") else None
             session.add(
                 OrgNode(
                     id=node_id,
                     name=row["name"],
                     subtitle=row.get("subtitle") or None,
-                    parent_id=(
-                        stable_id("org_node", row["parent_id"]) if row.get("parent_id") else None
-                    ),
+                    parent_id=parent_id,
+                    position=sibling_count[parent_id],
                     created_at=_dt(row.get("created_at")),
                 )
             )
+            sibling_count[parent_id] += 1
             report.org_nodes += 1
         await session.flush()
 

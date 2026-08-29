@@ -16,8 +16,8 @@ from tests.factories import make_user
 pytestmark = pytest.mark.integration
 
 
-async def _node(session, name: str, parent: OrgNode | None = None) -> OrgNode:
-    node = OrgNode(name=name, parent_id=parent.id if parent else None)
+async def _node(session, name: str, parent: OrgNode | None = None, position: int = 0) -> OrgNode:
+    node = OrgNode(name=name, parent_id=parent.id if parent else None, position=position)
     session.add(node)
     await session.flush()
     return node

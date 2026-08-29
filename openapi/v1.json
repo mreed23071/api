@@ -1059,6 +1059,11 @@
             "description": "Null when this node is a root.",
             "title": "Parent Id"
           },
+          "position": {
+            "description": "0-indexed order among this node's siblings.",
+            "title": "Position",
+            "type": "integer"
+          },
           "subtitle": {
             "anyOf": [
               {
@@ -1074,6 +1079,7 @@
         "required": [
           "id",
           "name",
+          "position",
           "created_at"
         ],
         "title": "OrgNodeRead",
@@ -1106,6 +1112,19 @@
               }
             ],
             "title": "Parent Id"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "0-indexed target position among the node's siblings. Sent alone, reorders among its current siblings. Sent with `reparent`, places it at this index among its new ones; omitted during a reparent, it appends to the end instead.",
+            "title": "Position"
           },
           "reparent": {
             "default": false,
@@ -3734,7 +3753,7 @@
         ]
       },
       "patch": {
-        "description": "Send `reparent: true` to apply `parent_id`, including null to make the department a root. Without it, `parent_id` would be ambiguous with 'leave the parent alone'.\n\nReturns 422 if the move would make a department report to itself or to one of its own sub-departments - which would cut that branch loose from the organization.",
+        "description": "Send `reparent: true` to apply `parent_id`, including null to make the department a root. Without it, `parent_id` would be ambiguous with 'leave the parent alone'.\n\nSend `position` to place it among its siblings - alone, this reorders among its current ones; combined with `reparent`, among its new ones (omitted, it appends to the end).\n\nReturns 422 if the move would make a department report to itself or to one of its own sub-departments - which would cut that branch loose from the organization.",
         "operationId": "update_org_node",
         "parameters": [
           {
