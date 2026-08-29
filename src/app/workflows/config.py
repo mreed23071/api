@@ -59,3 +59,10 @@ WRITE_RETRY = RetryPolicy(
 INFERENCE_TIMEOUT = timedelta(minutes=10)
 FETCH_TIMEOUT = timedelta(minutes=2)
 WRITE_TIMEOUT = timedelta(minutes=2)
+
+#: Without this, a dead worker is invisible until the full timeout above
+#: elapses - up to ten minutes for one filter or embed batch. The activity
+#: heartbeats every 5s (see `activities._with_heartbeat`); missing four in a
+#: row is what tells Temporal the worker is actually gone, versus one slow
+#: scheduling tick under load. Detection drops from up to 10 minutes to ~20s.
+INFERENCE_HEARTBEAT_TIMEOUT = timedelta(seconds=20)

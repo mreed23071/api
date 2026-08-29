@@ -60,6 +60,7 @@ class Recorder:
         self.keep_every = keep_every
         self.filter_batches: list[list[str]] = []
         self.embed_batches: list[list[str]] = []
+        self.persist_batches: list[PersistInput] = []
         self.persisted: PersistInput | None = None
         self.recorded: RunSummary | None = None
 
@@ -98,6 +99,7 @@ class Recorder:
         @activity.defn(name="persist")
         async def persist(payload: PersistInput) -> PersistOutcome:
             recorder.persisted = payload
+            recorder.persist_batches.append(payload)
             return PersistOutcome(
                 persisted=len(payload.retained), users_provisioned=1, relations_provisioned=1
             )
@@ -155,6 +157,29 @@ async def test_filtering_is_split_into_small_batches() -> None:
     # Every message judged exactly once, none dropped between batches.
     flattened = [mid for batch in recorder.filter_batches for mid in batch]
     assert sorted(flattened) == sorted(m.external_message_id for m in recorder.messages)
+
+
+async def test_persisting_is_split_into_batches_matching_vectors_to_messages() -> None:
+    """Discovered against a real 500-message run: one `persist` call carrying
+    the entire retained set plus every vector exceeded Temporal's payload size
+    limit and failed the workflow outright - not a retryable failure, since
+    the payload is always too big at that size. Batching this the same way
+    filtering and embedding already are fixes it, and each batch's vectors
+    have to line up with that batch's messages, not the whole run's."""
+    from app.workflows.ingestion import PERSIST_BATCH
+
+    recorder = Recorder([message(i) for i in range(PERSIST_BATCH * 2 + 10)])
+    summary = await run_workflow(recorder)
+
+    assert len(recorder.persist_batches) > 1
+    assert all(len(batch.retained) <= PERSIST_BATCH for batch in recorder.persist_batches)
+    assert summary.persisted == len(recorder.messages)
+
+    # Every batch's vectors correspond to that batch's own messages - a
+    # mismatched slice here would silently attach the wrong vector to a
+    # message, which no count-based assertion above would catch.
+    for batch in recorder.persist_batches:
+        assert len(batch.vectors) == len(batch.retained)
 
 
 async def test_only_retained_messages_are_embedded() -> None:

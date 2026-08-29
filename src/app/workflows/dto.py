@@ -118,6 +118,7 @@ class RunProgress(BaseModel):
     to report until the whole run finished. This is the real thing.
     """
 
+    platform: Platform | None = None
     stage: str = "starting"
     fetched: int = 0
     evaluated: int = 0

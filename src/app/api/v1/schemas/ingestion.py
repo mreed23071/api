@@ -187,6 +187,26 @@ class RunProgressResponse(BaseModel):
     result: IngestionRunResponse | None = None
 
 
+class ActiveRunRead(BaseModel):
+    """One in-flight run, for the Runs page's "in progress" section."""
+
+    run_id: str
+    platform: Platform | None = None
+    stage: str = Field(description="Current pipeline stage: fetching, filtering, embedding, ...")
+    started_at: datetime
+
+
+class ActiveRunsResponse(BaseModel):
+    """Whether ingestion is running right now, anywhere - not history, not one
+    platform's status. Reads Temporal's live state directly, so a run appears
+    here the instant it starts, well before `record_run` gives it a row in
+    `GET /ingestion/runs`.
+    """
+
+    count: int = Field(description="How many ingestion runs are in flight right now.")
+    runs: list[ActiveRunRead] = Field(default_factory=list)
+
+
 class IngestionConfigResponse(BaseModel):
     """The knobs the ingestion pipeline is currently running with."""
 

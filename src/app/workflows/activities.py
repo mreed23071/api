@@ -16,8 +16,9 @@ at most the activity in flight, never the model calls already paid for.
 
 from __future__ import annotations
 
+import asyncio
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any
@@ -89,6 +90,40 @@ def _uow(session) -> UnitOfWork:  # type: ignore[no-untyped-def]
     return UnitOfWork(session, TenantContext.global_scope())
 
 
+#: How often to tell Temporal "still here" while a slow call is in flight.
+#: Paired with `heartbeat_timeout` on the workflow's `execute_activity` calls
+#: (see `ingestion.py`) - that timeout should be a few multiples of this, so
+#: normal scheduling jitter doesn't read as a dead worker.
+_HEARTBEAT_INTERVAL_SECONDS = 5
+
+
+async def _with_heartbeat[T](coro: Coroutine[Any, Any, T]) -> T:
+    """Run `coro`, heartbeating every few seconds while it's in flight.
+
+    Without this, a worker that dies mid-activity is invisible to Temporal
+    until the activity's full `start_to_close_timeout` elapses - ten minutes,
+    for the filter and embed activities, since nothing else tells Temporal
+    the attempt is still alive. A missed heartbeat is what lets Temporal
+    notice within `heartbeat_timeout` instead, and hand the batch to a new
+    worker without waiting out the whole timeout window.
+
+    The task-race pattern (not a `while True: await coro; heartbeat` loop)
+    is deliberate: `coro` is one call to Ollama with no natural pause point
+    to heartbeat from inside it, so heartbeating has to happen concurrently
+    with it, not interleaved.
+    """
+    work = asyncio.ensure_future(coro)
+    try:
+        while True:
+            done, _pending = await asyncio.wait({work}, timeout=_HEARTBEAT_INTERVAL_SECONDS)
+            if done:
+                return await work
+            activity.heartbeat()
+    finally:
+        if not work.done():
+            work.cancel()
+
+
 # -- activities ------------------------------------------------------------
 
 
@@ -129,7 +164,7 @@ async def filter_batch(batch: list[RawMessage]) -> FilterOutcome:
     """
     deps = get_deps()
     agent = MessageFilterAgent(deps.llm, system_prompt=deps.settings.ingestion_filter_system_prompt)
-    decisions = await agent.filter(batch)
+    decisions = await _with_heartbeat(agent.filter(batch))
     return FilterOutcome(decisions=decisions)
 
 
@@ -137,7 +172,7 @@ async def filter_batch(batch: list[RawMessage]) -> FilterOutcome:
 async def embed_batch(texts: list[str]) -> EmbedOutcome:
     """Vectorise one batch, in the order given."""
     deps = get_deps()
-    vectors = await deps.embeddings.embed(texts)
+    vectors = await _with_heartbeat(deps.embeddings.embed(texts))
     return EmbedOutcome(vectors=vectors, model=deps.embeddings.model_name)
 
 

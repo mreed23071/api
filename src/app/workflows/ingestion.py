@@ -26,6 +26,7 @@ with workflow.unsafe.imports_passed_through():
     from app.workflows.config import (
         FETCH_RETRY,
         FETCH_TIMEOUT,
+        INFERENCE_HEARTBEAT_TIMEOUT,
         INFERENCE_RETRY,
         INFERENCE_TIMEOUT,
         WRITE_RETRY,
@@ -45,6 +46,18 @@ with workflow.unsafe.imports_passed_through():
 #: list far more reliably than a long one.
 FILTER_BATCH = 5
 EMBED_BATCH = 16
+
+#: How many messages (plus their embedding vectors) go into one `persist`
+#: activity call. Discovered the hard way: Temporal caps a single activity's
+#: scheduled input at 2MB, and a run's *entire* retained set plus every vector
+#: used to go into one `persist` call. A 500-message run's payload measured
+#: ~4MB - comfortably past the limit - and the workflow failed outright with
+#: `BadScheduleActivityAttributes: ... Input exceeds size limit`, not a
+#: retryable error, since the payload is always going to be too big at that
+#: size no matter how many times it's retried. 50 messages' worth of content
+#: plus a nomic-embed-text vector each lands well under Temporal's 512KB
+#: *warning* threshold, with real margin before the 2MB hard limit.
+PERSIST_BATCH = 50
 
 
 @workflow.defn(name="IngestionWorkflow")
@@ -66,6 +79,7 @@ class IngestionWorkflow:
     @workflow.run
     async def run(self, payload: IngestionInput) -> RunSummary:
         started_at = workflow.now()
+        self._progress.platform = payload.platform
 
         summary = RunSummary(
             run_id=payload.run_id,
@@ -103,6 +117,7 @@ class IngestionWorkflow:
                 activities.filter_batch,
                 batch,
                 start_to_close_timeout=INFERENCE_TIMEOUT,
+                heartbeat_timeout=INFERENCE_HEARTBEAT_TIMEOUT,
                 retry_policy=INFERENCE_RETRY,
             )
             decisions.extend(judged.decisions)
@@ -129,6 +144,7 @@ class IngestionWorkflow:
                 activities.embed_batch,
                 [message.content for message in batch],
                 start_to_close_timeout=INFERENCE_TIMEOUT,
+                heartbeat_timeout=INFERENCE_HEARTBEAT_TIMEOUT,
                 retry_policy=INFERENCE_RETRY,
             )
             vectors.extend(embedded.vectors)
@@ -138,25 +154,40 @@ class IngestionWorkflow:
         summary.embedded = len(vectors)
         summary.embedding_model = embedding_model
 
-        # 4. One write, transactional and idempotent.
+        # 4. Write, in batches - transactional and idempotent per batch.
+        #
+        # `decisions` (not chunked) is passed to every batch call in full: the
+        # persist activity looks each message's verdict up by id, and the
+        # decisions list alone - no message content, no vectors - stays small
+        # enough to never approach the payload limit PERSIST_BATCH exists for.
         self._progress.stage = "persisting"
-        written: PersistOutcome = await workflow.execute_activity(
-            activities.persist,
-            PersistInput(
-                retained=retained,
-                vectors=vectors,
-                decisions=decisions,
-                embedding_model=embedding_model,
-                filter_prompt_version=summary.filter_prompt_version,
-                dry_run=payload.dry_run,
-            ),
-            start_to_close_timeout=WRITE_TIMEOUT,
-            retry_policy=WRITE_RETRY,
-        )
-        summary.persisted = written.persisted
-        summary.users_provisioned = written.users_provisioned
-        summary.relations_provisioned = written.relations_provisioned
-        self._progress.persisted = written.persisted
+        persisted_total = 0
+        users_total = 0
+        relations_total = 0
+        for start in range(0, len(retained), PERSIST_BATCH):
+            batch = retained[start : start + PERSIST_BATCH]
+            batch_vectors = vectors[start : start + PERSIST_BATCH]
+            written: PersistOutcome = await workflow.execute_activity(
+                activities.persist,
+                PersistInput(
+                    retained=batch,
+                    vectors=batch_vectors,
+                    decisions=decisions,
+                    embedding_model=embedding_model,
+                    filter_prompt_version=summary.filter_prompt_version,
+                    dry_run=payload.dry_run,
+                ),
+                start_to_close_timeout=WRITE_TIMEOUT,
+                retry_policy=WRITE_RETRY,
+            )
+            persisted_total += written.persisted
+            users_total += written.users_provisioned
+            relations_total += written.relations_provisioned
+            self._progress.persisted = persisted_total
+
+        summary.persisted = persisted_total
+        summary.users_provisioned = users_total
+        summary.relations_provisioned = relations_total
 
         return await self._finish(summary, started_at)
 

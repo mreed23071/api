@@ -53,6 +53,64 @@
         "title": "AccountDeleteResponse",
         "type": "object"
       },
+      "ActiveRunRead": {
+        "description": "One in-flight run, for the Runs page's \"in progress\" section.",
+        "properties": {
+          "platform": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Platform"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "stage": {
+            "description": "Current pipeline stage: fetching, filtering, embedding, ...",
+            "title": "Stage",
+            "type": "string"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "stage",
+          "started_at"
+        ],
+        "title": "ActiveRunRead",
+        "type": "object"
+      },
+      "ActiveRunsResponse": {
+        "description": "Whether ingestion is running right now, anywhere - not history, not one\nplatform's status. Reads Temporal's live state directly, so a run appears\nhere the instant it starts, well before `record_run` gives it a row in\n`GET /ingestion/runs`.",
+        "properties": {
+          "count": {
+            "description": "How many ingestion runs are in flight right now.",
+            "title": "Count",
+            "type": "integer"
+          },
+          "runs": {
+            "items": {
+              "$ref": "#/components/schemas/ActiveRunRead"
+            },
+            "title": "Runs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "count"
+        ],
+        "title": "ActiveRunsResponse",
+        "type": "object"
+      },
       "Body_link_account": {
         "properties": {
           "user_id": {
@@ -2880,6 +2938,56 @@
           }
         ],
         "summary": "List past ingestion runs",
+        "tags": [
+          "ingestion"
+        ]
+      }
+    },
+    "/api/v1/ingestion/runs/active": {
+      "get": {
+        "description": "For a console-wide indicator, not a dashboard - just whether at least one run is currently in flight, on any platform. Reads Temporal's live state directly rather than the history table, which only gains a row once a run finishes.\n\nAlways answers `count: 0` when ingestion isn't orchestrated by Temporal - an inline run has already finished by the time its `POST` responds, so there's never anything left in flight to report.",
+        "operationId": "get_active_runs",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActiveRunsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication required or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authenticated but not permitted."
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          },
+          {
+            "DevUser": []
+          }
+        ],
+        "summary": "Is ingestion running right now, anywhere",
         "tags": [
           "ingestion"
         ]

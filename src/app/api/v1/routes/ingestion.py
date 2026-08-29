@@ -10,6 +10,8 @@ from fastapi import APIRouter, Depends, Path, Query, status
 from app.api.deps import IngestionServiceDep, MessageSourceDep, SettingsDep, get_message_source
 from app.api.errors import AUTH_RESPONSES
 from app.api.v1.schemas.ingestion import (
+    ActiveRunRead,
+    ActiveRunsResponse,
     IngestionConfigResponse,
     IngestionRunRequest,
     IngestionRunResponse,
@@ -22,7 +24,7 @@ from app.core.security.dependencies import require_scopes
 from app.core.security.principal import Scope
 from app.domains.identity.models import Platform
 from app.workflows.dto import IngestionInput
-from app.workflows.gateway import describe_ingestion_run, start_ingestion_run
+from app.workflows.gateway import describe_ingestion_run, list_active_runs, start_ingestion_run
 
 router = APIRouter(prefix="/ingestion", tags=["ingestion"], responses=AUTH_RESPONSES)
 
@@ -128,6 +130,38 @@ async def get_run_status(
         embedded=view.progress.embedded,
         persisted=view.progress.persisted,
         result=IngestionRunResponse.from_summary(view.summary) if view.summary else None,
+    )
+
+
+@router.get(
+    "/runs/active",
+    response_model=ActiveRunsResponse,
+    summary="Is ingestion running right now, anywhere",
+    description=(
+        "For a console-wide indicator, not a dashboard - just whether at least "
+        "one run is currently in flight, on any platform. Reads Temporal's live "
+        "state directly rather than the history table, which only gains a row "
+        "once a run finishes.\n\n"
+        "Always answers `count: 0` when ingestion isn't orchestrated by Temporal "
+        "- an inline run has already finished by the time its `POST` responds, "
+        "so there's never anything left in flight to report."
+    ),
+)
+async def get_active_runs(settings: SettingsDep) -> ActiveRunsResponse:
+    if not settings.temporal_enabled:
+        return ActiveRunsResponse(count=0, runs=[])
+    active = await list_active_runs()
+    return ActiveRunsResponse(
+        count=len(active),
+        runs=[
+            ActiveRunRead(
+                run_id=run.run_id,
+                platform=run.platform,
+                stage=run.stage,
+                started_at=run.started_at,
+            )
+            for run in active
+        ],
     )
 
 

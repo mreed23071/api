@@ -69,6 +69,7 @@ def test_v1_publishes_the_expected_operations(v1_schema) -> None:
         "get_user_summary",
         "list_connectors",
         "list_ingestion_runs",
+        "get_active_runs",
         # directory: users
         "list_users",
         "get_user",

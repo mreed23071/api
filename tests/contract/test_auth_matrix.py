@@ -135,6 +135,7 @@ PROVISIONALLY_OPEN: dict[str, str] = {
     # ingestion and insights, console-facing halves
     "list_connectors": "console integrations",
     "list_ingestion_runs": "console ingestion history",
+    "get_active_runs": "console ingestion history - live indicator",
     "get_user_summary": "console person view - personal data",
 }
 
