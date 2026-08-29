@@ -1,4 +1,4 @@
-# threadline — Prototype Technical Report
+# mabinsoft — Prototype Technical Report
 
 **Status:** prototype / bootstrap scaffold
 **Reviewed:** 2026-08-25
@@ -662,7 +662,7 @@ No tenant, no organization, no team, no per-user visibility rule. Every query is
 global. There is nothing in the schema that could express "user X may read user
 Y's summary."
 *Recommendation:* decide the tenancy model before the schema hardens — this is
-the single hardest thing to retrofit. If threadline is multi-tenant, an
+the single hardest thing to retrofit. If mabinsoft is multi-tenant, an
 `organization_id` on `users`, `user_relations` and `messages`, enforced in the
 repository layer (or by Postgres row-level security), needs to land now rather
 than after the first customer.
@@ -1008,7 +1008,7 @@ credentials in any real environment.
 The source cannot tell you any of this, and guessing will produce documentation
 that has to be retracted:
 
-1. **What is threadline for, commercially?** Team analytics, knowledge retention,
+1. **What is mabinsoft for, commercially?** Team analytics, knowledge retention,
    compliance and eDiscovery, manager tooling, onboarding context — the schema
    supports several readings and they imply very different products.
 2. **Who is the user?** The only read endpoint returns *other people's*

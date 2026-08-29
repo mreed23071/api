@@ -1,8 +1,8 @@
 {
-  "name": "threadline-sdk-tooling",
+  "name": "mabinsoft-sdk-tooling",
   "private": true,
   "version": "0.1.0",
-  "description": "OpenAPI schema export for the threadline backend. Client generation lives in the console repository, which is the consumer.",
+  "description": "OpenAPI schema export for the mabinsoft backend. Client generation lives in the console repository, which is the consumer.",
   "type": "module",
   "scripts": {
     "openapi:export": "uv run python scripts/export_openapi.py"

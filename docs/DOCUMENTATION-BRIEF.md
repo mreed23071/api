@@ -1,7 +1,7 @@
-# Documentation brief — threadline
+# Documentation brief — mabinsoft
 
 **For:** the agent (or engineer) writing the platform documentation
-**Input:** the `threadline` repository, in full
+**Input:** the `mabinsoft` repository, in full
 **Output:** a `docs/` tree of markdown, committed alongside the code
 **Status of the subject:** working prototype with a deliberately
 production-shaped foundation. Nothing has run in production; no connector is
@@ -12,7 +12,7 @@ real; no performance has been measured.
 ## 1. Your task
 
 Produce the documentation set defined in §5 — a layered `docs/` tree that
-explains threadline to two audiences at once:
+explains mabinsoft to two audiences at once:
 
 - a **business reader** who needs to understand what it does, why the design
   choices matter commercially, and what it would take to grow it into a
@@ -50,7 +50,7 @@ this project's short life.
 to code. Where you propose something — a queue, an IdP, a metrics stack — label
 it as a recommendation and give the trade-off, not just the conclusion.
 
-**Do not invent the business.** The source cannot tell you what threadline is
+**Do not invent the business.** The source cannot tell you what mabinsoft is
 commercially *for*. `docs/PROTOTYPE-REPORT.md` §10.2 lists eight open questions
 (purpose, persona, tenancy, consent model, first connector, whether the privacy
 position is commercial, retention, whether the filter policy is global). Carry

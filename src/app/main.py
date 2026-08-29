@@ -74,7 +74,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     docs_enabled = settings.docs_enabled and not settings.is_production
 
     app = FastAPI(
-        title="threadline API",
+        title="mabinsoft API",
         version=__version__,
         summary="Multi-platform message ingestion, private embeddings and agentic summaries.",
         description=(

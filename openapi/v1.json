@@ -2326,7 +2326,7 @@
   },
   "info": {
     "description": "Versioned under `/api/{version}`. Probes (`/health`, `/ready`) are unversioned infrastructure contracts. Every error shares one envelope; see the `ErrorResponse` schema.",
-    "title": "threadline API v1",
+    "title": "mabinsoft API v1",
     "version": "v1"
   },
   "openapi": "3.1.0",

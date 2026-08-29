@@ -132,12 +132,12 @@ def teams_message(**overrides) -> dict:  # type: ignore[type-arg]
             "user": {
                 "id": "U-BEN",
                 "displayName": "Ben Hartley",
-                "userPrincipalName": "ben.hartley@threadline.example",
+                "userPrincipalName": "ben.hartley@mabinsoft.example",
                 "email": "ben@example.com",
             }
         },
         "body": {"contentType": "text", "content": "Onboarding session is tomorrow at 10."},
-        "channelIdentity": {"channelId": "19:threadline-general@thread.tacv2"},
+        "channelIdentity": {"channelId": "19:mabinsoft-general@thread.tacv2"},
     }
     return {**base, **overrides}
 
@@ -157,10 +157,10 @@ async def test_teams_maps_the_chat_message_shape() -> None:
     assert message.platform is Platform.TEAMS
     assert message.external_message_id == "1724825930000"
     assert message.external_author_id == "U-BEN"
-    assert message.author_handle == "ben.hartley@threadline.example"
+    assert message.author_handle == "ben.hartley@mabinsoft.example"
     assert message.author_email == "ben@example.com"
     assert message.author_display_name == "Ben Hartley"
-    assert message.conversation_id == "19:threadline-general@thread.tacv2"
+    assert message.conversation_id == "19:mabinsoft-general@thread.tacv2"
     assert message.content == "Onboarding session is tomorrow at 10."
 
 
@@ -191,7 +191,7 @@ def commit(**overrides) -> dict:  # type: ignore[type-arg]
             "message": "Add migration for the messages embedding column",
         },
         "author": {"login": "benh"},
-        "html_url": "https://github.com/threadline/api/commit/3691593a7c1e4f0b9d2a6c8e1f4b7d0a2c5e8f1b",
+        "html_url": "https://github.com/mabinsoft/api/commit/3691593a7c1e4f0b9d2a6c8e1f4b7d0a2c5e8f1b",
         "files": [
             {
                 "filename": "migrations/versions/0002_add_embedding.py",
@@ -201,7 +201,7 @@ def commit(**overrides) -> dict:  # type: ignore[type-arg]
             }
         ],
         "stats": {"additions": 42, "deletions": 0},
-        "repository": "threadline/api",
+        "repository": "mabinsoft/api",
         "branch": "main",
     }
     return {**base, **overrides}
@@ -220,11 +220,11 @@ async def test_github_maps_commits_not_chat_messages() -> None:
 
     assert message.platform is Platform.GITHUB
     assert message.kind == "commit"
-    assert message.external_message_id == "threadline/api@3691593"
+    assert message.external_message_id == "mabinsoft/api@3691593"
     assert message.author_handle == "benh"
     assert message.author_email == "ben@example.com"
     assert message.author_display_name == "Ben Hartley"
-    assert message.conversation_id == "threadline/api"
+    assert message.conversation_id == "mabinsoft/api"
     assert message.content == "Add migration for the messages embedding column"
 
 
@@ -240,7 +240,7 @@ async def test_github_commit_metadata_matches_what_the_read_side_expects() -> No
     shape has to match for the console to render it."""
     message = (await github(lambda r: json_response([commit()])).fetch())[0]
     detail = message.metadata["commit"]
-    assert detail["sha"] and detail["repository"] == "threadline/api" and detail["branch"] == "main"
+    assert detail["sha"] and detail["repository"] == "mabinsoft/api" and detail["branch"] == "main"
     assert isinstance(detail["files"], list) and detail["files"]
     for f in detail["files"]:
         assert f["path"] and f["status"] in {"added", "modified", "removed"}
@@ -266,8 +266,8 @@ async def test_github_falls_back_to_the_commit_email_with_no_matched_account() -
 
 async def test_github_ids_are_unique_and_stable_across_calls() -> None:
     payload = [
-        commit(sha="a" * 40, repository="threadline/api"),
-        commit(sha="b" * 40, repository="threadline/infra"),
+        commit(sha="a" * 40, repository="mabinsoft/api"),
+        commit(sha="b" * 40, repository="mabinsoft/infra"),
     ]
     first = await github(lambda r: json_response(payload)).fetch()
     second = await github(lambda r: json_response(payload)).fetch()

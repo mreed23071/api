@@ -23,7 +23,7 @@ class Repository:
 
     # -- the tenancy seam --------------------------------------------------
     #
-    # Today threadline is single-tenant: `scoped()` is the identity function and
+    # Today mabinsoft is single-tenant: `scoped()` is the identity function and
     # every principal carries `TenantContext.global_scope()`. The seam exists so
     # that adding multi-tenancy is a *mechanical* change rather than an
     # architectural one:

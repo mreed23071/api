@@ -37,7 +37,7 @@ def published_operations(schema: dict) -> dict[str, dict]:
 def v1_schema(app) -> dict:  # type: ignore[no-untyped-def]
     settings = get_settings()
     return build_version_schema(
-        app, prefix=f"{settings.api_root_prefix}/v1", title="threadline API v1", version="v1"
+        app, prefix=f"{settings.api_root_prefix}/v1", title="mabinsoft API v1", version="v1"
     )
 
 

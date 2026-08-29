@@ -50,7 +50,7 @@ class PrincipalKind(StrEnum):
 class TenantContext:
     """The isolation boundary a principal is acting within.
 
-    threadline is single-tenant today, so every principal gets `global_scope()`.
+    mabinsoft is single-tenant today, so every principal gets `global_scope()`.
     The type exists now because retrofitting a tenant argument through every
     repository later is the expensive version of this change; retrofitting the
     *body* of `Repository.scoped()` is the cheap one.

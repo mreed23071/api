@@ -12,7 +12,7 @@ from app.core.security.principal import Scope
 def build(**overrides) -> Settings:  # type: ignore[no-untyped-def]
     defaults = {
         "app_env": "production",
-        "database_url": "postgresql+asyncpg://u:p@db:5432/threadline",
+        "database_url": "postgresql+asyncpg://u:p@db:5432/mabinsoft",
         "dev_auth_enabled": False,
         "docs_enabled": False,
         "api_keys": [
@@ -28,7 +28,7 @@ def test_a_correctly_configured_production_deployment_starts() -> None:
 
 def test_rejects_a_sync_database_url() -> None:
     with pytest.raises(ValueError, match="async driver"):
-        build(database_url="postgresql://u:p@db:5432/threadline")
+        build(database_url="postgresql://u:p@db:5432/mabinsoft")
 
 
 def test_rejects_the_default_cron_token_in_production() -> None:

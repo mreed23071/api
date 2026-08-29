@@ -1,8 +1,8 @@
-# Threadline Console — frontend proof of concept
+# Mabinsoft Console — frontend proof of concept
 
 ## What this is
 
-Threadline resolves one person's scattered platform identities — a Slack handle, a
+Mabinsoft resolves one person's scattered platform identities — a Slack handle, a
 GitHub login, a Teams account — into a single internal record, and generates a
 short summary of that person's recent activity from the messages collected across
 those platforms. A backend prototype already exists (FastAPI, PostgreSQL +

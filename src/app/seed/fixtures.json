@@ -3,7 +3,7 @@
   "people": [
     {
       "id": "usr_0001",
-      "email": "amara.osei@threadline.dev",
+      "email": "amara.osei@mabinsoft.dev",
       "full_name": "Amara Osei",
       "display_name": "Amara",
       "job_title": "Staff Engineer",
@@ -17,7 +17,7 @@
     },
     {
       "id": "usr_0002",
-      "email": "daniel.whitfield@threadline.dev",
+      "email": "daniel.whitfield@mabinsoft.dev",
       "full_name": "Daniel Whitfield",
       "display_name": "Daniel",
       "job_title": "Engineering Manager",
@@ -31,7 +31,7 @@
     },
     {
       "id": "usr_0003",
-      "email": "priya.raghunathan@threadline.dev",
+      "email": "priya.raghunathan@mabinsoft.dev",
       "full_name": "Priya Raghunathan",
       "display_name": "Priya",
       "job_title": "Product Manager",
@@ -45,7 +45,7 @@
     },
     {
       "id": "usr_0004",
-      "email": "tomas.lindqvist@threadline.dev",
+      "email": "tomas.lindqvist@mabinsoft.dev",
       "full_name": "Tomas Lindqvist",
       "display_name": "Tomas",
       "job_title": "Backend Engineer",
@@ -59,7 +59,7 @@
     },
     {
       "id": "usr_0005",
-      "email": "grace.nakamura@threadline.dev",
+      "email": "grace.nakamura@mabinsoft.dev",
       "full_name": "Grace Nakamura",
       "display_name": "Grace",
       "job_title": "Data Scientist",
@@ -73,7 +73,7 @@
     },
     {
       "id": "usr_0006",
-      "email": "miguel.arroyo@threadline.dev",
+      "email": "miguel.arroyo@mabinsoft.dev",
       "full_name": "Miguel Arroyo",
       "display_name": "Miguel",
       "job_title": "Platform Engineer",
@@ -87,7 +87,7 @@
     },
     {
       "id": "usr_0007",
-      "email": "hannah.feldman@threadline.dev",
+      "email": "hannah.feldman@mabinsoft.dev",
       "full_name": "Hannah Feldman",
       "display_name": "Hannah",
       "job_title": "Design Lead",
@@ -101,7 +101,7 @@
     },
     {
       "id": "usr_0008",
-      "email": "kwame.boateng@threadline.dev",
+      "email": "kwame.boateng@mabinsoft.dev",
       "full_name": "Kwame Boateng",
       "display_name": "Kwame",
       "job_title": "Site Reliability Engineer",
@@ -115,7 +115,7 @@
     },
     {
       "id": "usr_0009",
-      "email": "sofia.bianchi@threadline.dev",
+      "email": "sofia.bianchi@mabinsoft.dev",
       "full_name": "Sofia Bianchi",
       "display_name": "Sofia",
       "job_title": "QA Engineer",
@@ -129,7 +129,7 @@
     },
     {
       "id": "usr_0010",
-      "email": "elliot.marsh@threadline.dev",
+      "email": "elliot.marsh@mabinsoft.dev",
       "full_name": "Elliot Marsh",
       "display_name": "Elliot",
       "job_title": "Security Engineer",
@@ -143,7 +143,7 @@
     },
     {
       "id": "usr_0011",
-      "email": "yuki.tanabe@threadline.dev",
+      "email": "yuki.tanabe@mabinsoft.dev",
       "full_name": "Yuki Tanabe",
       "display_name": "Yuki",
       "job_title": "Frontend Engineer",
@@ -157,7 +157,7 @@
     },
     {
       "id": "usr_0012",
-      "email": "nadia.haddad@threadline.dev",
+      "email": "nadia.haddad@mabinsoft.dev",
       "full_name": "Nadia Haddad",
       "display_name": "Nadia",
       "job_title": "Solutions Architect",
@@ -171,7 +171,7 @@
     },
     {
       "id": "usr_0013",
-      "email": "owen.castellanos@threadline.dev",
+      "email": "owen.castellanos@mabinsoft.dev",
       "full_name": "Owen Castellanos",
       "display_name": "Owen",
       "job_title": "Support Lead",
@@ -185,7 +185,7 @@
     },
     {
       "id": "usr_0014",
-      "email": "freya.sorensen@threadline.dev",
+      "email": "freya.sorensen@mabinsoft.dev",
       "full_name": "Freya Sorensen",
       "display_name": "Freya",
       "job_title": "Technical Writer",
@@ -199,7 +199,7 @@
     },
     {
       "id": "usr_0015",
-      "email": "ravi.deshpande@threadline.dev",
+      "email": "ravi.deshpande@mabinsoft.dev",
       "full_name": "Ravi Deshpande",
       "display_name": "Ravi",
       "job_title": "ML Engineer",
@@ -213,7 +213,7 @@
     },
     {
       "id": "usr_0016",
-      "email": "clara.mbeki@threadline.dev",
+      "email": "clara.mbeki@mabinsoft.dev",
       "full_name": "Clara Mbeki",
       "display_name": "Clara",
       "job_title": "Program Manager",
@@ -227,7 +227,7 @@
     },
     {
       "id": "usr_0017",
-      "email": "jonas.weber@threadline.dev",
+      "email": "jonas.weber@mabinsoft.dev",
       "full_name": "Jonas Weber",
       "display_name": "Jonas",
       "job_title": "DevOps Engineer",
@@ -241,7 +241,7 @@
     },
     {
       "id": "usr_0018",
-      "email": "lena.petrova@threadline.dev",
+      "email": "lena.petrova@mabinsoft.dev",
       "full_name": "Lena Petrova",
       "display_name": "Lena",
       "job_title": "Analytics Engineer",
@@ -261,7 +261,7 @@
       "platform": "slack",
       "external_id": "SLACK-115722",
       "external_handle": "@amara",
-      "external_email": "amara.osei@threadline.dev",
+      "external_email": "amara.osei@mabinsoft.dev",
       "is_primary": true,
       "created_at": "2025-02-06T18:00:00.000Z"
     },
@@ -271,7 +271,7 @@
       "platform": "linear",
       "external_id": "LINEAR-173628",
       "external_handle": "@amara",
-      "external_email": "amara.osei@threadline.dev",
+      "external_email": "amara.osei@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2025-02-06T18:00:00.000Z"
     },
@@ -281,7 +281,7 @@
       "platform": "github",
       "external_id": "GITHUB-982107",
       "external_handle": "amara-osei",
-      "external_email": "amara.osei@threadline.dev",
+      "external_email": "amara.osei@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2025-02-06T18:00:00.000Z"
     },
@@ -291,7 +291,7 @@
       "platform": "teams",
       "external_id": "TEAMS-785237",
       "external_handle": "@amara",
-      "external_email": "amara.osei@threadline.dev",
+      "external_email": "amara.osei@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2025-02-06T18:00:00.000Z"
     },
@@ -301,7 +301,7 @@
       "platform": "slack",
       "external_id": "SLACK-965032",
       "external_handle": "@daniel",
-      "external_email": "daniel.whitfield@threadline.dev",
+      "external_email": "daniel.whitfield@mabinsoft.dev",
       "is_primary": true,
       "created_at": "2025-04-04T18:00:00.000Z"
     },
@@ -311,7 +311,7 @@
       "platform": "slack",
       "external_id": "SLACK-342490",
       "external_handle": "@priya",
-      "external_email": "priya.raghunathan@threadline.dev",
+      "external_email": "priya.raghunathan@mabinsoft.dev",
       "is_primary": true,
       "created_at": "2024-10-13T18:00:00.000Z"
     },
@@ -321,7 +321,7 @@
       "platform": "github",
       "external_id": "GITHUB-663992",
       "external_handle": "priya-raghunathan",
-      "external_email": "priya.raghunathan@threadline.dev",
+      "external_email": "priya.raghunathan@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2024-10-13T18:00:00.000Z"
     },
@@ -331,7 +331,7 @@
       "platform": "teams",
       "external_id": "TEAMS-820140",
       "external_handle": "@priya",
-      "external_email": "priya.raghunathan@threadline.dev",
+      "external_email": "priya.raghunathan@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2024-10-13T18:00:00.000Z"
     },
@@ -341,7 +341,7 @@
       "platform": "slack",
       "external_id": "SLACK-680520",
       "external_handle": "@tomas",
-      "external_email": "tomas.lindqvist@threadline.dev",
+      "external_email": "tomas.lindqvist@mabinsoft.dev",
       "is_primary": true,
       "created_at": "2024-10-23T18:00:00.000Z"
     },
@@ -351,7 +351,7 @@
       "platform": "email",
       "external_id": "EMAIL-987325",
       "external_handle": "@tomas",
-      "external_email": "tomas.lindqvist@threadline.dev",
+      "external_email": "tomas.lindqvist@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2024-10-23T18:00:00.000Z"
     },
@@ -361,7 +361,7 @@
       "platform": "github",
       "external_id": "GITHUB-263545",
       "external_handle": "tomas-lindqvist",
-      "external_email": "tomas.lindqvist@threadline.dev",
+      "external_email": "tomas.lindqvist@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2024-10-23T18:00:00.000Z"
     },
@@ -371,7 +371,7 @@
       "platform": "teams",
       "external_id": "TEAMS-517233",
       "external_handle": "@grace",
-      "external_email": "grace.nakamura@threadline.dev",
+      "external_email": "grace.nakamura@mabinsoft.dev",
       "is_primary": true,
       "created_at": "2024-12-31T18:00:00.000Z"
     },
@@ -381,7 +381,7 @@
       "platform": "email",
       "external_id": "EMAIL-503811",
       "external_handle": "@grace",
-      "external_email": "grace.nakamura@threadline.dev",
+      "external_email": "grace.nakamura@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2024-12-31T18:00:00.000Z"
     },
@@ -391,7 +391,7 @@
       "platform": "github",
       "external_id": "GITHUB-255973",
       "external_handle": "grace-nakamura",
-      "external_email": "grace.nakamura@threadline.dev",
+      "external_email": "grace.nakamura@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2024-12-31T18:00:00.000Z"
     },
@@ -401,7 +401,7 @@
       "platform": "linear",
       "external_id": "LINEAR-959082",
       "external_handle": "@miguel",
-      "external_email": "miguel.arroyo@threadline.dev",
+      "external_email": "miguel.arroyo@mabinsoft.dev",
       "is_primary": true,
       "created_at": "2025-10-16T18:00:00.000Z"
     },
@@ -411,7 +411,7 @@
       "platform": "email",
       "external_id": "EMAIL-160226",
       "external_handle": "@hannah",
-      "external_email": "hannah.feldman@threadline.dev",
+      "external_email": "hannah.feldman@mabinsoft.dev",
       "is_primary": true,
       "created_at": "2026-01-11T18:00:00.000Z"
     },
@@ -421,7 +421,7 @@
       "platform": "github",
       "external_id": "GITHUB-500005",
       "external_handle": "hannah-feldman",
-      "external_email": "hannah.feldman@threadline.dev",
+      "external_email": "hannah.feldman@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2026-01-11T18:00:00.000Z"
     },
@@ -431,7 +431,7 @@
       "platform": "slack",
       "external_id": "SLACK-364750",
       "external_handle": "@kwame",
-      "external_email": "kwame.boateng@threadline.dev",
+      "external_email": "kwame.boateng@mabinsoft.dev",
       "is_primary": true,
       "created_at": "2026-04-23T18:00:00.000Z"
     },
@@ -441,7 +441,7 @@
       "platform": "github",
       "external_id": "GITHUB-666941",
       "external_handle": "kwame-boateng",
-      "external_email": "kwame.boateng@threadline.dev",
+      "external_email": "kwame.boateng@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2026-04-23T18:00:00.000Z"
     },
@@ -451,7 +451,7 @@
       "platform": "email",
       "external_id": "EMAIL-357440",
       "external_handle": "@kwame",
-      "external_email": "kwame.boateng@threadline.dev",
+      "external_email": "kwame.boateng@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2026-04-23T18:00:00.000Z"
     },
@@ -461,7 +461,7 @@
       "platform": "teams",
       "external_id": "TEAMS-712561",
       "external_handle": "@kwame",
-      "external_email": "kwame.boateng@threadline.dev",
+      "external_email": "kwame.boateng@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2026-04-23T18:00:00.000Z"
     },
@@ -471,7 +471,7 @@
       "platform": "email",
       "external_id": "EMAIL-633564",
       "external_handle": "@sofia",
-      "external_email": "sofia.bianchi@threadline.dev",
+      "external_email": "sofia.bianchi@mabinsoft.dev",
       "is_primary": true,
       "created_at": "2025-08-13T18:00:00.000Z"
     },
@@ -481,7 +481,7 @@
       "platform": "teams",
       "external_id": "TEAMS-768340",
       "external_handle": "@sofia",
-      "external_email": "sofia.bianchi@threadline.dev",
+      "external_email": "sofia.bianchi@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2025-08-13T18:00:00.000Z"
     },
@@ -491,7 +491,7 @@
       "platform": "github",
       "external_id": "GITHUB-696336",
       "external_handle": "sofia-bianchi",
-      "external_email": "sofia.bianchi@threadline.dev",
+      "external_email": "sofia.bianchi@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2025-08-13T18:00:00.000Z"
     },
@@ -501,7 +501,7 @@
       "platform": "linear",
       "external_id": "LINEAR-440776",
       "external_handle": "@elliot",
-      "external_email": "elliot.marsh@threadline.dev",
+      "external_email": "elliot.marsh@mabinsoft.dev",
       "is_primary": true,
       "created_at": "2026-02-09T18:00:00.000Z"
     },
@@ -511,7 +511,7 @@
       "platform": "email",
       "external_id": "EMAIL-489099",
       "external_handle": "@elliot",
-      "external_email": "elliot.marsh@threadline.dev",
+      "external_email": "elliot.marsh@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2026-02-09T18:00:00.000Z"
     },
@@ -521,7 +521,7 @@
       "platform": "github",
       "external_id": "GITHUB-680646",
       "external_handle": "yuki-tanabe",
-      "external_email": "yuki.tanabe@threadline.dev",
+      "external_email": "yuki.tanabe@mabinsoft.dev",
       "is_primary": true,
       "created_at": "2024-09-30T18:00:00.000Z"
     },
@@ -531,7 +531,7 @@
       "platform": "teams",
       "external_id": "TEAMS-578230",
       "external_handle": "@yuki",
-      "external_email": "yuki.tanabe@threadline.dev",
+      "external_email": "yuki.tanabe@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2024-09-30T18:00:00.000Z"
     },
@@ -541,7 +541,7 @@
       "platform": "teams",
       "external_id": "TEAMS-303302",
       "external_handle": "@nadia",
-      "external_email": "nadia.haddad@threadline.dev",
+      "external_email": "nadia.haddad@mabinsoft.dev",
       "is_primary": true,
       "created_at": "2025-10-06T18:00:00.000Z"
     },
@@ -551,7 +551,7 @@
       "platform": "email",
       "external_id": "EMAIL-294298",
       "external_handle": "@nadia",
-      "external_email": "nadia.haddad@threadline.dev",
+      "external_email": "nadia.haddad@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2025-10-06T18:00:00.000Z"
     },
@@ -561,7 +561,7 @@
       "platform": "github",
       "external_id": "GITHUB-551819",
       "external_handle": "nadia-haddad",
-      "external_email": "nadia.haddad@threadline.dev",
+      "external_email": "nadia.haddad@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2025-10-06T18:00:00.000Z"
     },
@@ -571,7 +571,7 @@
       "platform": "slack",
       "external_id": "SLACK-207790",
       "external_handle": "@nadia",
-      "external_email": "nadia.haddad@threadline.dev",
+      "external_email": "nadia.haddad@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2025-10-06T18:00:00.000Z"
     },
@@ -581,7 +581,7 @@
       "platform": "email",
       "external_id": "EMAIL-170554",
       "external_handle": "@owen",
-      "external_email": "owen.castellanos@threadline.dev",
+      "external_email": "owen.castellanos@mabinsoft.dev",
       "is_primary": true,
       "created_at": "2025-05-15T18:00:00.000Z"
     },
@@ -591,7 +591,7 @@
       "platform": "teams",
       "external_id": "TEAMS-875921",
       "external_handle": "@owen",
-      "external_email": "owen.castellanos@threadline.dev",
+      "external_email": "owen.castellanos@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2025-05-15T18:00:00.000Z"
     },
@@ -601,7 +601,7 @@
       "platform": "github",
       "external_id": "GITHUB-475709",
       "external_handle": "owen-castellanos",
-      "external_email": "owen.castellanos@threadline.dev",
+      "external_email": "owen.castellanos@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2025-05-15T18:00:00.000Z"
     },
@@ -611,7 +611,7 @@
       "platform": "slack",
       "external_id": "SLACK-962459",
       "external_handle": "@owen",
-      "external_email": "owen.castellanos@threadline.dev",
+      "external_email": "owen.castellanos@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2025-05-15T18:00:00.000Z"
     },
@@ -621,7 +621,7 @@
       "platform": "teams",
       "external_id": "TEAMS-866730",
       "external_handle": "@freya",
-      "external_email": "freya.sorensen@threadline.dev",
+      "external_email": "freya.sorensen@mabinsoft.dev",
       "is_primary": true,
       "created_at": "2025-03-31T18:00:00.000Z"
     },
@@ -631,7 +631,7 @@
       "platform": "github",
       "external_id": "GITHUB-649702",
       "external_handle": "freya-sorensen",
-      "external_email": "freya.sorensen@threadline.dev",
+      "external_email": "freya.sorensen@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2025-03-31T18:00:00.000Z"
     },
@@ -641,7 +641,7 @@
       "platform": "email",
       "external_id": "EMAIL-221812",
       "external_handle": "@ravi",
-      "external_email": "ravi.deshpande@threadline.dev",
+      "external_email": "ravi.deshpande@mabinsoft.dev",
       "is_primary": true,
       "created_at": "2024-10-18T18:00:00.000Z"
     },
@@ -651,7 +651,7 @@
       "platform": "email",
       "external_id": "EMAIL-485891",
       "external_handle": "@clara",
-      "external_email": "clara.mbeki@threadline.dev",
+      "external_email": "clara.mbeki@mabinsoft.dev",
       "is_primary": true,
       "created_at": "2024-12-11T18:00:00.000Z"
     },
@@ -661,7 +661,7 @@
       "platform": "github",
       "external_id": "GITHUB-484823",
       "external_handle": "clara-mbeki",
-      "external_email": "clara.mbeki@threadline.dev",
+      "external_email": "clara.mbeki@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2024-12-11T18:00:00.000Z"
     },
@@ -671,7 +671,7 @@
       "platform": "linear",
       "external_id": "LINEAR-731701",
       "external_handle": "@jonas",
-      "external_email": "jonas.weber@threadline.dev",
+      "external_email": "jonas.weber@mabinsoft.dev",
       "is_primary": true,
       "created_at": "2026-01-26T18:00:00.000Z"
     },
@@ -681,7 +681,7 @@
       "platform": "email",
       "external_id": "EMAIL-653065",
       "external_handle": "@jonas",
-      "external_email": "jonas.weber@threadline.dev",
+      "external_email": "jonas.weber@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2026-01-26T18:00:00.000Z"
     },
@@ -691,7 +691,7 @@
       "platform": "teams",
       "external_id": "TEAMS-695862",
       "external_handle": "@jonas",
-      "external_email": "jonas.weber@threadline.dev",
+      "external_email": "jonas.weber@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2026-01-26T18:00:00.000Z"
     },
@@ -701,7 +701,7 @@
       "platform": "github",
       "external_id": "GITHUB-654181",
       "external_handle": "jonas-weber",
-      "external_email": "jonas.weber@threadline.dev",
+      "external_email": "jonas.weber@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2026-01-26T18:00:00.000Z"
     },
@@ -711,7 +711,7 @@
       "platform": "email",
       "external_id": "EMAIL-649587",
       "external_handle": "@lena",
-      "external_email": "lena.petrova@threadline.dev",
+      "external_email": "lena.petrova@mabinsoft.dev",
       "is_primary": true,
       "created_at": "2025-07-02T18:00:00.000Z"
     },
@@ -741,7 +741,7 @@
       "platform": "slack",
       "external_id": "SLACK-146557",
       "external_handle": "@t.novak",
-      "external_email": "tomas.novak@threadline.dev",
+      "external_email": "tomas.novak@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2026-07-13T18:00:00.000Z"
     },
@@ -761,7 +761,7 @@
       "platform": "linear",
       "external_id": "LINEAR-348165",
       "external_handle": "@lpark",
-      "external_email": "lena.park@threadline.dev",
+      "external_email": "lena.park@mabinsoft.dev",
       "is_primary": false,
       "created_at": "2026-07-29T18:00:00.000Z"
     }
@@ -828,9 +828,9 @@
       "kind": "commit",
       "commit": {
         "sha": "6f161e3",
-        "repository": "threadline/infra",
+        "repository": "mabinsoft/infra",
         "branch": "feature/6f161e3",
-        "url": "https://github.com/threadline/infra/commit/6f161e3",
+        "url": "https://github.com/mabinsoft/infra/commit/6f161e3",
         "files": [
           {
             "path": "README.md",
@@ -865,14 +865,14 @@
         ],
         "additions": 333,
         "deletions": 74,
-        "ai_summary": "This commit touches 5 files in threadline/infra (+333/-74) and lands a test(filter) change. README.md carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 5 files in mabinsoft/infra (+333/-74) and lands a test(filter) change. README.md carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-24T23:04:45.073Z"
       },
       "sender_user_id": "usr_0007",
       "sender_relation_id": "acc_7_2",
       "platform": "github",
-      "external_message_id": "threadline/infra@6f161e3",
-      "conversation_id": "threadline/infra",
+      "external_message_id": "mabinsoft/infra@6f161e3",
+      "conversation_id": "mabinsoft/infra",
       "content": "test(filter): cover unclear-category fallbacks",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "personal",
@@ -898,9 +898,9 @@
       "kind": "commit",
       "commit": {
         "sha": "6fa5a42",
-        "repository": "threadline/console",
+        "repository": "mabinsoft/console",
         "branch": "develop",
-        "url": "https://github.com/threadline/console/commit/6fa5a42",
+        "url": "https://github.com/mabinsoft/console/commit/6fa5a42",
         "files": [
           {
             "path": "src/ingestion/backoff.py",
@@ -929,14 +929,14 @@
         ],
         "additions": 176,
         "deletions": 153,
-        "ai_summary": "This commit touches 4 files in threadline/console (+176/-153) and lands a feat(console) change. src/ingestion/backoff.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 4 files in mabinsoft/console (+176/-153) and lands a feat(console) change. src/ingestion/backoff.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-24T03:41:32.364Z"
       },
       "sender_user_id": "usr_0007",
       "sender_relation_id": "acc_7_2",
       "platform": "github",
-      "external_message_id": "threadline/console@6fa5a42",
-      "conversation_id": "threadline/console",
+      "external_message_id": "mabinsoft/console@6fa5a42",
+      "conversation_id": "mabinsoft/console",
       "content": "feat(console): add unresolved account linking flow",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -976,9 +976,9 @@
       "kind": "commit",
       "commit": {
         "sha": "f3b2fa3",
-        "repository": "threadline/ingestion-worker",
+        "repository": "mabinsoft/ingestion-worker",
         "branch": "feature/f3b2fa3",
-        "url": "https://github.com/threadline/ingestion-worker/commit/f3b2fa3",
+        "url": "https://github.com/mabinsoft/ingestion-worker/commit/f3b2fa3",
         "files": [
           {
             "path": "src/ingestion/worker.py",
@@ -1013,14 +1013,14 @@
         ],
         "additions": 306,
         "deletions": 143,
-        "ai_summary": "This commit touches 5 files in threadline/ingestion-worker (+306/-143) and lands a test(filter) change. src/ingestion/worker.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 5 files in mabinsoft/ingestion-worker (+306/-143) and lands a test(filter) change. src/ingestion/worker.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-23T19:10:57.802Z"
       },
       "sender_user_id": null,
       "sender_relation_id": "acc_orphan_1",
       "platform": "github",
-      "external_message_id": "threadline/ingestion-worker@f3b2fa3",
-      "conversation_id": "threadline/ingestion-worker",
+      "external_message_id": "mabinsoft/ingestion-worker@f3b2fa3",
+      "conversation_id": "mabinsoft/ingestion-worker",
       "content": "test(filter): cover unclear-category fallbacks",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -1116,9 +1116,9 @@
       "kind": "commit",
       "commit": {
         "sha": "9c54d95",
-        "repository": "threadline/console",
+        "repository": "mabinsoft/console",
         "branch": "feature/9c54d95",
-        "url": "https://github.com/threadline/console/commit/9c54d95",
+        "url": "https://github.com/mabinsoft/console/commit/9c54d95",
         "files": [
           {
             "path": "src/connectors/github/client.py",
@@ -1141,14 +1141,14 @@
         ],
         "additions": 152,
         "deletions": 46,
-        "ai_summary": "This commit touches 3 files in threadline/console (+152/-46) and lands a perf(embeddings) change. src/connectors/github/client.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 3 files in mabinsoft/console (+152/-46) and lands a perf(embeddings) change. src/connectors/github/client.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-22T21:06:03.048Z"
       },
       "sender_user_id": "usr_0016",
       "sender_relation_id": "acc_16_2",
       "platform": "github",
-      "external_message_id": "threadline/console@9c54d95",
-      "conversation_id": "threadline/console",
+      "external_message_id": "mabinsoft/console@9c54d95",
+      "conversation_id": "mabinsoft/console",
       "content": "perf(embeddings): batch inserts in chunks of 256",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -1244,9 +1244,9 @@
       "kind": "commit",
       "commit": {
         "sha": "e21eee7",
-        "repository": "threadline/connectors",
+        "repository": "mabinsoft/connectors",
         "branch": "main",
-        "url": "https://github.com/threadline/connectors/commit/e21eee7",
+        "url": "https://github.com/mabinsoft/connectors/commit/e21eee7",
         "files": [
           {
             "path": "src/connectors/github/client.py",
@@ -1257,14 +1257,14 @@
         ],
         "additions": 20,
         "deletions": 14,
-        "ai_summary": "This commit touches 1 file in threadline/connectors (+20/-14) and lands a fix(runs) change. src/connectors/github/client.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 1 file in mabinsoft/connectors (+20/-14) and lands a fix(runs) change. src/connectors/github/client.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-22T07:35:38.330Z"
       },
       "sender_user_id": "usr_0003",
       "sender_relation_id": "acc_3_2",
       "platform": "github",
-      "external_message_id": "threadline/connectors@e21eee7",
-      "conversation_id": "threadline/connectors",
+      "external_message_id": "mabinsoft/connectors@e21eee7",
+      "conversation_id": "mabinsoft/connectors",
       "content": "fix(runs): mark partially failed runs as partial, not success",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -1332,9 +1332,9 @@
       "kind": "commit",
       "commit": {
         "sha": "3691593",
-        "repository": "threadline/ingestion-worker",
+        "repository": "mabinsoft/ingestion-worker",
         "branch": "develop",
-        "url": "https://github.com/threadline/ingestion-worker/commit/3691593",
+        "url": "https://github.com/mabinsoft/ingestion-worker/commit/3691593",
         "files": [
           {
             "path": "migrations/0043_commit_metadata.sql",
@@ -1363,14 +1363,14 @@
         ],
         "additions": 225,
         "deletions": 56,
-        "ai_summary": "This commit touches 4 files in threadline/ingestion-worker (+225/-56) and lands a refactor(connectors) change. migrations/0043_commit_metadata.sql carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 4 files in mabinsoft/ingestion-worker (+225/-56) and lands a refactor(connectors) change. migrations/0043_commit_metadata.sql carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-21T22:05:10.468Z"
       },
       "sender_user_id": "usr_0016",
       "sender_relation_id": "acc_16_2",
       "platform": "github",
-      "external_message_id": "threadline/ingestion-worker@3691593",
-      "conversation_id": "threadline/ingestion-worker",
+      "external_message_id": "mabinsoft/ingestion-worker@3691593",
+      "conversation_id": "mabinsoft/ingestion-worker",
       "content": "refactor(connectors): share the pagination cursor helper across platforms",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -1438,9 +1438,9 @@
       "kind": "commit",
       "commit": {
         "sha": "1155688",
-        "repository": "threadline/ingestion-worker",
+        "repository": "mabinsoft/ingestion-worker",
         "branch": "feature/1155688",
-        "url": "https://github.com/threadline/ingestion-worker/commit/1155688",
+        "url": "https://github.com/mabinsoft/ingestion-worker/commit/1155688",
         "files": [
           {
             "path": "src/ingestion/backoff.py",
@@ -1463,14 +1463,14 @@
         ],
         "additions": 223,
         "deletions": 25,
-        "ai_summary": "This commit touches 3 files in threadline/ingestion-worker (+223/-25) and lands a feat(console) change. src/ingestion/backoff.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 3 files in mabinsoft/ingestion-worker (+223/-25) and lands a feat(console) change. src/ingestion/backoff.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-20T21:32:01.933Z"
       },
       "sender_user_id": "usr_0016",
       "sender_relation_id": "acc_16_2",
       "platform": "github",
-      "external_message_id": "threadline/ingestion-worker@1155688",
-      "conversation_id": "threadline/ingestion-worker",
+      "external_message_id": "mabinsoft/ingestion-worker@1155688",
+      "conversation_id": "mabinsoft/ingestion-worker",
       "content": "feat(console): add unresolved account linking flow",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -1482,9 +1482,9 @@
       "kind": "commit",
       "commit": {
         "sha": "55a6bb6",
-        "repository": "threadline/ingestion-worker",
+        "repository": "mabinsoft/ingestion-worker",
         "branch": "develop",
-        "url": "https://github.com/threadline/ingestion-worker/commit/55a6bb6",
+        "url": "https://github.com/mabinsoft/ingestion-worker/commit/55a6bb6",
         "files": [
           {
             "path": "src/api/schemas/summary.py",
@@ -1519,14 +1519,14 @@
         ],
         "additions": 181,
         "deletions": 128,
-        "ai_summary": "This commit touches 5 files in threadline/ingestion-worker (+181/-128) and lands a chore(deps) change. src/api/schemas/summary.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 5 files in mabinsoft/ingestion-worker (+181/-128) and lands a chore(deps) change. src/api/schemas/summary.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-20T21:12:06.950Z"
       },
       "sender_user_id": "usr_0011",
       "sender_relation_id": "acc_11_1",
       "platform": "github",
-      "external_message_id": "threadline/ingestion-worker@55a6bb6",
-      "conversation_id": "threadline/ingestion-worker",
+      "external_message_id": "mabinsoft/ingestion-worker@55a6bb6",
+      "conversation_id": "mabinsoft/ingestion-worker",
       "content": "chore(deps): bump pgvector client to 0.7.2",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "personal",
@@ -1720,9 +1720,9 @@
       "kind": "commit",
       "commit": {
         "sha": "47b8343",
-        "repository": "threadline/connectors",
+        "repository": "mabinsoft/connectors",
         "branch": "develop",
-        "url": "https://github.com/threadline/connectors/commit/47b8343",
+        "url": "https://github.com/mabinsoft/connectors/commit/47b8343",
         "files": [
           {
             "path": "README.md",
@@ -1751,14 +1751,14 @@
         ],
         "additions": 245,
         "deletions": 67,
-        "ai_summary": "This commit touches 4 files in threadline/connectors (+245/-67) and lands a fix(runs) change. README.md carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 4 files in mabinsoft/connectors (+245/-67) and lands a fix(runs) change. README.md carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-18T01:13:14.792Z"
       },
       "sender_user_id": "usr_0011",
       "sender_relation_id": "acc_11_1",
       "platform": "github",
-      "external_message_id": "threadline/connectors@47b8343",
-      "conversation_id": "threadline/connectors",
+      "external_message_id": "mabinsoft/connectors@47b8343",
+      "conversation_id": "mabinsoft/connectors",
       "content": "fix(runs): mark partially failed runs as partial, not success",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -1784,9 +1784,9 @@
       "kind": "commit",
       "commit": {
         "sha": "1f10af8",
-        "repository": "threadline/infra",
+        "repository": "mabinsoft/infra",
         "branch": "feature/1f10af8",
-        "url": "https://github.com/threadline/infra/commit/1f10af8",
+        "url": "https://github.com/mabinsoft/infra/commit/1f10af8",
         "files": [
           {
             "path": "migrations/0043_commit_metadata.sql",
@@ -1809,14 +1809,14 @@
         ],
         "additions": 200,
         "deletions": 91,
-        "ai_summary": "This commit touches 3 files in threadline/infra (+200/-91) and lands a feat(api) change. migrations/0043_commit_metadata.sql carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 3 files in mabinsoft/infra (+200/-91) and lands a feat(api) change. migrations/0043_commit_metadata.sql carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-17T00:17:19.783Z"
       },
       "sender_user_id": "usr_0001",
       "sender_relation_id": "acc_1_3",
       "platform": "github",
-      "external_message_id": "threadline/infra@1f10af8",
-      "conversation_id": "threadline/infra",
+      "external_message_id": "mabinsoft/infra@1f10af8",
+      "conversation_id": "mabinsoft/infra",
       "content": "feat(api): expose /v1/users/{id}/summary date range filters",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -1968,9 +1968,9 @@
       "kind": "commit",
       "commit": {
         "sha": "126f2e4",
-        "repository": "threadline/infra",
+        "repository": "mabinsoft/infra",
         "branch": "main",
-        "url": "https://github.com/threadline/infra/commit/126f2e4",
+        "url": "https://github.com/mabinsoft/infra/commit/126f2e4",
         "files": [
           {
             "path": "src/ingestion/backoff.py",
@@ -1981,14 +1981,14 @@
         ],
         "additions": 85,
         "deletions": 6,
-        "ai_summary": "This commit touches 1 file in threadline/infra (+85/-6) and lands a feat(github) change. src/ingestion/backoff.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 1 file in mabinsoft/infra (+85/-6) and lands a feat(github) change. src/ingestion/backoff.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-15T07:25:21.422Z"
       },
       "sender_user_id": null,
       "sender_relation_id": "acc_orphan_2",
       "platform": "github",
-      "external_message_id": "threadline/infra@126f2e4",
-      "conversation_id": "threadline/infra",
+      "external_message_id": "mabinsoft/infra@126f2e4",
+      "conversation_id": "mabinsoft/infra",
       "content": "feat(github): ingest commit metadata alongside messages",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "automated",
@@ -2126,9 +2126,9 @@
       "kind": "commit",
       "commit": {
         "sha": "74c3436",
-        "repository": "threadline/api",
+        "repository": "mabinsoft/api",
         "branch": "develop",
-        "url": "https://github.com/threadline/api/commit/74c3436",
+        "url": "https://github.com/mabinsoft/api/commit/74c3436",
         "files": [
           {
             "path": "src/api/routes/users.py",
@@ -2157,14 +2157,14 @@
         ],
         "additions": 188,
         "deletions": 13,
-        "ai_summary": "This commit touches 4 files in threadline/api (+188/-13) and lands a fix(runs) change. src/api/routes/users.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 4 files in mabinsoft/api (+188/-13) and lands a fix(runs) change. src/api/routes/users.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-13T11:33:10.583Z"
       },
       "sender_user_id": "usr_0003",
       "sender_relation_id": "acc_3_2",
       "platform": "github",
-      "external_message_id": "threadline/api@74c3436",
-      "conversation_id": "threadline/api",
+      "external_message_id": "mabinsoft/api@74c3436",
+      "conversation_id": "mabinsoft/api",
       "content": "fix(runs): mark partially failed runs as partial, not success",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "unclear",
@@ -2176,9 +2176,9 @@
       "kind": "commit",
       "commit": {
         "sha": "b50e453",
-        "repository": "threadline/connectors",
+        "repository": "mabinsoft/connectors",
         "branch": "develop",
-        "url": "https://github.com/threadline/connectors/commit/b50e453",
+        "url": "https://github.com/mabinsoft/connectors/commit/b50e453",
         "files": [
           {
             "path": "migrations/0043_commit_metadata.sql",
@@ -2207,14 +2207,14 @@
         ],
         "additions": 190,
         "deletions": 121,
-        "ai_summary": "This commit touches 4 files in threadline/connectors (+190/-121) and lands a perf(embeddings) change. migrations/0043_commit_metadata.sql carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 4 files in mabinsoft/connectors (+190/-121) and lands a perf(embeddings) change. migrations/0043_commit_metadata.sql carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-13T09:08:34.466Z"
       },
       "sender_user_id": null,
       "sender_relation_id": "acc_orphan_2",
       "platform": "github",
-      "external_message_id": "threadline/connectors@b50e453",
-      "conversation_id": "threadline/connectors",
+      "external_message_id": "mabinsoft/connectors@b50e453",
+      "conversation_id": "mabinsoft/connectors",
       "content": "perf(embeddings): batch inserts in chunks of 256",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "automated",
@@ -2226,9 +2226,9 @@
       "kind": "commit",
       "commit": {
         "sha": "02c10bb",
-        "repository": "threadline/ingestion-worker",
+        "repository": "mabinsoft/ingestion-worker",
         "branch": "main",
-        "url": "https://github.com/threadline/ingestion-worker/commit/02c10bb",
+        "url": "https://github.com/mabinsoft/ingestion-worker/commit/02c10bb",
         "files": [
           {
             "path": "src/connectors/github/client.py",
@@ -2251,14 +2251,14 @@
         ],
         "additions": 101,
         "deletions": 28,
-        "ai_summary": "This commit touches 3 files in threadline/ingestion-worker (+101/-28) and lands a fix(auth) change. src/connectors/github/client.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 3 files in mabinsoft/ingestion-worker (+101/-28) and lands a fix(auth) change. src/connectors/github/client.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-13T06:39:34.401Z"
       },
       "sender_user_id": "usr_0007",
       "sender_relation_id": "acc_7_2",
       "platform": "github",
-      "external_message_id": "threadline/ingestion-worker@02c10bb",
-      "conversation_id": "threadline/ingestion-worker",
+      "external_message_id": "mabinsoft/ingestion-worker@02c10bb",
+      "conversation_id": "mabinsoft/ingestion-worker",
       "content": "fix(auth): stop leaking scope claims into the audit log",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -2312,9 +2312,9 @@
       "kind": "commit",
       "commit": {
         "sha": "b324dca",
-        "repository": "threadline/infra",
+        "repository": "mabinsoft/infra",
         "branch": "main",
-        "url": "https://github.com/threadline/infra/commit/b324dca",
+        "url": "https://github.com/mabinsoft/infra/commit/b324dca",
         "files": [
           {
             "path": "src/ingestion/backoff.py",
@@ -2343,14 +2343,14 @@
         ],
         "additions": 378,
         "deletions": 82,
-        "ai_summary": "This commit touches 4 files in threadline/infra (+378/-82) and lands a chore(deps) change. src/ingestion/backoff.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 4 files in mabinsoft/infra (+378/-82) and lands a chore(deps) change. src/ingestion/backoff.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-12T11:56:24.059Z"
       },
       "sender_user_id": "usr_0014",
       "sender_relation_id": "acc_14_2",
       "platform": "github",
-      "external_message_id": "threadline/infra@b324dca",
-      "conversation_id": "threadline/infra",
+      "external_message_id": "mabinsoft/infra@b324dca",
+      "conversation_id": "mabinsoft/infra",
       "content": "chore(deps): bump pgvector client to 0.7.2",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -2390,9 +2390,9 @@
       "kind": "commit",
       "commit": {
         "sha": "b0186bd",
-        "repository": "threadline/connectors",
+        "repository": "mabinsoft/connectors",
         "branch": "main",
-        "url": "https://github.com/threadline/connectors/commit/b0186bd",
+        "url": "https://github.com/mabinsoft/connectors/commit/b0186bd",
         "files": [
           {
             "path": "src/ingestion/backoff.py",
@@ -2409,14 +2409,14 @@
         ],
         "additions": 35,
         "deletions": 42,
-        "ai_summary": "This commit touches 2 files in threadline/connectors (+35/-42) and lands a feat(github) change. src/ingestion/backoff.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 2 files in mabinsoft/connectors (+35/-42) and lands a feat(github) change. src/ingestion/backoff.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-11T16:03:04.720Z"
       },
       "sender_user_id": "usr_0007",
       "sender_relation_id": "acc_7_2",
       "platform": "github",
-      "external_message_id": "threadline/connectors@b0186bd",
-      "conversation_id": "threadline/connectors",
+      "external_message_id": "mabinsoft/connectors@b0186bd",
+      "conversation_id": "mabinsoft/connectors",
       "content": "feat(github): ingest commit metadata alongside messages",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -2470,9 +2470,9 @@
       "kind": "commit",
       "commit": {
         "sha": "5ae7e57",
-        "repository": "threadline/ingestion-worker",
+        "repository": "mabinsoft/ingestion-worker",
         "branch": "feature/5ae7e57",
-        "url": "https://github.com/threadline/ingestion-worker/commit/5ae7e57",
+        "url": "https://github.com/mabinsoft/ingestion-worker/commit/5ae7e57",
         "files": [
           {
             "path": "src/api/schemas/summary.py",
@@ -2483,14 +2483,14 @@
         ],
         "additions": 120,
         "deletions": 28,
-        "ai_summary": "This commit touches 1 file in threadline/ingestion-worker (+120/-28) and lands a feat(api) change. src/api/schemas/summary.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 1 file in mabinsoft/ingestion-worker (+120/-28) and lands a feat(api) change. src/api/schemas/summary.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-11T10:28:04.034Z"
       },
       "sender_user_id": "usr_0016",
       "sender_relation_id": "acc_16_2",
       "platform": "github",
-      "external_message_id": "threadline/ingestion-worker@5ae7e57",
-      "conversation_id": "threadline/ingestion-worker",
+      "external_message_id": "mabinsoft/ingestion-worker@5ae7e57",
+      "conversation_id": "mabinsoft/ingestion-worker",
       "content": "feat(api): expose /v1/users/{id}/summary date range filters",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -2586,9 +2586,9 @@
       "kind": "commit",
       "commit": {
         "sha": "d06fd9d",
-        "repository": "threadline/console",
+        "repository": "mabinsoft/console",
         "branch": "main",
-        "url": "https://github.com/threadline/console/commit/d06fd9d",
+        "url": "https://github.com/mabinsoft/console/commit/d06fd9d",
         "files": [
           {
             "path": "migrations/0043_commit_metadata.sql",
@@ -2611,14 +2611,14 @@
         ],
         "additions": 202,
         "deletions": 56,
-        "ai_summary": "This commit touches 3 files in threadline/console (+202/-56) and lands a fix(runs) change. migrations/0043_commit_metadata.sql carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 3 files in mabinsoft/console (+202/-56) and lands a fix(runs) change. migrations/0043_commit_metadata.sql carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-09T12:47:43.280Z"
       },
       "sender_user_id": "usr_0009",
       "sender_relation_id": "acc_9_3",
       "platform": "github",
-      "external_message_id": "threadline/console@d06fd9d",
-      "conversation_id": "threadline/console",
+      "external_message_id": "mabinsoft/console@d06fd9d",
+      "conversation_id": "mabinsoft/console",
       "content": "fix(runs): mark partially failed runs as partial, not success",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -2672,9 +2672,9 @@
       "kind": "commit",
       "commit": {
         "sha": "eb010d9",
-        "repository": "threadline/ingestion-worker",
+        "repository": "mabinsoft/ingestion-worker",
         "branch": "main",
-        "url": "https://github.com/threadline/ingestion-worker/commit/eb010d9",
+        "url": "https://github.com/mabinsoft/ingestion-worker/commit/eb010d9",
         "files": [
           {
             "path": "src/connectors/base.py",
@@ -2709,14 +2709,14 @@
         ],
         "additions": 405,
         "deletions": 145,
-        "ai_summary": "This commit touches 5 files in threadline/ingestion-worker (+405/-145) and lands a feat(console) change. src/connectors/base.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 5 files in mabinsoft/ingestion-worker (+405/-145) and lands a feat(console) change. src/connectors/base.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-08T21:42:48.656Z"
       },
       "sender_user_id": "usr_0007",
       "sender_relation_id": "acc_7_2",
       "platform": "github",
-      "external_message_id": "threadline/ingestion-worker@eb010d9",
-      "conversation_id": "threadline/ingestion-worker",
+      "external_message_id": "mabinsoft/ingestion-worker@eb010d9",
+      "conversation_id": "mabinsoft/ingestion-worker",
       "content": "feat(console): add unresolved account linking flow",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -2756,9 +2756,9 @@
       "kind": "commit",
       "commit": {
         "sha": "8b61a4d",
-        "repository": "threadline/ingestion-worker",
+        "repository": "mabinsoft/ingestion-worker",
         "branch": "feature/8b61a4d",
-        "url": "https://github.com/threadline/ingestion-worker/commit/8b61a4d",
+        "url": "https://github.com/mabinsoft/ingestion-worker/commit/8b61a4d",
         "files": [
           {
             "path": "README.md",
@@ -2769,14 +2769,14 @@
         ],
         "additions": 35,
         "deletions": 35,
-        "ai_summary": "This commit touches 1 file in threadline/ingestion-worker (+35/-35) and lands a perf(embeddings) change. README.md carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 1 file in mabinsoft/ingestion-worker (+35/-35) and lands a perf(embeddings) change. README.md carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-08T03:28:34.614Z"
       },
       "sender_user_id": null,
       "sender_relation_id": "acc_orphan_2",
       "platform": "github",
-      "external_message_id": "threadline/ingestion-worker@8b61a4d",
-      "conversation_id": "threadline/ingestion-worker",
+      "external_message_id": "mabinsoft/ingestion-worker@8b61a4d",
+      "conversation_id": "mabinsoft/ingestion-worker",
       "content": "perf(embeddings): batch inserts in chunks of 256",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "automated",
@@ -2816,9 +2816,9 @@
       "kind": "commit",
       "commit": {
         "sha": "0ae4a34",
-        "repository": "threadline/ingestion-worker",
+        "repository": "mabinsoft/ingestion-worker",
         "branch": "feature/0ae4a34",
-        "url": "https://github.com/threadline/ingestion-worker/commit/0ae4a34",
+        "url": "https://github.com/mabinsoft/ingestion-worker/commit/0ae4a34",
         "files": [
           {
             "path": "src/connectors/base.py",
@@ -2853,14 +2853,14 @@
         ],
         "additions": 432,
         "deletions": 228,
-        "ai_summary": "This commit touches 5 files in threadline/ingestion-worker (+432/-228) and lands a feat(console) change. src/connectors/base.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 5 files in mabinsoft/ingestion-worker (+432/-228) and lands a feat(console) change. src/connectors/base.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-07T15:54:37.475Z"
       },
       "sender_user_id": "usr_0009",
       "sender_relation_id": "acc_9_3",
       "platform": "github",
-      "external_message_id": "threadline/ingestion-worker@0ae4a34",
-      "conversation_id": "threadline/ingestion-worker",
+      "external_message_id": "mabinsoft/ingestion-worker@0ae4a34",
+      "conversation_id": "mabinsoft/ingestion-worker",
       "content": "feat(console): add unresolved account linking flow",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -2970,9 +2970,9 @@
       "kind": "commit",
       "commit": {
         "sha": "fc5a9a3",
-        "repository": "threadline/console",
+        "repository": "mabinsoft/console",
         "branch": "develop",
-        "url": "https://github.com/threadline/console/commit/fc5a9a3",
+        "url": "https://github.com/mabinsoft/console/commit/fc5a9a3",
         "files": [
           {
             "path": "src/connectors/base.py",
@@ -3001,14 +3001,14 @@
         ],
         "additions": 117,
         "deletions": 79,
-        "ai_summary": "This commit touches 4 files in threadline/console (+117/-79) and lands a feat(github) change. src/connectors/base.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 4 files in mabinsoft/console (+117/-79) and lands a feat(github) change. src/connectors/base.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-06T11:57:43.441Z"
       },
       "sender_user_id": "usr_0001",
       "sender_relation_id": "acc_1_3",
       "platform": "github",
-      "external_message_id": "threadline/console@fc5a9a3",
-      "conversation_id": "threadline/console",
+      "external_message_id": "mabinsoft/console@fc5a9a3",
+      "conversation_id": "mabinsoft/console",
       "content": "feat(github): ingest commit metadata alongside messages",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "automated",
@@ -3076,9 +3076,9 @@
       "kind": "commit",
       "commit": {
         "sha": "7e4e6b8",
-        "repository": "threadline/ingestion-worker",
+        "repository": "mabinsoft/ingestion-worker",
         "branch": "main",
-        "url": "https://github.com/threadline/ingestion-worker/commit/7e4e6b8",
+        "url": "https://github.com/mabinsoft/ingestion-worker/commit/7e4e6b8",
         "files": [
           {
             "path": "README.md",
@@ -3089,14 +3089,14 @@
         ],
         "additions": 90,
         "deletions": 46,
-        "ai_summary": "This commit touches 1 file in threadline/ingestion-worker (+90/-46) and lands a chore(deps) change. README.md carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 1 file in mabinsoft/ingestion-worker (+90/-46) and lands a chore(deps) change. README.md carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-05T19:44:31.337Z"
       },
       "sender_user_id": null,
       "sender_relation_id": "acc_orphan_1",
       "platform": "github",
-      "external_message_id": "threadline/ingestion-worker@7e4e6b8",
-      "conversation_id": "threadline/ingestion-worker",
+      "external_message_id": "mabinsoft/ingestion-worker@7e4e6b8",
+      "conversation_id": "mabinsoft/ingestion-worker",
       "content": "chore(deps): bump pgvector client to 0.7.2",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -3150,9 +3150,9 @@
       "kind": "commit",
       "commit": {
         "sha": "a8eaa6a",
-        "repository": "threadline/infra",
+        "repository": "mabinsoft/infra",
         "branch": "develop",
-        "url": "https://github.com/threadline/infra/commit/a8eaa6a",
+        "url": "https://github.com/mabinsoft/infra/commit/a8eaa6a",
         "files": [
           {
             "path": "src/ingestion/backoff.py",
@@ -3163,14 +3163,14 @@
         ],
         "additions": 68,
         "deletions": 60,
-        "ai_summary": "This commit touches 1 file in threadline/infra (+68/-60) and lands a chore(deps) change. src/ingestion/backoff.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 1 file in mabinsoft/infra (+68/-60) and lands a chore(deps) change. src/ingestion/backoff.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-04T14:53:00.059Z"
       },
       "sender_user_id": "usr_0014",
       "sender_relation_id": "acc_14_2",
       "platform": "github",
-      "external_message_id": "threadline/infra@a8eaa6a",
-      "conversation_id": "threadline/infra",
+      "external_message_id": "mabinsoft/infra@a8eaa6a",
+      "conversation_id": "mabinsoft/infra",
       "content": "chore(deps): bump pgvector client to 0.7.2",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -3196,9 +3196,9 @@
       "kind": "commit",
       "commit": {
         "sha": "0e33762",
-        "repository": "threadline/api",
+        "repository": "mabinsoft/api",
         "branch": "develop",
-        "url": "https://github.com/threadline/api/commit/0e33762",
+        "url": "https://github.com/mabinsoft/api/commit/0e33762",
         "files": [
           {
             "path": "src/connectors/github/client.py",
@@ -3215,14 +3215,14 @@
         ],
         "additions": 103,
         "deletions": 91,
-        "ai_summary": "This commit touches 2 files in threadline/api (+103/-91) and lands a fix(auth) change. src/connectors/github/client.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 2 files in mabinsoft/api (+103/-91) and lands a fix(auth) change. src/connectors/github/client.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-04T10:27:55.506Z"
       },
       "sender_user_id": "usr_0007",
       "sender_relation_id": "acc_7_2",
       "platform": "github",
-      "external_message_id": "threadline/api@0e33762",
-      "conversation_id": "threadline/api",
+      "external_message_id": "mabinsoft/api@0e33762",
+      "conversation_id": "mabinsoft/api",
       "content": "fix(auth): stop leaking scope claims into the audit log",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "automated",
@@ -3304,9 +3304,9 @@
       "kind": "commit",
       "commit": {
         "sha": "afc5eb2",
-        "repository": "threadline/console",
+        "repository": "mabinsoft/console",
         "branch": "feature/afc5eb2",
-        "url": "https://github.com/threadline/console/commit/afc5eb2",
+        "url": "https://github.com/mabinsoft/console/commit/afc5eb2",
         "files": [
           {
             "path": "migrations/0043_commit_metadata.sql",
@@ -3341,14 +3341,14 @@
         ],
         "additions": 364,
         "deletions": 177,
-        "ai_summary": "This commit touches 5 files in threadline/console (+364/-177) and lands a fix(auth) change. migrations/0043_commit_metadata.sql carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 5 files in mabinsoft/console (+364/-177) and lands a fix(auth) change. migrations/0043_commit_metadata.sql carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-03T07:12:25.001Z"
       },
       "sender_user_id": "usr_0014",
       "sender_relation_id": "acc_14_2",
       "platform": "github",
-      "external_message_id": "threadline/console@afc5eb2",
-      "conversation_id": "threadline/console",
+      "external_message_id": "mabinsoft/console@afc5eb2",
+      "conversation_id": "mabinsoft/console",
       "content": "fix(auth): stop leaking scope claims into the audit log",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -3360,9 +3360,9 @@
       "kind": "commit",
       "commit": {
         "sha": "e1f029f",
-        "repository": "threadline/infra",
+        "repository": "mabinsoft/infra",
         "branch": "feature/e1f029f",
-        "url": "https://github.com/threadline/infra/commit/e1f029f",
+        "url": "https://github.com/mabinsoft/infra/commit/e1f029f",
         "files": [
           {
             "path": "src/ingestion/worker.py",
@@ -3379,14 +3379,14 @@
         ],
         "additions": 111,
         "deletions": 0,
-        "ai_summary": "This commit touches 2 files in threadline/infra (+111/-0) and lands a fix(runs) change. src/ingestion/worker.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 2 files in mabinsoft/infra (+111/-0) and lands a fix(runs) change. src/ingestion/worker.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-03T06:18:05.398Z"
       },
       "sender_user_id": null,
       "sender_relation_id": "acc_orphan_1",
       "platform": "github",
-      "external_message_id": "threadline/infra@e1f029f",
-      "conversation_id": "threadline/infra",
+      "external_message_id": "mabinsoft/infra@e1f029f",
+      "conversation_id": "mabinsoft/infra",
       "content": "fix(runs): mark partially failed runs as partial, not success",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -3398,9 +3398,9 @@
       "kind": "commit",
       "commit": {
         "sha": "bf5cdba",
-        "repository": "threadline/api",
+        "repository": "mabinsoft/api",
         "branch": "feature/bf5cdba",
-        "url": "https://github.com/threadline/api/commit/bf5cdba",
+        "url": "https://github.com/mabinsoft/api/commit/bf5cdba",
         "files": [
           {
             "path": "migrations/0043_commit_metadata.sql",
@@ -3429,14 +3429,14 @@
         ],
         "additions": 109,
         "deletions": 51,
-        "ai_summary": "This commit touches 4 files in threadline/api (+109/-51) and lands a perf(embeddings) change. migrations/0043_commit_metadata.sql carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 4 files in mabinsoft/api (+109/-51) and lands a perf(embeddings) change. migrations/0043_commit_metadata.sql carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-03T05:31:01.079Z"
       },
       "sender_user_id": "usr_0007",
       "sender_relation_id": "acc_7_2",
       "platform": "github",
-      "external_message_id": "threadline/api@bf5cdba",
-      "conversation_id": "threadline/api",
+      "external_message_id": "mabinsoft/api@bf5cdba",
+      "conversation_id": "mabinsoft/api",
       "content": "perf(embeddings): batch inserts in chunks of 256",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "personal",
@@ -3462,9 +3462,9 @@
       "kind": "commit",
       "commit": {
         "sha": "57309e2",
-        "repository": "threadline/ingestion-worker",
+        "repository": "mabinsoft/ingestion-worker",
         "branch": "develop",
-        "url": "https://github.com/threadline/ingestion-worker/commit/57309e2",
+        "url": "https://github.com/mabinsoft/ingestion-worker/commit/57309e2",
         "files": [
           {
             "path": "README.md",
@@ -3487,14 +3487,14 @@
         ],
         "additions": 108,
         "deletions": 36,
-        "ai_summary": "This commit touches 3 files in threadline/ingestion-worker (+108/-36) and lands a test(filter) change. README.md carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 3 files in mabinsoft/ingestion-worker (+108/-36) and lands a test(filter) change. README.md carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-02T20:55:29.037Z"
       },
       "sender_user_id": "usr_0003",
       "sender_relation_id": "acc_3_2",
       "platform": "github",
-      "external_message_id": "threadline/ingestion-worker@57309e2",
-      "conversation_id": "threadline/ingestion-worker",
+      "external_message_id": "mabinsoft/ingestion-worker@57309e2",
+      "conversation_id": "mabinsoft/ingestion-worker",
       "content": "test(filter): cover unclear-category fallbacks",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -3548,9 +3548,9 @@
       "kind": "commit",
       "commit": {
         "sha": "e503065",
-        "repository": "threadline/infra",
+        "repository": "mabinsoft/infra",
         "branch": "feature/e503065",
-        "url": "https://github.com/threadline/infra/commit/e503065",
+        "url": "https://github.com/mabinsoft/infra/commit/e503065",
         "files": [
           {
             "path": "src/api/schemas/summary.py",
@@ -3579,14 +3579,14 @@
         ],
         "additions": 41,
         "deletions": 84,
-        "ai_summary": "This commit touches 4 files in threadline/infra (+41/-84) and lands a chore(deps) change. src/api/schemas/summary.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 4 files in mabinsoft/infra (+41/-84) and lands a chore(deps) change. src/api/schemas/summary.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-02T13:46:30.604Z"
       },
       "sender_user_id": "usr_0014",
       "sender_relation_id": "acc_14_2",
       "platform": "github",
-      "external_message_id": "threadline/infra@e503065",
-      "conversation_id": "threadline/infra",
+      "external_message_id": "mabinsoft/infra@e503065",
+      "conversation_id": "mabinsoft/infra",
       "content": "chore(deps): bump pgvector client to 0.7.2",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -3626,9 +3626,9 @@
       "kind": "commit",
       "commit": {
         "sha": "62cb81d",
-        "repository": "threadline/console",
+        "repository": "mabinsoft/console",
         "branch": "develop",
-        "url": "https://github.com/threadline/console/commit/62cb81d",
+        "url": "https://github.com/mabinsoft/console/commit/62cb81d",
         "files": [
           {
             "path": "src/ingestion/worker.py",
@@ -3663,14 +3663,14 @@
         ],
         "additions": 411,
         "deletions": 107,
-        "ai_summary": "This commit touches 5 files in threadline/console (+411/-107) and lands a test(filter) change. src/ingestion/worker.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 5 files in mabinsoft/console (+411/-107) and lands a test(filter) change. src/ingestion/worker.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-02T04:11:59.843Z"
       },
       "sender_user_id": null,
       "sender_relation_id": "acc_orphan_1",
       "platform": "github",
-      "external_message_id": "threadline/console@62cb81d",
-      "conversation_id": "threadline/console",
+      "external_message_id": "mabinsoft/console@62cb81d",
+      "conversation_id": "mabinsoft/console",
       "content": "test(filter): cover unclear-category fallbacks",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -3696,9 +3696,9 @@
       "kind": "commit",
       "commit": {
         "sha": "3fb2de3",
-        "repository": "threadline/ingestion-worker",
+        "repository": "mabinsoft/ingestion-worker",
         "branch": "main",
-        "url": "https://github.com/threadline/ingestion-worker/commit/3fb2de3",
+        "url": "https://github.com/mabinsoft/ingestion-worker/commit/3fb2de3",
         "files": [
           {
             "path": "src/api/routes/users.py",
@@ -3709,14 +3709,14 @@
         ],
         "additions": 10,
         "deletions": 14,
-        "ai_summary": "This commit touches 1 file in threadline/ingestion-worker (+10/-14) and lands a feat(api) change. src/api/routes/users.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 1 file in mabinsoft/ingestion-worker (+10/-14) and lands a feat(api) change. src/api/routes/users.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-01T20:08:46.521Z"
       },
       "sender_user_id": null,
       "sender_relation_id": "acc_orphan_1",
       "platform": "github",
-      "external_message_id": "threadline/ingestion-worker@3fb2de3",
-      "conversation_id": "threadline/ingestion-worker",
+      "external_message_id": "mabinsoft/ingestion-worker@3fb2de3",
+      "conversation_id": "mabinsoft/ingestion-worker",
       "content": "feat(api): expose /v1/users/{id}/summary date range filters",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -3742,9 +3742,9 @@
       "kind": "commit",
       "commit": {
         "sha": "915e0a7",
-        "repository": "threadline/infra",
+        "repository": "mabinsoft/infra",
         "branch": "main",
-        "url": "https://github.com/threadline/infra/commit/915e0a7",
+        "url": "https://github.com/mabinsoft/infra/commit/915e0a7",
         "files": [
           {
             "path": "src/connectors/github/client.py",
@@ -3773,14 +3773,14 @@
         ],
         "additions": 243,
         "deletions": 111,
-        "ai_summary": "This commit touches 4 files in threadline/infra (+243/-111) and lands a fix(runs) change. src/connectors/github/client.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 4 files in mabinsoft/infra (+243/-111) and lands a fix(runs) change. src/connectors/github/client.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-01T13:22:00.301Z"
       },
       "sender_user_id": "usr_0004",
       "sender_relation_id": "acc_4_3",
       "platform": "github",
-      "external_message_id": "threadline/infra@915e0a7",
-      "conversation_id": "threadline/infra",
+      "external_message_id": "mabinsoft/infra@915e0a7",
+      "conversation_id": "mabinsoft/infra",
       "content": "fix(runs): mark partially failed runs as partial, not success",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "automated",
@@ -3792,9 +3792,9 @@
       "kind": "commit",
       "commit": {
         "sha": "d4353e0",
-        "repository": "threadline/connectors",
+        "repository": "mabinsoft/connectors",
         "branch": "develop",
-        "url": "https://github.com/threadline/connectors/commit/d4353e0",
+        "url": "https://github.com/mabinsoft/connectors/commit/d4353e0",
         "files": [
           {
             "path": "src/embeddings/batcher.py",
@@ -3817,14 +3817,14 @@
         ],
         "additions": 163,
         "deletions": 73,
-        "ai_summary": "This commit touches 3 files in threadline/connectors (+163/-73) and lands a fix(auth) change. src/embeddings/batcher.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 3 files in mabinsoft/connectors (+163/-73) and lands a fix(auth) change. src/embeddings/batcher.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-01T05:09:27.713Z"
       },
       "sender_user_id": "usr_0007",
       "sender_relation_id": "acc_7_2",
       "platform": "github",
-      "external_message_id": "threadline/connectors@d4353e0",
-      "conversation_id": "threadline/connectors",
+      "external_message_id": "mabinsoft/connectors@d4353e0",
+      "conversation_id": "mabinsoft/connectors",
       "content": "fix(auth): stop leaking scope claims into the audit log",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "automated",
@@ -3836,9 +3836,9 @@
       "kind": "commit",
       "commit": {
         "sha": "0afe8b6",
-        "repository": "threadline/ingestion-worker",
+        "repository": "mabinsoft/ingestion-worker",
         "branch": "feature/0afe8b6",
-        "url": "https://github.com/threadline/ingestion-worker/commit/0afe8b6",
+        "url": "https://github.com/mabinsoft/ingestion-worker/commit/0afe8b6",
         "files": [
           {
             "path": "src/ingestion/worker.py",
@@ -3861,14 +3861,14 @@
         ],
         "additions": 160,
         "deletions": 26,
-        "ai_summary": "This commit touches 3 files in threadline/ingestion-worker (+160/-26) and lands a chore(deps) change. src/ingestion/worker.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 3 files in mabinsoft/ingestion-worker (+160/-26) and lands a chore(deps) change. src/ingestion/worker.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-08-01T03:42:39.319Z"
       },
       "sender_user_id": "usr_0009",
       "sender_relation_id": "acc_9_3",
       "platform": "github",
-      "external_message_id": "threadline/ingestion-worker@0afe8b6",
-      "conversation_id": "threadline/ingestion-worker",
+      "external_message_id": "mabinsoft/ingestion-worker@0afe8b6",
+      "conversation_id": "mabinsoft/ingestion-worker",
       "content": "chore(deps): bump pgvector client to 0.7.2",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -3880,9 +3880,9 @@
       "kind": "commit",
       "commit": {
         "sha": "fc097f0",
-        "repository": "threadline/ingestion-worker",
+        "repository": "mabinsoft/ingestion-worker",
         "branch": "main",
-        "url": "https://github.com/threadline/ingestion-worker/commit/fc097f0",
+        "url": "https://github.com/mabinsoft/ingestion-worker/commit/fc097f0",
         "files": [
           {
             "path": "README.md",
@@ -3899,14 +3899,14 @@
         ],
         "additions": 102,
         "deletions": 0,
-        "ai_summary": "This commit touches 2 files in threadline/ingestion-worker (+102/-0) and lands a perf(embeddings) change. README.md carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 2 files in mabinsoft/ingestion-worker (+102/-0) and lands a perf(embeddings) change. README.md carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-07-31T12:47:50.122Z"
       },
       "sender_user_id": "usr_0004",
       "sender_relation_id": "acc_4_3",
       "platform": "github",
-      "external_message_id": "threadline/ingestion-worker@fc097f0",
-      "conversation_id": "threadline/ingestion-worker",
+      "external_message_id": "mabinsoft/ingestion-worker@fc097f0",
+      "conversation_id": "mabinsoft/ingestion-worker",
       "content": "perf(embeddings): batch inserts in chunks of 256",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -4002,9 +4002,9 @@
       "kind": "commit",
       "commit": {
         "sha": "aa43c5a",
-        "repository": "threadline/console",
+        "repository": "mabinsoft/console",
         "branch": "main",
-        "url": "https://github.com/threadline/console/commit/aa43c5a",
+        "url": "https://github.com/mabinsoft/console/commit/aa43c5a",
         "files": [
           {
             "path": "src/api/schemas/summary.py",
@@ -4015,14 +4015,14 @@
         ],
         "additions": 98,
         "deletions": 40,
-        "ai_summary": "This commit touches 1 file in threadline/console (+98/-40) and lands a refactor(connectors) change. src/api/schemas/summary.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 1 file in mabinsoft/console (+98/-40) and lands a refactor(connectors) change. src/api/schemas/summary.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-07-29T10:15:54.165Z"
       },
       "sender_user_id": "usr_0011",
       "sender_relation_id": "acc_11_1",
       "platform": "github",
-      "external_message_id": "threadline/console@aa43c5a",
-      "conversation_id": "threadline/console",
+      "external_message_id": "mabinsoft/console@aa43c5a",
+      "conversation_id": "mabinsoft/console",
       "content": "refactor(connectors): share the pagination cursor helper across platforms",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -4048,9 +4048,9 @@
       "kind": "commit",
       "commit": {
         "sha": "78752a4",
-        "repository": "threadline/api",
+        "repository": "mabinsoft/api",
         "branch": "develop",
-        "url": "https://github.com/threadline/api/commit/78752a4",
+        "url": "https://github.com/mabinsoft/api/commit/78752a4",
         "files": [
           {
             "path": "README.md",
@@ -4085,14 +4085,14 @@
         ],
         "additions": 189,
         "deletions": 247,
-        "ai_summary": "This commit touches 5 files in threadline/api (+189/-247) and lands a feat(console) change. README.md carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 5 files in mabinsoft/api (+189/-247) and lands a feat(console) change. README.md carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-07-28T23:15:32.912Z"
       },
       "sender_user_id": "usr_0011",
       "sender_relation_id": "acc_11_1",
       "platform": "github",
-      "external_message_id": "threadline/api@78752a4",
-      "conversation_id": "threadline/api",
+      "external_message_id": "mabinsoft/api@78752a4",
+      "conversation_id": "mabinsoft/api",
       "content": "feat(console): add unresolved account linking flow",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "business",
@@ -4104,9 +4104,9 @@
       "kind": "commit",
       "commit": {
         "sha": "f8c2b57",
-        "repository": "threadline/console",
+        "repository": "mabinsoft/console",
         "branch": "develop",
-        "url": "https://github.com/threadline/console/commit/f8c2b57",
+        "url": "https://github.com/mabinsoft/console/commit/f8c2b57",
         "files": [
           {
             "path": "src/embeddings/batcher.py",
@@ -4117,14 +4117,14 @@
         ],
         "additions": 116,
         "deletions": 52,
-        "ai_summary": "This commit touches 1 file in threadline/console (+116/-52) and lands a feat(console) change. src/embeddings/batcher.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 1 file in mabinsoft/console (+116/-52) and lands a feat(console) change. src/embeddings/batcher.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-07-28T17:38:11.585Z"
       },
       "sender_user_id": "usr_0004",
       "sender_relation_id": "acc_4_3",
       "platform": "github",
-      "external_message_id": "threadline/console@f8c2b57",
-      "conversation_id": "threadline/console",
+      "external_message_id": "mabinsoft/console@f8c2b57",
+      "conversation_id": "mabinsoft/console",
       "content": "feat(console): add unresolved account linking flow",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "personal",
@@ -4164,9 +4164,9 @@
       "kind": "commit",
       "commit": {
         "sha": "d35716f",
-        "repository": "threadline/ingestion-worker",
+        "repository": "mabinsoft/ingestion-worker",
         "branch": "feature/d35716f",
-        "url": "https://github.com/threadline/ingestion-worker/commit/d35716f",
+        "url": "https://github.com/mabinsoft/ingestion-worker/commit/d35716f",
         "files": [
           {
             "path": "src/connectors/github/client.py",
@@ -4183,14 +4183,14 @@
         ],
         "additions": 98,
         "deletions": 72,
-        "ai_summary": "This commit touches 2 files in threadline/ingestion-worker (+98/-72) and lands a fix(auth) change. src/connectors/github/client.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
+        "ai_summary": "This commit touches 2 files in mabinsoft/ingestion-worker (+98/-72) and lands a fix(auth) change. src/connectors/github/client.py carries the bulk of the diff; the remaining edits keep call sites and tests aligned. No migrations outside the listed files, and the change is scoped tightly enough to revert on its own.",
         "ai_summary_generated_at": "2026-07-28T07:08:29.894Z"
       },
       "sender_user_id": "usr_0007",
       "sender_relation_id": "acc_7_2",
       "platform": "github",
-      "external_message_id": "threadline/ingestion-worker@d35716f",
-      "conversation_id": "threadline/ingestion-worker",
+      "external_message_id": "mabinsoft/ingestion-worker@d35716f",
+      "conversation_id": "mabinsoft/ingestion-worker",
       "content": "fix(auth): stop leaking scope claims into the audit log",
       "embedding_model": "text-embedding-3-small",
       "filter_category": "personal",
@@ -4216,14 +4216,14 @@
     {
       "id": "note_1",
       "user_id": "usr_0002",
-      "author": "admin@threadline.dev",
+      "author": "admin@mabinsoft.dev",
       "body": "Requested that personal Slack DMs be excluded from summaries — revisit filter rules next quarter.",
       "created_at": "2026-08-14T18:00:00.000Z"
     },
     {
       "id": "note_2",
       "user_id": "usr_0006",
-      "author": "admin@threadline.dev",
+      "author": "admin@mabinsoft.dev",
       "body": "Two GitHub identities in use (work + contractor). Keep both linked until the contractor account is archived.",
       "created_at": "2026-08-22T18:00:00.000Z"
     }
@@ -4335,19 +4335,19 @@
           "reason": "Too short or context-free to classify with confidence."
         },
         {
-          "id": "threadline/console@f8c2b57",
+          "id": "mabinsoft/console@f8c2b57",
           "keep": true,
           "category": "personal",
           "reason": "Social or personal scheduling content with no work artifact."
         },
         {
-          "id": "threadline/connectors@b0186bd",
+          "id": "mabinsoft/connectors@b0186bd",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
         },
         {
-          "id": "threadline/ingestion-worker@3691593",
+          "id": "mabinsoft/ingestion-worker@3691593",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
@@ -4359,7 +4359,7 @@
           "reason": "Contains work context: project, system, or delivery discussion."
         },
         {
-          "id": "threadline/infra@b324dca",
+          "id": "mabinsoft/infra@b324dca",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
@@ -4371,7 +4371,7 @@
           "reason": "Contains work context: project, system, or delivery discussion."
         },
         {
-          "id": "threadline/ingestion-worker@fc097f0",
+          "id": "mabinsoft/ingestion-worker@fc097f0",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
@@ -4389,7 +4389,7 @@
           "reason": "Contains work context: project, system, or delivery discussion."
         },
         {
-          "id": "threadline/ingestion-worker@02c10bb",
+          "id": "mabinsoft/ingestion-worker@02c10bb",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
@@ -4431,7 +4431,7 @@
           "reason": "Contains work context: project, system, or delivery discussion."
         },
         {
-          "id": "threadline/ingestion-worker@1155688",
+          "id": "mabinsoft/ingestion-worker@1155688",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
@@ -4482,7 +4482,7 @@
           "reason": "Contains work context: project, system, or delivery discussion."
         },
         {
-          "id": "threadline/console@aa43c5a",
+          "id": "mabinsoft/console@aa43c5a",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
@@ -4494,7 +4494,7 @@
           "reason": "Contains work context: project, system, or delivery discussion."
         },
         {
-          "id": "threadline/ingestion-worker@55a6bb6",
+          "id": "mabinsoft/ingestion-worker@55a6bb6",
           "keep": false,
           "category": "personal",
           "reason": "Social or personal scheduling content with no work artifact."
@@ -4530,7 +4530,7 @@
           "reason": "Contains work context: project, system, or delivery discussion."
         },
         {
-          "id": "threadline/console@9c54d95",
+          "id": "mabinsoft/console@9c54d95",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
@@ -4542,7 +4542,7 @@
           "reason": "Contains work context: project, system, or delivery discussion."
         },
         {
-          "id": "threadline/ingestion-worker@3691593",
+          "id": "mabinsoft/ingestion-worker@3691593",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
@@ -4623,7 +4623,7 @@
           "reason": "Too short or context-free to classify with confidence."
         },
         {
-          "id": "threadline/connectors@e21eee7",
+          "id": "mabinsoft/connectors@e21eee7",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
@@ -4698,7 +4698,7 @@
           "reason": "Social or personal scheduling content with no work artifact."
         },
         {
-          "id": "threadline/api@74c3436",
+          "id": "mabinsoft/api@74c3436",
           "keep": false,
           "category": "unclear",
           "reason": "Too short or context-free to classify with confidence."
@@ -4710,7 +4710,7 @@
           "reason": "Emitted by an automation or alerting integration."
         },
         {
-          "id": "threadline/ingestion-worker@7e4e6b8",
+          "id": "mabinsoft/ingestion-worker@7e4e6b8",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
@@ -4722,13 +4722,13 @@
           "reason": "Contains work context: project, system, or delivery discussion."
         },
         {
-          "id": "threadline/infra@b324dca",
+          "id": "mabinsoft/infra@b324dca",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
         },
         {
-          "id": "threadline/ingestion-worker@fc097f0",
+          "id": "mabinsoft/ingestion-worker@fc097f0",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
@@ -4752,7 +4752,7 @@
           "reason": "Social or personal scheduling content with no work artifact."
         },
         {
-          "id": "threadline/ingestion-worker@0ae4a34",
+          "id": "mabinsoft/ingestion-worker@0ae4a34",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
@@ -4803,19 +4803,19 @@
           "reason": "Contains work context: project, system, or delivery discussion."
         },
         {
-          "id": "threadline/ingestion-worker@eb010d9",
+          "id": "mabinsoft/ingestion-worker@eb010d9",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
         },
         {
-          "id": "threadline/ingestion-worker@57309e2",
+          "id": "mabinsoft/ingestion-worker@57309e2",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
         },
         {
-          "id": "threadline/ingestion-worker@d35716f",
+          "id": "mabinsoft/ingestion-worker@d35716f",
           "keep": true,
           "category": "personal",
           "reason": "Social or personal scheduling content with no work artifact."
@@ -4875,7 +4875,7 @@
           "reason": "Contains work context: project, system, or delivery discussion."
         },
         {
-          "id": "threadline/infra@915e0a7",
+          "id": "mabinsoft/infra@915e0a7",
           "keep": false,
           "category": "automated",
           "reason": "Emitted by an automation or alerting integration."
@@ -4893,7 +4893,7 @@
           "reason": "Emitted by an automation or alerting integration."
         },
         {
-          "id": "threadline/infra@915e0a7",
+          "id": "mabinsoft/infra@915e0a7",
           "keep": false,
           "category": "automated",
           "reason": "Emitted by an automation or alerting integration."
@@ -4926,7 +4926,7 @@
           "reason": "Contains work context: project, system, or delivery discussion."
         },
         {
-          "id": "threadline/api@0e33762",
+          "id": "mabinsoft/api@0e33762",
           "keep": false,
           "category": "automated",
           "reason": "Emitted by an automation or alerting integration."
@@ -4995,7 +4995,7 @@
           "reason": "Contains work context: project, system, or delivery discussion."
         },
         {
-          "id": "threadline/ingestion-worker@f3b2fa3",
+          "id": "mabinsoft/ingestion-worker@f3b2fa3",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
@@ -5025,7 +5025,7 @@
           "reason": "Contains work context: project, system, or delivery discussion."
         },
         {
-          "id": "threadline/console@fc5a9a3",
+          "id": "mabinsoft/console@fc5a9a3",
           "keep": false,
           "category": "automated",
           "reason": "Emitted by an automation or alerting integration."
@@ -5043,7 +5043,7 @@
           "reason": "Contains work context: project, system, or delivery discussion."
         },
         {
-          "id": "threadline/infra@a8eaa6a",
+          "id": "mabinsoft/infra@a8eaa6a",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
@@ -5082,7 +5082,7 @@
           "reason": "Contains work context: project, system, or delivery discussion."
         },
         {
-          "id": "threadline/ingestion-worker@5ae7e57",
+          "id": "mabinsoft/ingestion-worker@5ae7e57",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
@@ -5118,13 +5118,13 @@
           "reason": "Contains work context: project, system, or delivery discussion."
         },
         {
-          "id": "threadline/infra@915e0a7",
+          "id": "mabinsoft/infra@915e0a7",
           "keep": true,
           "category": "automated",
           "reason": "Emitted by an automation or alerting integration."
         },
         {
-          "id": "threadline/ingestion-worker@3fb2de3",
+          "id": "mabinsoft/ingestion-worker@3fb2de3",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
@@ -5142,7 +5142,7 @@
           "reason": "Social or personal scheduling content with no work artifact."
         },
         {
-          "id": "threadline/ingestion-worker@3691593",
+          "id": "mabinsoft/ingestion-worker@3691593",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
@@ -5154,7 +5154,7 @@
           "reason": "Contains work context: project, system, or delivery discussion."
         },
         {
-          "id": "threadline/console@d06fd9d",
+          "id": "mabinsoft/console@d06fd9d",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
@@ -5199,7 +5199,7 @@
           "reason": "Emitted by an automation or alerting integration."
         },
         {
-          "id": "threadline/infra@e1f029f",
+          "id": "mabinsoft/infra@e1f029f",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
@@ -5217,7 +5217,7 @@
           "reason": "Emitted by an automation or alerting integration."
         },
         {
-          "id": "threadline/console@d06fd9d",
+          "id": "mabinsoft/console@d06fd9d",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
@@ -5241,7 +5241,7 @@
           "reason": "Social or personal scheduling content with no work artifact."
         },
         {
-          "id": "threadline/ingestion-worker@d35716f",
+          "id": "mabinsoft/ingestion-worker@d35716f",
           "keep": true,
           "category": "personal",
           "reason": "Social or personal scheduling content with no work artifact."
@@ -5277,7 +5277,7 @@
           "reason": "Social or personal scheduling content with no work artifact."
         },
         {
-          "id": "threadline/ingestion-worker@f3b2fa3",
+          "id": "mabinsoft/ingestion-worker@f3b2fa3",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."
@@ -5301,7 +5301,7 @@
           "reason": "Contains work context: project, system, or delivery discussion."
         },
         {
-          "id": "threadline/ingestion-worker@7e4e6b8",
+          "id": "mabinsoft/ingestion-worker@7e4e6b8",
           "keep": true,
           "category": "business",
           "reason": "Contains work context: project, system, or delivery discussion."

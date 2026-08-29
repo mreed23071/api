@@ -35,7 +35,7 @@ def render(version_name: str) -> tuple[str, str]:
     schema = build_version_schema(
         app,
         prefix=f"{settings.api_root_prefix}{version.prefix}",
-        title=f"threadline API {version.name}",
+        title=f"mabinsoft API {version.name}",
         version=version.name,
     )
     return f"{version.name}.json", json.dumps(schema, indent=2, sort_keys=True) + "\n"

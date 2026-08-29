@@ -58,7 +58,7 @@ class Settings(BaseSettings):
     )
 
     # -- application -------------------------------------------------------
-    app_name: str = "threadline"
+    app_name: str = "mabinsoft"
     app_env: Literal["local", "test", "staging", "production"] = "local"
     log_level: str = "INFO"
     log_json: bool = True
@@ -72,7 +72,7 @@ class Settings(BaseSettings):
 
     # -- database ----------------------------------------------------------
     database_url: str = Field(
-        default="postgresql+asyncpg://threadline:change-me-in-production@localhost:5432/threadline",
+        default="postgresql+asyncpg://mabinsoft:change-me-in-production@localhost:5432/mabinsoft",
         description="Async SQLAlchemy DSN. Injected by docker-compose in containers.",
     )
     db_echo: bool = False

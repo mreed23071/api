@@ -7,7 +7,7 @@ on:
 
 env:
   # The fast suite must never need a real database; this DSN is only parsed.
-  DATABASE_URL: postgresql+asyncpg://threadline:threadline@localhost:5432/threadline_test
+  DATABASE_URL: postgresql+asyncpg://mabinsoft:mabinsoft@localhost:5432/mabinsoft_test
 
 jobs:
   static:

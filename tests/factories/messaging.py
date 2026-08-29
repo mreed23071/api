@@ -134,7 +134,7 @@ def make_chat_seed(platform: Platform) -> list[RawMessage]:
 _COMMIT_SEED: list[dict[str, Any]] = [
     {
         "author_id": "U-BEN",
-        "repository": "threadline/api",
+        "repository": "mabinsoft/api",
         "branch": "main",
         "sha": "3691593a7c1e4f0b9d2a6c8e1f4b7d0a2c5e8f1b",
         "message": "Add migration for the messages embedding column",
@@ -151,7 +151,7 @@ _COMMIT_SEED: list[dict[str, Any]] = [
     },
     {
         "author_id": "U-CARLA",
-        "repository": "threadline/infra",
+        "repository": "mabinsoft/infra",
         "branch": "main",
         "sha": "b324dca9f2e5c7a1b4d6f8e0a3c5b7d9f1e3a5c7",
         "message": "Revert the rollback commit; postmortem action items are in the backlog",
@@ -163,7 +163,7 @@ _COMMIT_SEED: list[dict[str, Any]] = [
     },
     {
         "author_id": "U-ALICE",
-        "repository": "threadline/console",
+        "repository": "mabinsoft/console",
         "branch": "main",
         "sha": "f8c2b57d1a3e6c9b2d4f7a0c3e6b9d1f4a7c0e3b",
         "message": "Address review comments on the schema PR: rename column, add HNSW index",

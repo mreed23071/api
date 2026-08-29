@@ -1,19 +1,19 @@
-name: threadline
+name: mabinsoft
 
 services:
   db:
     image: pgvector/pgvector:pg17
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-threadline}
+      POSTGRES_USER: ${POSTGRES_USER:-mabinsoft}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-in-production}
-      POSTGRES_DB: ${POSTGRES_DB:-threadline}
+      POSTGRES_DB: ${POSTGRES_DB:-mabinsoft}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-threadline} -d ${POSTGRES_DB:-threadline}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mabinsoft} -d ${POSTGRES_DB:-mabinsoft}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -31,7 +31,7 @@ services:
     environment:
       # Service-to-service DSN. The host is the compose service name, so the
       # credentials never leave the private compose network.
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-threadline}:${POSTGRES_PASSWORD:-change-me-in-production}@db:5432/${POSTGRES_DB:-threadline}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-mabinsoft}:${POSTGRES_PASSWORD:-change-me-in-production}@db:5432/${POSTGRES_DB:-mabinsoft}
       APP_ENV: ${APP_ENV:-local}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       CRON_TOKEN: ${CRON_TOKEN:-local-dev-cron-token}

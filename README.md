@@ -1,4 +1,4 @@
-# threadline
+# mabinsoft
 
 FastAPI service that ingests messages from third-party platforms, filters them
 through an agentic policy, embeds the survivors **locally**, and serves

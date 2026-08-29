@@ -20,7 +20,7 @@ os.environ.setdefault("EMBEDDING_WARMUP_ON_STARTUP", "false")
 os.environ.setdefault("TEMPORAL_ENABLED", "false")
 os.environ.setdefault("DEV_AUTH_ENABLED", "true")
 os.environ.setdefault(
-    "DATABASE_URL", "postgresql+asyncpg://threadline:threadline@localhost:5432/threadline_test"
+    "DATABASE_URL", "postgresql+asyncpg://mabinsoft:mabinsoft@localhost:5432/mabinsoft_test"
 )
 os.environ.setdefault(
     "API_KEYS",

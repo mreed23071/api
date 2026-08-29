@@ -227,7 +227,7 @@ keys have no expiry, no rotation and no revocation list.
 
 ## 5. Tenancy
 
-threadline is single-tenant today. `TenantContext` and `Repository.scoped()` exist
+mabinsoft is single-tenant today. `TenantContext` and `Repository.scoped()` exist
 anyway, because retrofitting a tenant argument through every repository later is
 the expensive version of this change and implementing one method body is the
 cheap one.
