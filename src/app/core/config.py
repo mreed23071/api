@@ -130,6 +130,15 @@ class Settings(BaseSettings):
     #: messages get dropped - so it must not fire during normal operation.
     ollama_timeout_seconds: float = 300.0
 
+    # -- fixtures ------------------------------------------------------------
+    #: Stands in for Slack/Teams/GitHub during development - see
+    #: `bootstrap/fixtures-service/`. Every connector in
+    #: `domains/ingestion/sources.py` talks to it and maps its platform-shaped
+    #: responses into `RawMessage`, the same translation a real connector
+    #: would do against the real API.
+    fixtures_service_url: str = "http://fixtures:8095"
+    fixtures_timeout_seconds: float = 10.0
+
     # -- temporal ----------------------------------------------------------
     #: Durable orchestration for ingestion. The API starts a workflow and
     #: returns; the worker runs it. `enabled=false` keeps the synchronous

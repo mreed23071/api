@@ -19,10 +19,9 @@ from app.core.security.principal import Principal, Scope
 from app.domains.identity.models import Platform
 from app.domains.ingestion.dto import IngestionOptions
 from app.domains.ingestion.service import IngestionService
-from app.domains.ingestion.sources import MockChatSource
 from app.shared.llm.stub import StubLLMClient
 from tests.conftest import make_principal
-from tests.factories import make_raw_message
+from tests.factories import make_chat_seed, make_raw_message
 from tests.fakes import FailingLLMClient, FakeEmbeddingService, FakeUnitOfWork
 from tests.fakes.sources import ScriptedMessageSource
 
@@ -33,7 +32,7 @@ def build(uow=None, source=None, llm=None, principal=None, settings=None):  # ty
     return IngestionService(
         uow=uow or FakeUnitOfWork(),
         principal=principal or make_principal(Scope.INGEST_RUN, Scope.INGEST_READ),
-        source=source or MockChatSource(Platform.SLACK, name="slack-mock"),
+        source=source or ScriptedMessageSource(make_chat_seed(Platform.SLACK)),
         llm=llm or StubLLMClient(),
         embeddings=embeddings,
         settings=settings or get_settings(),
@@ -85,10 +84,10 @@ async def test_a_person_seen_on_several_platforms_is_one_user() -> None:
     two separate pipeline runs, one per platform, sharing one uow. A person
     who appears in both must resolve to one User, not two."""
     uow = FakeUnitOfWork()
-    await build(uow, source=MockChatSource(Platform.SLACK, name="slack-mock")).run(
+    await build(uow, source=ScriptedMessageSource(make_chat_seed(Platform.SLACK))).run(
         IngestionOptions(), platform=Platform.SLACK
     )
-    await build(uow, source=MockChatSource(Platform.TEAMS, name="teams-mock")).run(
+    await build(uow, source=ScriptedMessageSource(make_chat_seed(Platform.TEAMS))).run(
         IngestionOptions(), platform=Platform.TEAMS
     )
 

@@ -44,13 +44,27 @@ def get_sessionmaker() -> async_sessionmaker[AsyncSession]:
 async def get_session() -> AsyncIterator[AsyncSession]:
     """FastAPI dependency yielding a request-scoped session.
 
-    Rollback and close are guaranteed here; *committing is the service's job*,
-    through the unit of work. Transaction boundaries are a domain decision and
-    should be visible in domain code.
+    A service still opens its own transaction boundary via
+    `SessionUnitOfWork.transaction()` - that choice is what lets a service
+    compose several short, explicit transactions (see the ingestion pipeline)
+    instead of pinning one connection for the whole request. But the session
+    autobegins a transaction on its *first* statement, including a plain read
+    - so a method that checks something exists before writing it (almost every
+    write in this codebase) already has a transaction open by the time it
+    calls `uow.transaction()`. `SessionUnitOfWork.transaction()` sees that and
+    opens a SAVEPOINT instead of a real transaction, correctly - but then
+    nothing ever commits the *outer* transaction the SAVEPOINT lived inside,
+    and closing an uncommitted session rolls it back. The write looks like it
+    succeeded (`flush()` still assigns a real id) and then silently vanishes.
+    Committing here, once, on a clean exit, closes out whatever transaction
+    the session ended up in - real or SAVEPOINT-nested - the same way a
+    request that never explicitly opened one still needs its rollback
+    guaranteed below.
     """
     async with get_sessionmaker()() as session:
         try:
             yield session
+            await session.commit()
         except Exception:
             await session.rollback()
             raise

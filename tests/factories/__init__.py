@@ -9,6 +9,18 @@ in, so they can be used in unit tests that never touch a database.
 """
 
 from tests.factories.identity import make_relation, make_user
-from tests.factories.messaging import make_message, make_raw_message
+from tests.factories.messaging import (
+    make_chat_seed,
+    make_commit_seed,
+    make_message,
+    make_raw_message,
+)
 
-__all__ = ["make_message", "make_raw_message", "make_relation", "make_user"]
+__all__ = [
+    "make_chat_seed",
+    "make_commit_seed",
+    "make_message",
+    "make_raw_message",
+    "make_relation",
+    "make_user",
+]

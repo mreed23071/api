@@ -1,26 +1,42 @@
 """Message source connectors.
 
-`MessageSource` is the port. A real Slack/GitHub/Teams connector implements this
-protocol and is swapped into `_SOURCES` at the bottom of this module - the
-pipeline itself never changes. Everything here is mock, deliberately; the
-registry is the single place a real connector plugs in, and both the API and
-the ingestion worker resolve through it.
+`MessageSource` is the port. A real Slack/GitHub/Teams connector implements
+this protocol and is swapped into `_SOURCES` at the bottom of this module -
+the pipeline itself never changes. The registry is the single place a real
+connector plugs in, and both the API and the ingestion worker resolve
+through it.
 
-What a real connector will additionally need, and these mocks deliberately do
-not model: an incremental cursor (a watermark per channel or per repository) so
-each run fetches only what is new. That belongs on this protocol as a
+Every connector here talks to `fixtures-service` - a small separate process
+(`bootstrap/fixtures-service/`) that answers in each platform's *own* wire
+shape: Slack's `conversations.history` shape, Microsoft Graph's `chatMessage`
+shape, GitHub's commits-API shape. None of it looks like `RawMessage`. The
+translation below - field renames, timestamp parsing, digging an author out
+of wherever that platform buries it - is what a real connector's mapping code
+actually looks like; it is the reason this module exists rather than
+`RawMessage(...)` being constructed inline wherever a message is needed.
+
+What a real connector will additionally need, and this one deliberately does
+not model: an incremental cursor (a watermark per channel or per repository)
+so each run fetches only what is new. That belongs on this protocol as a
 `fetch(since: Cursor)` argument, plus a table to persist the cursor.
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from typing import Any, Protocol, runtime_checkable
 
+import httpx
+
+from app.core.config import Settings, get_settings
 from app.core.errors import NotFoundError
 from app.domains.identity.models import Platform
 from app.domains.ingestion.dto import RawMessage
+
+
+class SourceError(RuntimeError):
+    """Raised when a connector cannot reach or make sense of its platform."""
 
 
 @runtime_checkable
@@ -40,251 +56,190 @@ class MessageSource(Protocol):
         ...
 
 
-_AUTHORS = {
-    "U-ALICE": ("alice", "alice@example.com", "Alice Nguyen"),
-    "U-BEN": ("benh", "ben@example.com", "Ben Hartley"),
-    "U-CARLA": ("carla-dev", "carla@example.com", "Carla Moreau"),
-}
+def _client(settings: Settings, transport: httpx.AsyncBaseTransport | None) -> httpx.AsyncClient:
+    """One short-lived client per fetch - these run once per ingestion call,
+    not per request, so pooling a client across calls buys nothing.
 
-#: Plain conversational messages, one list shared by every chat-shaped mock
-#: (Slack and Teams today). Real content, not filler - it is what the
-#: idempotency and filtering tests are written against.
-_CHAT_SEED: list[tuple[Platform, str, str]] = [
-    (
-        Platform.SLACK,
-        "U-ALICE",
-        "Staging deploy of the billing service is green, rolling to production after the 3pm change window.",
-    ),
-    (Platform.SLACK, "U-ALICE", "Anyone up for pizza and beers after work on Friday? My treat."),
-    (
-        Platform.SLACK,
-        "U-BEN",
-        "Client escalation on the invoice export: their finance team needs the CSV schema frozen before the contract renewal.",
-    ),
-    (
-        Platform.TEAMS,
-        "U-CARLA",
-        "My dentist appointment ran long, I will be late to standup, sorry.",
-    ),
-    (
-        Platform.TEAMS,
-        "U-ALICE",
-        "Roadmap review moved to Thursday. Agenda: Q3 milestones, hiring budget, and the API rate-limit spec.",
-    ),
-    (Platform.SLACK, "U-BEN", "Happy birthday Carla! The cake is in the kitchen."),
-    (
-        Platform.SLACK,
-        "U-CARLA",
-        "The nightly ingestion job hit the 30s timeout again - I think the embedding batch size needs tuning in staging.",
-    ),
-    (
-        Platform.TEAMS,
-        "U-BEN",
-        "Reminder: onboarding session for the new client is tomorrow at 10, the handover doc is attached to the ticket.",
-    ),
-    (Platform.SLACK, "U-CARLA", "Watched the new season last night, no spoilers please."),
-]
+    `transport` is injected only by tests, which supply a `MockTransport` so
+    the mapping logic can be asserted without a live fixtures-service.
+    """
+    return httpx.AsyncClient(
+        base_url=settings.fixtures_service_url,
+        timeout=settings.fixtures_timeout_seconds,
+        transport=transport,
+    )
 
 
-class MockChatSource:
-    """Deterministic mock connector for a plain conversational platform.
+async def _get(client: httpx.AsyncClient, path: str, *, count: int | None) -> Any:
+    try:
+        response = await client.get(path, params={"count": count} if count else None)
+        response.raise_for_status()
+    except httpx.HTTPError as exc:
+        raise SourceError(f"fixtures-service request to {path} failed: {exc}") from exc
+    return response.json()
 
-    One class, not one per platform: Slack and Teams are the same shape here -
-    people talking in channels - so the only thing that varies is which
-    platform's slice of `_CHAT_SEED` gets served and what the rows are tagged
-    with. Fixed ids and a fixed ordering, so a run is reproducible and the
-    idempotency guarantee is testable: run it twice, get zero new rows.
+
+class SlackSource:
+    """Talks to `GET /slack/messages` and maps Slack's own message shape.
+
+    Slack identifies the author only by an opaque `user` id in the message
+    itself - a real connector resolves the profile with a separate
+    `users.info` call per author; this fixture folds that enrichment into
+    `user_profile` so one request is enough. `ts` is Slack's actual wire
+    format: a stringified Unix timestamp with a fractional part.
     """
 
-    def __init__(self, platform: Platform, *, name: str, now: datetime | None = None) -> None:
-        self.platform = platform
-        self.name = name
-        self._now = now or datetime.now(UTC)
+    name = "slack"
+
+    def __init__(
+        self,
+        *,
+        settings: Settings | None = None,
+        transport: httpx.AsyncBaseTransport | None = None,
+    ) -> None:
+        self._settings = settings or get_settings()
+        self._transport = transport
 
     async def fetch(self, *, limit: int | None = None) -> Sequence[RawMessage]:
-        """Return this platform's fixed slice of `_CHAT_SEED`, newest first."""
-        seed = [
-            (author_id, content)
-            for platform, author_id, content in _CHAT_SEED
-            if platform == self.platform
-        ]
-        messages: list[RawMessage] = []
-        for index, (author_id, content) in enumerate(seed):
-            handle, email, display_name = _AUTHORS[author_id]
-            messages.append(
-                RawMessage(
-                    external_message_id=f"{self.platform.value}-{index + 1:04d}",
-                    platform=self.platform,
-                    external_author_id=author_id,
-                    author_handle=handle,
-                    author_email=email,
-                    author_display_name=display_name,
-                    conversation_id=f"{self.platform.value}-general",
-                    content=content,
-                    sent_at=self._now - timedelta(hours=len(seed) - index),
-                    metadata={"source": self.name, "seed_index": index},
-                )
-            )
-        return messages[:limit] if limit else messages
+        async with _client(self._settings, self._transport) as client:
+            payload = await _get(client, "/slack/messages", count=limit)
+
+        messages = payload.get("messages", [])
+        return [self._map(message) for message in messages]
+
+    def _map(self, message: dict[str, Any]) -> RawMessage:
+        profile = message.get("user_profile") or {}
+        return RawMessage(
+            external_message_id=f"{message['channel']}-{message['ts']}",
+            platform=Platform.SLACK,
+            external_author_id=message["user"],
+            author_handle=profile.get("display_name"),
+            author_email=profile.get("email"),
+            author_display_name=profile.get("real_name"),
+            conversation_id=message["channel"],
+            content=message["text"],
+            # Slack's `ts` is seconds since epoch, as a string.
+            sent_at=datetime.fromtimestamp(float(message["ts"]), tz=UTC),
+            metadata={"source": self.name, "slack_ts": message["ts"]},
+        )
 
 
-#: Commits are a different shape from a chat message, not a variant of one -
-#: `message` here becomes the commit message, the rest becomes
-#: `metadata["commit"]`, matching `CommitDetail`/`CommitFile` in
-#: `api/v1/schemas/messaging.py`. Repository names match what's already in the
-#: seeded ingestion-run fixture data, for consistency.
-_COMMIT_SEED: list[dict[str, Any]] = [
-    {
-        "author_id": "U-BEN",
-        "repository": "threadline/api",
-        "branch": "main",
-        "sha": "3691593a7c1e4f0b9d2a6c8e1f4b7d0a2c5e8f1b",
-        "message": "Add migration for the messages embedding column",
-        "files": [
-            {
-                "path": "migrations/versions/0002_add_embedding.py",
-                "status": "added",
-                "additions": 42,
-                "deletions": 0,
-            },
-        ],
-        "additions": 42,
-        "deletions": 0,
-    },
-    {
-        "author_id": "U-CARLA",
-        "repository": "threadline/infra",
-        "branch": "main",
-        "sha": "b324dca9f2e5c7a1b4d6f8e0a3c5b7d9f1e3a5c7",
-        "message": "Revert the rollback commit; postmortem action items are in the backlog",
-        "files": [
-            {"path": "deploy/rollback.sh", "status": "modified", "additions": 3, "deletions": 18},
-        ],
-        "additions": 3,
-        "deletions": 18,
-    },
-    {
-        "author_id": "U-ALICE",
-        "repository": "threadline/console",
-        "branch": "main",
-        "sha": "f8c2b57d1a3e6c9b2d4f7a0c3e6b9d1f4a7c0e3b",
-        "message": "Address review comments on the schema PR: rename column, add HNSW index",
-        "files": [
-            {
-                "path": "src/lib/api/types.ts",
-                "status": "modified",
-                "additions": 6,
-                "deletions": 2,
-            },
-            {
-                "path": "migrations/versions/0002_add_embedding.py",
-                "status": "modified",
-                "additions": 4,
-                "deletions": 1,
-            },
-        ],
-        "additions": 10,
-        "deletions": 3,
-    },
-    {
-        "author_id": "U-BEN",
-        "repository": "threadline/ingestion-worker",
-        "branch": "feature/batch-tuning",
-        "sha": "1155688e4b7d0a2c5f8b1e4d7a0c3f6b9e2d5a8c",
-        "message": "Tune embedding batch size after nightly job hit the 30s timeout",
-        "files": [
-            {"path": "src/worker/config.py", "status": "modified", "additions": 5, "deletions": 5},
-        ],
-        "additions": 5,
-        "deletions": 5,
-    },
-    {
-        "author_id": "U-CARLA",
-        "repository": "threadline/connectors",
-        "branch": "main",
-        "sha": "b0186bd3e6a9c2f5b8d1e4a7c0f3b6d9e2a5c8f1",
-        "message": "Fix pagination cursor for the Slack channel history connector",
-        "files": [
-            {
-                "path": "src/connectors/slack.py",
-                "status": "modified",
-                "additions": 11,
-                "deletions": 4,
-            },
-        ],
-        "additions": 11,
-        "deletions": 4,
-    },
-    {
-        "author_id": "U-ALICE",
-        "repository": "threadline/api",
-        "branch": "main",
-        "sha": "74c34362f9a1c4e7b0d3f6a9c2e5b8d1f4a7c0e3",
-        "message": "Backfill filter_prompt_version on historical decisions",
-        "files": [
-            {
-                "path": "migrations/versions/0003_persist_is_fallback.py",
-                "status": "added",
-                "additions": 28,
-                "deletions": 0,
-            },
-        ],
-        "additions": 28,
-        "deletions": 0,
-    },
-]
+class TeamsSource:
+    """Talks to `GET /teams/messages` and maps a Microsoft Graph `chatMessage`.
 
-
-class MockGitHubCommitSource:
-    """Deterministic mock GitHub connector - commits, not chat messages.
-
-    Fixed ids and a fixed ordering, same as `MockChatSource`, so ingestion
-    stays idempotent and testable. Each row's `kind` is `"commit"`, and the
-    diff shape (sha, files touched, additions/deletions) lives in
-    `metadata["commit"]` rather than in `content` - `content` is the commit
-    message, which is what the filtering agent actually reads.
+    Graph nests the author three levels down (`from.user`) and the text one
+    level down (`body.content`, alongside a `contentType` a real connector
+    would check before trusting it as plain text). `createdDateTime` is real
+    ISO 8601, unlike Slack's epoch string - two platforms, two conventions,
+    which is exactly the kind of thing a shared `MockChatSource` used to hide.
     """
 
-    name = "github-mock"
+    name = "teams"
 
-    def __init__(self, *, now: datetime | None = None) -> None:
-        self._now = now or datetime.now(UTC)
+    def __init__(
+        self,
+        *,
+        settings: Settings | None = None,
+        transport: httpx.AsyncBaseTransport | None = None,
+    ) -> None:
+        self._settings = settings or get_settings()
+        self._transport = transport
 
     async def fetch(self, *, limit: int | None = None) -> Sequence[RawMessage]:
-        messages: list[RawMessage] = []
-        for index, commit in enumerate(_COMMIT_SEED):
-            handle, email, display_name = _AUTHORS[commit["author_id"]]
-            messages.append(
-                RawMessage(
-                    external_message_id=f"{commit['repository']}@{commit['sha'][:7]}",
-                    platform=Platform.GITHUB,
-                    external_author_id=commit["author_id"],
-                    author_handle=handle,
-                    author_email=email,
-                    author_display_name=display_name,
-                    conversation_id=commit["repository"],
-                    content=commit["message"],
-                    sent_at=self._now - timedelta(hours=len(_COMMIT_SEED) - index),
-                    kind="commit",
-                    metadata={
-                        "source": self.name,
-                        "seed_index": index,
-                        "commit": {
-                            "sha": commit["sha"],
-                            "repository": commit["repository"],
-                            "branch": commit["branch"],
-                            "url": (
-                                f"https://github.com/{commit['repository']}"
-                                f"/commit/{commit['sha']}"
-                            ),
-                            "files": commit["files"],
-                            "additions": commit["additions"],
-                            "deletions": commit["deletions"],
-                        },
-                    },
-                )
-            )
-        return messages[:limit] if limit else messages
+        async with _client(self._settings, self._transport) as client:
+            payload = await _get(client, "/teams/messages", count=limit)
+
+        return [self._map(item) for item in payload.get("value", [])]
+
+    def _map(self, item: dict[str, Any]) -> RawMessage:
+        author = item["from"]["user"]
+        body = item["body"]
+        if body.get("contentType") != "text":
+            # A real connector would strip HTML here; every fixture message is
+            # already plain text, so there is nothing further to do but not
+            # silently trust a content type we haven't handled.
+            raise SourceError(f"unsupported Teams body contentType: {body.get('contentType')!r}")
+        return RawMessage(
+            external_message_id=item["id"],
+            platform=Platform.TEAMS,
+            external_author_id=author["id"],
+            author_handle=author.get("userPrincipalName"),
+            author_email=author.get("email"),
+            author_display_name=author.get("displayName"),
+            conversation_id=item["channelIdentity"]["channelId"],
+            content=body["content"],
+            sent_at=datetime.fromisoformat(item["createdDateTime"].replace("Z", "+00:00")),
+            metadata={"source": self.name, "teams_message_id": item["id"]},
+        )
+
+
+class GitHubSource:
+    """Talks to `GET /github/commits` and maps GitHub's commits-API shape.
+
+    GitHub splits identity in two: `commit.author` is the git commit's author
+    line (name + email, whatever was in the committer's local git config) and
+    the top-level `author` is the matched GitHub account (only ever a
+    `login`, no email - GitHub does not expose it). A real connector has to
+    reconcile both; this one prefers the git commit's email since that is the
+    one worth provisioning an identity against.
+    """
+
+    name = "github"
+
+    def __init__(
+        self,
+        *,
+        settings: Settings | None = None,
+        transport: httpx.AsyncBaseTransport | None = None,
+    ) -> None:
+        self._settings = settings or get_settings()
+        self._transport = transport
+
+    async def fetch(self, *, limit: int | None = None) -> Sequence[RawMessage]:
+        async with _client(self._settings, self._transport) as client:
+            commits = await _get(client, "/github/commits", count=limit)
+
+        return [self._map(commit) for commit in commits]
+
+    def _map(self, commit: dict[str, Any]) -> RawMessage:
+        git_author = commit["commit"]["author"]
+        github_account = commit.get("author") or {}
+        stats = commit.get("stats", {})
+        return RawMessage(
+            external_message_id=f"{commit['repository']}@{commit['sha'][:7]}",
+            platform=Platform.GITHUB,
+            # The GitHub login is the stabler identifier across commits (an
+            # author's git config email can vary machine to machine); the git
+            # commit's own name/email fill in the profile.
+            external_author_id=github_account.get("login", git_author["email"]),
+            author_handle=github_account.get("login"),
+            author_email=git_author.get("email"),
+            author_display_name=git_author.get("name"),
+            conversation_id=commit["repository"],
+            content=commit["commit"]["message"],
+            sent_at=datetime.fromisoformat(git_author["date"].replace("Z", "+00:00")),
+            kind="commit",
+            metadata={
+                "source": self.name,
+                "commit": {
+                    "sha": commit["sha"],
+                    "repository": commit["repository"],
+                    "branch": commit["branch"],
+                    "url": commit["html_url"],
+                    "files": [
+                        {
+                            "path": f["filename"],
+                            "status": f["status"],
+                            "additions": f["additions"],
+                            "deletions": f["deletions"],
+                        }
+                        for f in commit.get("files", [])
+                    ],
+                    "additions": stats.get("additions", 0),
+                    "deletions": stats.get("deletions", 0),
+                },
+            },
+        )
 
 
 #: One connector per platform, not one pipeline for all of them - each entry is
@@ -297,9 +252,9 @@ class MockGitHubCommitSource:
 #: had to import the HTTP layer to find one would have the dependency arrow
 #: backwards.
 _SOURCES: dict[Platform, Callable[[], MessageSource]] = {
-    Platform.GITHUB: MockGitHubCommitSource,
-    Platform.SLACK: lambda: MockChatSource(Platform.SLACK, name="slack-mock"),
-    Platform.TEAMS: lambda: MockChatSource(Platform.TEAMS, name="teams-mock"),
+    Platform.GITHUB: GitHubSource,
+    Platform.SLACK: SlackSource,
+    Platform.TEAMS: TeamsSource,
 }
 
 

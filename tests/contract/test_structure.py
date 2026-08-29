@@ -68,7 +68,10 @@ SOURCE_COVERAGE: dict[str, list[str] | Untested] = {
     "app/core/pagination.py": [f"{UNIT}/core/test_pagination.py"],
     "app/core/db/base.py": Untested("Declarative base and naming convention; no behaviour."),
     "app/core/db/mixins.py": Untested("Column declarations; exercised by every integration test."),
-    "app/core/db/engine.py": [f"{INTEGRATION}/test_migrations.py"],
+    "app/core/db/engine.py": [
+        f"{INTEGRATION}/test_migrations.py",
+        f"{INTEGRATION}/test_write_durability.py",
+    ],
     "app/core/db/repository.py": [
         f"{CONTRACT}/test_layering.py",
         f"{INTEGRATION}/domains/test_identity_repository.py",

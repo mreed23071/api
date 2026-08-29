@@ -43,6 +43,7 @@ from app.core.security.principal import (
     Scope,
     TenantContext,
 )
+from app.domains.identity.models import Platform
 
 #: Credentials that match the API_KEYS above. Tests reference these constants
 #: rather than repeating literals.
@@ -141,19 +142,40 @@ def embeddings():  # type: ignore[no-untyped-def]
 
 @pytest.fixture
 def app(seeded_uow, embeddings):  # type: ignore[no-untyped-def]
-    from app.api.deps import get_uow
+    from app.api.deps import get_message_source, get_uow
     from app.main import create_app
     from app.shared.embeddings.factory import get_embedding_client
     from app.shared.llm.factory import get_llm_client
     from app.shared.llm.stub import StubLLMClient
+    from tests.factories import make_chat_seed, make_commit_seed
+    from tests.fakes.sources import ScriptedMessageSource
 
     instance = create_app(get_settings())
     instance.dependency_overrides[get_uow] = lambda: seeded_uow
     instance.dependency_overrides[get_llm_client] = StubLLMClient
     instance.dependency_overrides[get_embedding_client] = lambda: embeddings
-    # get_message_source is left un-overridden: it's the real per-platform mock
-    # registry, deterministic and side-effect-free, so route tests exercise it
-    # the same way production does.
+    # The real connectors talk to fixtures-service over HTTP - fine for the
+    # Docker-backed stack, wrong for a suite that promises no network. This
+    # keeps route tests about the wire contract (status codes, envelopes);
+    # the actual platform-shape mapping is exercised, with a real HTTP mock
+    # transport, in tests/unit/domains/ingestion/test_sources.py.
+    seeds = {
+        Platform.SLACK: lambda: make_chat_seed(Platform.SLACK),
+        Platform.TEAMS: lambda: make_chat_seed(Platform.TEAMS),
+        Platform.GITHUB: make_commit_seed,
+    }
+
+    def fake_message_source(platform: Platform | None = None) -> ScriptedMessageSource:
+        # Mirrors `get_message_source`'s own signature (name and annotation),
+        # which is what lets FastAPI keep resolving `platform` from the
+        # route's path/query the same way it does for the real dependency.
+        return (
+            ScriptedMessageSource(seeds[platform]())
+            if platform in seeds
+            else ScriptedMessageSource([])
+        )
+
+    instance.dependency_overrides[get_message_source] = fake_message_source
     return instance
 
 

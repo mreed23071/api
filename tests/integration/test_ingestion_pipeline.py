@@ -14,11 +14,12 @@ from app.core.security.principal import Scope
 from app.domains.identity.models import Platform, User, UserRelation
 from app.domains.ingestion.dto import IngestionOptions
 from app.domains.ingestion.service import IngestionService
-from app.domains.ingestion.sources import MockChatSource
 from app.domains.messaging.models import Message
 from app.shared.llm.stub import StubLLMClient
 from tests.conftest import make_principal
+from tests.factories import make_chat_seed
 from tests.fakes import FakeEmbeddingService
+from tests.fakes.sources import ScriptedMessageSource
 
 pytestmark = pytest.mark.integration
 
@@ -30,7 +31,7 @@ def service(uow):  # type: ignore[no-untyped-def]
     return IngestionService(
         uow=uow,
         principal=make_principal(Scope.INGEST_RUN, Scope.INGEST_READ),
-        source=MockChatSource(Platform.SLACK, name="slack-mock"),
+        source=ScriptedMessageSource(make_chat_seed(Platform.SLACK)),
         llm=StubLLMClient(),
         embeddings=embeddings,
         settings=get_settings(),
