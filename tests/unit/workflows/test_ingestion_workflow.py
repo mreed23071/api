@@ -14,8 +14,9 @@ from datetime import UTC, datetime
 
 import pytest
 from temporalio import activity
-from temporalio.client import Client
+from temporalio.client import Client, WorkflowFailureError
 from temporalio.contrib.pydantic import pydantic_data_converter
+from temporalio.exceptions import ApplicationError
 from temporalio.testing import WorkflowEnvironment
 from temporalio.worker import Worker
 
@@ -111,6 +112,20 @@ class Recorder:
         return [fetch_candidates, filter_batch, embed_batch, persist, record_run]
 
 
+def failure_chain(error: BaseException) -> str:
+    """Every message in a workflow failure's cause chain, joined.
+
+    `WorkflowFailureError` says only "Workflow execution failed"; what actually
+    went wrong is on `__cause__`, wrapped once per boundary it crossed.
+    """
+    messages: list[str] = []
+    current: BaseException | None = error
+    while current is not None:
+        messages.append(str(current))
+        current = current.__cause__
+    return " | ".join(messages)
+
+
 async def run_workflow(recorder: Recorder, **overrides) -> RunSummary:  # type: ignore[no-untyped-def]
     async with await WorkflowEnvironment.start_time_skipping(
         data_converter=pydantic_data_converter
@@ -122,9 +137,7 @@ async def run_workflow(recorder: Recorder, **overrides) -> RunSummary:  # type: 
             workflows=[IngestionWorkflow],
             activities=recorder.build(),
         ):
-            payload = IngestionInput(
-                run_id=str(uuid.uuid4()), platform=Platform.SLACK, **overrides
-            )
+            payload = IngestionInput(run_id=str(uuid.uuid4()), platform=Platform.SLACK, **overrides)
             return await client.execute_workflow(
                 IngestionWorkflow.run,
                 payload,
@@ -260,3 +273,246 @@ def test_the_real_activities_are_all_registered() -> None:
         "persist",
         "record_run",
     }
+
+
+def test_every_activity_the_workflow_names_is_registered() -> None:
+    """The check that makes the string-name invocation safe.
+
+    The workflow no longer imports `activities` - it names each one by its
+    registered string, which is what keeps the database engine and the model
+    factories out of the workflow's module graph. The cost of that is a
+    reference the type checker cannot follow: rename an activity function and
+    the workflow keeps compiling, then hangs at runtime waiting for a task
+    nobody will ever poll for. This closes that gap.
+    """
+    from app.workflows import ingestion as workflow_module
+
+    referenced = {
+        workflow_module.FETCH_CANDIDATES,
+        workflow_module.FILTER_BATCH_ACTIVITY,
+        workflow_module.EMBED_BATCH_ACTIVITY,
+        workflow_module.PERSIST,
+        workflow_module.RECORD_RUN,
+    }
+    registered = {a.__name__ for a in real.ALL_ACTIVITIES}
+
+    orphaned = referenced - registered
+    assert not orphaned, (
+        f"The workflow names activities that no worker registers: {sorted(orphaned)}. "
+        "A workflow that calls one of these waits forever rather than failing."
+    )
+
+
+def test_the_workflow_does_not_import_the_activities_module() -> None:
+    """The sandbox property B exists for, asserted rather than described.
+
+    Importing `app.workflows.activities` pulls in the database engine, the
+    embedding factory and the LLM factory - so Temporal's sandbox had to pass
+    all of it through unvalidated, and stopped being able to tell workflow code
+    from side-effecting code. Scanning the source rather than the module graph
+    keeps the assertion about what this file *declares*.
+    """
+    import ast
+    from pathlib import Path
+
+    source = Path(real.__file__).parent / "ingestion.py"
+    tree = ast.parse(source.read_text(encoding="utf-8"))
+
+    imported: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.module:
+            imported.add(node.module)
+        elif isinstance(node, ast.Import):
+            imported.update(alias.name for alias in node.names)
+
+    forbidden = {
+        name
+        for name in imported
+        if name.endswith("workflows.activities")
+        or name.endswith("core.db.engine")
+        or name.endswith("embeddings.factory")
+        or name.endswith("llm.factory")
+    }
+    assert not forbidden, f"ingestion.py must not import {sorted(forbidden)}"
+
+
+def test_the_dtos_the_workflow_imports_do_not_drag_in_the_database() -> None:
+    """The transitive half of the same property.
+
+    `workflows/dto.py` imports the mapped models for their `Platform` enum, and
+    those import `Base` - which used to pull `app.core.db.engine` in through
+    `app/core/db/__init__.py`'s re-exports. Importing the workflow's own DTOs
+    therefore constructed the settings singleton and the engine module.
+    """
+    import subprocess
+    import sys
+
+    probe = (
+        "import sys, importlib;"
+        "importlib.import_module('app.workflows.dto');"
+        "importlib.import_module('app.domains.ingestion.dto');"
+        "bad=[m for m in ("
+        "'app.core.db.engine','app.shared.llm.factory','app.shared.embeddings.factory'"
+        ") if m in sys.modules];"
+        "print(','.join(bad))"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", probe], capture_output=True, text=True, check=True
+    )
+    leaked = result.stdout.strip()
+    assert not leaked, f"importing the workflow DTOs also imported: {leaked}"
+
+
+# -- H4: misaligned vectors never reach a write ------------------------------
+
+
+async def test_a_short_embedding_batch_fails_the_run_before_anything_is_written() -> None:
+    """The data-corruption gate.
+
+    Stage 4 zips `retained` against `vectors` positionally. An embedder that
+    returned fewer vectors than it was given texts used to shift every message
+    from that batch onwards onto another message's vector - and because
+    persisting is batched, the earlier batches committed *before* the run
+    failed. Wrong vectors, durably stored, in a run reported as failed.
+
+    Now the count is checked after the embed loop and before stage 4, so the run
+    fails with nothing written at all.
+    """
+    recorder = ShortEmbeddingRecorder([message(i) for i in range(6)])
+
+    with pytest.raises(WorkflowFailureError) as caught:
+        await run_workflow(recorder)
+
+    assert "misaligned" in failure_chain(caught.value)
+    assert recorder.persist_batches == [], "nothing may be persisted once alignment is lost"
+
+
+class ShortEmbeddingRecorder(Recorder):
+    """Returns one fewer vector than it was asked for, on every batch."""
+
+    def build(self):  # type: ignore[no-untyped-def]
+        activities_list = super().build()
+        recorder = self
+
+        @activity.defn(name="embed_batch")
+        async def embed_batch(texts: list[str]) -> EmbedOutcome:
+            recorder.embed_batches.append(list(texts))
+            # One short. The real activity raises a *retryable* error for this;
+            # here we let it through to prove the workflow-layer backstop.
+            return EmbedOutcome(vectors=[[0.1] * 4 for _ in texts[:-1]], model="nomic-embed-text")
+
+        return [a for a in activities_list if a.__name__ != "embed_batch"] + [embed_batch]
+
+
+# -- W2: a failed run leaves a database trace --------------------------------
+
+
+class FailingFilterRecorder(Recorder):
+    """Fails filtering non-retryably, the way an exhausted retry policy would."""
+
+    def build(self):  # type: ignore[no-untyped-def]
+        activities_list = super().build()
+        recorder = self
+
+        @activity.defn(name="filter_batch")
+        async def filter_batch(batch: list[RawMessage]) -> FilterOutcome:
+            recorder.filter_batches.append([m.external_message_id for m in batch])
+            raise ApplicationError("the model is unreachable", non_retryable=True)
+
+        return [a for a in activities_list if a.__name__ != "filter_batch"] + [filter_batch]
+
+
+async def test_a_failed_run_still_records_itself() -> None:
+    """A run that raises used to leave no row at all.
+
+    `record_run` was only ever reached from `_finish`, on the success path - so
+    the console queried `ingestion_runs`, found nothing, and showed the run as
+    never having existed. The failures most worth seeing were the invisible
+    ones.
+    """
+    recorder = FailingFilterRecorder([message(i) for i in range(3)])
+
+    with pytest.raises(WorkflowFailureError):
+        await run_workflow(recorder)
+
+    assert recorder.recorded is not None, "the failed run recorded nothing"
+    assert recorder.recorded.status_override == "failed"
+    assert recorder.recorded.run_id
+    assert recorder.recorded.duration_ms >= 0
+
+
+async def test_recording_a_failure_does_not_mask_the_original_error() -> None:
+    """The receipt is best effort; the failure it describes is not."""
+
+    class RecordAlsoFails(FailingFilterRecorder):
+        def build(self):  # type: ignore[no-untyped-def]
+            activities_list = super().build()
+
+            @activity.defn(name="record_run")
+            async def record_run(summary: RunSummary) -> None:
+                raise ApplicationError("the database is gone too", non_retryable=True)
+
+            return [a for a in activities_list if a.__name__ != "record_run"] + [record_run]
+
+    recorder = RecordAlsoFails([message(0)])
+
+    with pytest.raises(WorkflowFailureError) as caught:
+        await run_workflow(recorder)
+
+    chain = failure_chain(caught.value)
+    assert "unreachable" in chain, (
+        f"the filter failure must survive; the recording failure is swallowed. Got: {chain}"
+    )
+    assert "database is gone" not in chain
+
+
+# -- W3a: batch sizes travel in the payload ----------------------------------
+
+
+async def test_batch_sizes_come_from_the_payload() -> None:
+    """Retuning the module constants must not change a running workflow.
+
+    The sizes are read from the recorded input, so an execution chunks the same
+    way on replay as it did on its first run no matter what the constants say
+    by then.
+    """
+    recorder = Recorder([message(i) for i in range(9)])
+    await run_workflow(recorder, filter_batch=3, embed_batch=2, persist_batch=4)
+
+    assert [len(b) for b in recorder.filter_batches] == [3, 3, 3]
+    assert all(len(b) <= 2 for b in recorder.embed_batches)
+    assert all(len(b.retained) <= 4 for b in recorder.persist_batches)
+
+
+async def test_the_payload_defaults_match_the_module_constants() -> None:
+    """What makes the new fields replay-safe for histories recorded without them.
+
+    An old payload deserializes with these defaults, so it must chunk exactly
+    the way the constants used to.
+    """
+    from app.workflows.ingestion import EMBED_BATCH, FILTER_BATCH, PERSIST_BATCH
+
+    payload = IngestionInput(run_id=str(uuid.uuid4()), platform=Platform.SLACK)
+    assert payload.filter_batch == FILTER_BATCH
+    assert payload.embed_batch == EMBED_BATCH
+    assert payload.persist_batch == PERSIST_BATCH
+
+
+# -- payload-size waste: each batch gets only its own verdicts ---------------
+
+
+async def test_each_persist_batch_carries_only_its_own_decisions() -> None:
+    """The whole run's decision list used to be re-sent with every batch.
+
+    For a 500-message run that meant all 500 verdicts, ten times over. `persist`
+    builds its own id-keyed dict from whatever it is given, so a batch needs
+    only the verdicts for the messages in it.
+    """
+    recorder = Recorder([message(i) for i in range(12)])
+    await run_workflow(recorder, persist_batch=5)
+
+    assert len(recorder.persist_batches) > 1
+    for batch in recorder.persist_batches:
+        assert len(batch.decisions) == len(batch.retained)
+        sent = {d.id for d in batch.decisions}
+        assert sent == {m.external_message_id for m in batch.retained}

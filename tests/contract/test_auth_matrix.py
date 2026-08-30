@@ -55,6 +55,9 @@ OK = 200
 ACCEPTED = 202
 UNAUTHENTICATED = 401
 FORBIDDEN = 403
+#: An authorised caller asking about an id that belongs to nothing. Proves the
+#: request got past authentication, which is what these rows are about.
+NOT_FOUND = 404
 
 #: (method, path, caller name, headers, expected status)
 AUTH_MATRIX: list[tuple[str, str, str, dict[str, str], int]] = [
@@ -75,12 +78,57 @@ AUTH_MATRIX: list[tuple[str, str, str, dict[str, str], int]] = [
     # rows assert who gets *past* authentication, not that the run exists.
     ("GET", "/api/v1/ingestion/runs/slack/nope", "anonymous", ANONYMOUS, UNAUTHENTICATED),
     ("GET", "/api/v1/ingestion/runs/slack/nope", "reader", READER, FORBIDDEN),
+    # The run history and the live-run indicator. Both carried no scope at all
+    # while every sibling route did - the history is the filtering audit trail
+    # (every retention verdict, with the message ids it was made about) and the
+    # active list reports which pipelines are running. Same scope as the rest of
+    # the ingestion surface now.
+    ("GET", "/api/v1/ingestion/runs", "anonymous", ANONYMOUS, UNAUTHENTICATED),
+    ("GET", "/api/v1/ingestion/runs", "scheduler", SCHEDULER, OK),
+    ("GET", "/api/v1/ingestion/runs", "reader", READER, FORBIDDEN),
+    ("GET", "/api/v1/ingestion/runs", "admin", ADMIN, OK),
+    ("GET", "/api/v1/ingestion/runs/active", "anonymous", ANONYMOUS, UNAUTHENTICATED),
+    ("GET", "/api/v1/ingestion/runs/active", "scheduler", SCHEDULER, OK),
+    ("GET", "/api/v1/ingestion/runs/active", "reader", READER, FORBIDDEN),
+    ("GET", "/api/v1/ingestion/runs/active", "admin", ADMIN, OK),
     # -- insights: personal data. Never anonymous, never the scheduler -----
     ("GET", "/api/v1/insights/users", "anonymous", ANONYMOUS, UNAUTHENTICATED),
     ("GET", "/api/v1/insights/users", "scheduler", SCHEDULER, FORBIDDEN),
     ("GET", "/api/v1/insights/users", "reader", READER, OK),
     ("GET", "/api/v1/insights/users", "admin", ADMIN, OK),
     ("GET", "/api/v1/insights/users", "dev-user", DEV_USER, OK),
+    # The per-person summary returns the same PII class as the list above, one
+    # row at a time, and used to demand nothing for it. The id belongs to
+    # nothing, so an authorised caller gets 404 - these rows assert who gets
+    # *past* authentication.
+    (
+        "GET",
+        "/api/v1/insights/users/00000000-0000-4000-8000-000000000000/summary",
+        "anonymous",
+        ANONYMOUS,
+        UNAUTHENTICATED,
+    ),
+    (
+        "GET",
+        "/api/v1/insights/users/00000000-0000-4000-8000-000000000000/summary",
+        "scheduler",
+        SCHEDULER,
+        FORBIDDEN,
+    ),
+    (
+        "GET",
+        "/api/v1/insights/users/00000000-0000-4000-8000-000000000000/summary",
+        "reader",
+        READER,
+        NOT_FOUND,
+    ),
+    (
+        "GET",
+        "/api/v1/insights/users/00000000-0000-4000-8000-000000000000/summary",
+        "dev-user",
+        DEV_USER,
+        NOT_FOUND,
+    ),
 ]
 
 #: Routes intentionally excluded from the matrix, with the reason. Anything not
@@ -134,9 +182,10 @@ PROVISIONALLY_OPEN: dict[str, str] = {
     "remove_org_member": "console organization view",
     # ingestion and insights, console-facing halves
     "list_connectors": "console integrations",
-    "list_ingestion_runs": "console ingestion history",
-    "get_active_runs": "console ingestion history - live indicator",
-    "get_user_summary": "console person view - personal data",
+    # `list_ingestion_runs`, `get_active_runs` and `get_user_summary` used to
+    # live here. They now carry real scope dependencies and have graduated into
+    # AUTH_MATRIX above - which is exactly the direction this list is meant to
+    # empty in.
 }
 
 

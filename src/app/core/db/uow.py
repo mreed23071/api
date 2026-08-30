@@ -41,6 +41,18 @@ class SessionUnitOfWork:
         """Push pending changes so server defaults and ids are populated."""
         await self.session.flush()
 
+    async def checkpoint(self) -> None:
+        """Commit the session's open transaction (real or autobegun) and release
+        the pooled connection. Loaded objects remain usable (expire_on_commit=False).
+        Call after the last read and before any long-running non-DB work.
+
+        Deliberately not usable inside a `transaction()` block: it is called at
+        the top level, where the only thing open is the transaction a plain read
+        autobegan. Committing that is a no-op write-wise and hands the asyncpg
+        connection back to the pool for the duration of the slow phase.
+        """
+        await self.session.commit()
+
     async def commit(self) -> None:
         await self.session.commit()
 

@@ -15,6 +15,9 @@ def build(**overrides) -> Settings:  # type: ignore[no-untyped-def]
         "database_url": "postgresql+asyncpg://u:p@db:5432/mabinsoft",
         "dev_auth_enabled": False,
         "docs_enabled": False,
+        # The console surface is open by default while the platforms are being
+        # wired together; a production deployment has to say it has closed it.
+        "console_access_enforced": True,
         "api_keys": [
             ApiKeyConfig(key="generated-secret", subject="cron", scopes=[Scope.INGEST_RUN])
         ],
@@ -24,6 +27,19 @@ def build(**overrides) -> Settings:  # type: ignore[no-untyped-def]
 
 def test_a_correctly_configured_production_deployment_starts() -> None:
     build().validate_for_environment()
+
+
+def test_rejects_an_open_console_surface_in_production() -> None:
+    """The provisional access rule is provisional. Production must say so.
+
+    `require_console_access` reads this flag; while it is false the directory,
+    notes, messages, org chart and run history are readable and writable by any
+    caller. That is a deliberate local-development state and a catastrophic
+    production one, so it is the deployment's job to declare it closed.
+    """
+    with pytest.raises(ConfigurationError) as excinfo:
+        build(console_access_enforced=False).validate_for_environment()
+    assert any("CONSOLE_ACCESS_ENFORCED" in p for p in excinfo.value.details["problems"])
 
 
 def test_rejects_a_sync_database_url() -> None:

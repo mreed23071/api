@@ -126,3 +126,134 @@ def test_fail_closed_defaults_make_a_run_partial() -> None:
 
 def test_a_run_that_kept_nothing_it_meant_to_keep_failed() -> None:
     assert _status_of(summary(retained=5, persisted=0, filter_errors=5)) == "failed"
+
+
+# -- H4: a short embedding batch is caught at the activity layer -------------
+#
+# `embed_batch`'s contract is positional: vector i belongs to text i, and the
+# workflow zips them back onto messages by index. An embedder that returns fewer
+# vectors than texts silently shifts every subsequent message onto another
+# message's vector - well-formed rows carrying wrong data, which no downstream
+# constraint can detect.
+
+
+class ShortEmbeddingService(FakeEmbeddingService):
+    """Returns one fewer vector than asked for - a truncated provider response."""
+
+    async def embed(self, texts):  # type: ignore[no-untyped-def]
+        vectors = await super().embed(texts)
+        return vectors[:-1]
+
+
+async def test_a_short_embedding_batch_raises_rather_than_returning(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    """Acceptance check H4, activity layer."""
+    from temporalio.exceptions import ApplicationError
+
+    embeddings = ShortEmbeddingService()
+    embeddings.start()
+    built = Deps(settings=get_settings(), llm=StubLLMClient(), embeddings=embeddings)
+    monkeypatch.setattr("app.workflows.activities.get_deps", lambda: built)
+
+    with pytest.raises(ApplicationError) as caught:
+        await embed_batch(["one", "two", "three"])
+
+    assert caught.value.type == "ShortEmbeddingBatch"
+    assert "2 vectors for 3 texts" in str(caught.value)
+
+
+async def test_the_short_batch_error_is_retryable(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    """A truncated response from a loaded Ollama is transient, and
+    INFERENCE_RETRY exists for exactly that. The non-retryable backstop lives at
+    the workflow layer, where reaching it means the retries were already spent.
+    """
+    from temporalio.exceptions import ApplicationError
+
+    embeddings = ShortEmbeddingService()
+    embeddings.start()
+    built = Deps(settings=get_settings(), llm=StubLLMClient(), embeddings=embeddings)
+    monkeypatch.setattr("app.workflows.activities.get_deps", lambda: built)
+
+    with pytest.raises(ApplicationError) as caught:
+        await embed_batch(["one", "two"])
+
+    assert caught.value.non_retryable is False
+
+
+async def test_a_correctly_sized_batch_passes_through(deps) -> None:  # type: ignore[no-untyped-def]
+    """The guard must not fire on the healthy path."""
+    outcome = await embed_batch(["one", "two", "three"])
+    assert len(outcome.vectors) == 3
+
+
+# -- H7: a cancelled in-flight call is unwound, not abandoned ----------------
+
+
+async def test_cancelling_the_wrapper_unwinds_the_inner_call() -> None:
+    """`_with_heartbeat` used to call `work.cancel()` and return immediately.
+
+    Cancelling only *requests* cancellation - the coroutine has not unwound
+    until it is awaited. Abandoning it meant httpx never released its connection
+    back to the transport pool, and the loop printed "Task was destroyed but it
+    is pending!" on every worker shutdown.
+    """
+    import asyncio
+
+    from app.workflows.activities import _with_heartbeat
+
+    unwound = asyncio.Event()
+
+    async def slow_call() -> str:
+        try:
+            await asyncio.sleep(30)
+            return "never"
+        except asyncio.CancelledError:
+            # Stands in for httpx returning its connection to the pool.
+            unwound.set()
+            raise
+
+    task = asyncio.create_task(_with_heartbeat(slow_call()))
+    await asyncio.sleep(0.05)
+    task.cancel()
+
+    with pytest.raises(asyncio.CancelledError):
+        await task
+
+    assert unwound.is_set(), "the in-flight call was abandoned rather than unwound"
+
+
+async def test_an_error_raised_while_cancelling_does_not_escape() -> None:
+    """Teardown noise must not replace the cancellation being propagated.
+
+    The outer CancelledError is what tells Temporal the activity was cancelled;
+    an exception thrown by the inner call on its way out is logged, not raised.
+    """
+    import asyncio
+
+    from app.workflows.activities import _with_heartbeat
+
+    async def badly_behaved() -> str:
+        try:
+            await asyncio.sleep(30)
+            return "never"
+        except asyncio.CancelledError:
+            raise RuntimeError("cleanup exploded") from None
+
+    task = asyncio.create_task(_with_heartbeat(badly_behaved()))
+    await asyncio.sleep(0.05)
+    task.cancel()
+
+    with pytest.raises(asyncio.CancelledError):
+        await task
+
+
+async def test_the_wrapper_returns_a_completed_result_untouched() -> None:
+    """The happy path is unchanged; only the cancellation path moved."""
+    import asyncio
+
+    from app.workflows.activities import _with_heartbeat
+
+    async def quick() -> str:
+        await asyncio.sleep(0)
+        return "done"
+
+    assert await _with_heartbeat(quick()) == "done"

@@ -50,6 +50,11 @@ async def list_user_summaries(
 @router.get(
     "/users/{user_id}/summary",
     response_model=PersonSummaryResponse,
+    # Same two scopes as the list endpoint above, and for the same reason: this
+    # returns one person's real name, verbatim message excerpts and a generated
+    # behavioural summary. It asked for none of them while its sibling asked for
+    # both - the same data, one row at a time.
+    dependencies=[Depends(require_scopes(Scope.INSIGHTS_READ, Scope.MESSAGES_READ))],
     summary="Summarise one person's communication history",
     description=(
         "The single-person counterpart to the list endpoint. Both bounds are "

@@ -389,16 +389,44 @@ class FakePersonNoteRepository:
 
 
 class FakeIngestionRunRepository:
-    """In-memory stand-in for `IngestionRunRepository`."""
+    """In-memory stand-in for `IngestionRunRepository`.
+
+    Enforces the `run_id` uniqueness the real table carries, because that
+    constraint is the entire point of the upsert: a fake that happily appended a
+    second row for the same run would pass the tests that exist to prove it
+    cannot happen.
+    """
 
     def __init__(self, runs: list[IngestionRun]) -> None:
         self.runs = runs
+        self.decisions: dict[uuid.UUID, list[dict]] = {}
 
     async def add(self, run: IngestionRun) -> IngestionRun:
         if run.id is None:
             run.id = uuid.uuid4()
         self.runs.append(run)
         return run
+
+    async def upsert_by_run_id(self, values) -> uuid.UUID:  # type: ignore[no-untyped-def]
+        """Mirrors `INSERT ... ON CONFLICT (run_id) DO UPDATE`."""
+        run_id = values["run_id"]
+        existing = next((r for r in self.runs if r.run_id == run_id), None)
+        if existing is not None:
+            for key, value in values.items():
+                if key != "run_id":
+                    setattr(existing, key, value)
+            return existing.id
+        run = IngestionRun(id=uuid.uuid4(), **values)
+        self.runs.append(run)
+        return run.id
+
+    async def replace_decisions(self, run_pk: uuid.UUID, decisions) -> int:  # type: ignore[no-untyped-def]
+        """Mirrors the delete-then-insert the real repository performs."""
+        self.decisions[run_pk] = list(decisions)
+        return len(self.decisions[run_pk])
+
+    async def get_by_run_id(self, run_id: uuid.UUID) -> IngestionRun | None:
+        return next((r for r in self.runs if r.run_id == run_id), None)
 
     async def list_recent(
         self, *, limit: int = 20, platform: Platform | None = None
@@ -440,6 +468,10 @@ class FakeUnitOfWork:
         self.commits = 0
         self.rollbacks = 0
         self.transactions = 0
+        #: Counted separately from `commits` so a test can assert that a service
+        #: released its connection *before* the slow phase, not merely that it
+        #: committed at some point.
+        self.checkpoints = 0
 
     def _cascade_delete(self, user_id: uuid.UUID) -> None:
         """What the database's ON DELETE CASCADE would do."""
@@ -467,6 +499,13 @@ class FakeUnitOfWork:
         return None
 
     async def commit(self) -> None:
+        self.commits += 1
+
+    async def checkpoint(self) -> None:
+        """Mirrors `SessionUnitOfWork.checkpoint`: a commit that releases the
+        connection. Recorded distinctly so tests can assert *when* it happened.
+        """
+        self.checkpoints += 1
         self.commits += 1
 
     async def rollback(self) -> None:

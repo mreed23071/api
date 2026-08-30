@@ -38,11 +38,18 @@ FETCH_RETRY = RetryPolicy(
 #: Inference is slow and, against a hosted provider, paid for. Back off harder
 #: and give up sooner - a batch that keeps failing should surface as a
 #: fail-closed decision in the run report rather than retry indefinitely.
+#:
+#: Two attempts, not three, and a shorter ceiling between them. Combined with
+#: the six-minute `INFERENCE_TIMEOUT` below, the worst case for one wedged batch
+#: drops from roughly thirty minutes to about twelve and a half - and with the
+#: single-slot worker, a wedged batch blocks every other run behind it for that
+#: whole time. A third attempt against a model that has already failed twice
+#: buys very little for the twelve minutes it costs.
 INFERENCE_RETRY = RetryPolicy(
     initial_interval=timedelta(seconds=2),
     backoff_coefficient=2.0,
-    maximum_interval=timedelta(minutes=1),
-    maximum_attempts=3,
+    maximum_interval=timedelta(seconds=30),
+    maximum_attempts=2,
 )
 
 #: Writes are transactional and idempotent (`ON CONFLICT DO NOTHING` on
@@ -56,7 +63,20 @@ WRITE_RETRY = RetryPolicy(
 #: A local 3B model on CPU is slow. This has to exceed the slowest plausible
 #: batch, because a timeout here means the batch fails closed - messages get
 #: discarded rather than retried.
-INFERENCE_TIMEOUT = timedelta(minutes=10)
+#:
+#: Six minutes, down from ten. The real bound on a hung call is not this
+#: timeout: it is the httpx timeout inside the Ollama adapter, set from
+#: `OLLAMA_TIMEOUT_SECONDS` (300s by default, verified applied in both
+#: `shared/llm/ollama_client.py` and `shared/embeddings/ollama.py`). A call that
+#: is going to fail has already failed by ~310s, so everything past that is dead
+#: air during which the single-slot worker runs nothing else.
+#:
+#: Note what the heartbeat does and does not prove. `_with_heartbeat` beats
+#: every 5s from a *separate task*, so it proves the worker process is alive -
+#: not that the model is making progress. A model wedged mid-generation
+#: heartbeats perfectly happily. The client-side timeout is the only thing that
+#: bounds progress; this one bounds the activity around it.
+INFERENCE_TIMEOUT = timedelta(minutes=6)
 FETCH_TIMEOUT = timedelta(minutes=2)
 WRITE_TIMEOUT = timedelta(minutes=2)
 

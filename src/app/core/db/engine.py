@@ -26,6 +26,10 @@ def get_engine() -> AsyncEngine:
         pool_size=settings.db_pool_size,
         max_overflow=settings.db_max_overflow,
         pool_recycle=settings.db_pool_recycle_seconds,
+        # Explicit, and shorter than SQLAlchemy's 30s default. Pool exhaustion
+        # otherwise surfaces as an opaque half-minute hang - including on
+        # `/health` - with nothing to distinguish it from a slow database.
+        pool_timeout=settings.db_pool_timeout_seconds,
         pool_pre_ping=True,
     )
     return engine
@@ -60,6 +64,11 @@ async def get_session() -> AsyncIterator[AsyncSession]:
     the session ended up in - real or SAVEPOINT-nested - the same way a
     request that never explicitly opened one still needs its rollback
     guaranteed below.
+
+    Long-running work (LLM calls, external I/O) must not run while this session
+    holds a transaction. Services performing fan-out must call
+    `UnitOfWork.checkpoint()` (a commit that releases the pooled connection)
+    after their last read and before the slow phase.
     """
     async with get_sessionmaker()() as session:
         try:
@@ -82,3 +91,10 @@ def reset_engine_cache() -> None:
 
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
+
+#: For code paths that must own their own short-lived sessions rather than
+#: borrow the request-scoped one - anything that interleaves database work with
+#: slow external calls. `get_sessionmaker` is `lru_cache`-decorated and sync,
+#: which `Depends` accepts directly; wrapping it in an async shim would only add
+#: a thread hop.
+SessionmakerDep = Annotated[async_sessionmaker[AsyncSession], Depends(get_sessionmaker)]

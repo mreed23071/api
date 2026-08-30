@@ -174,10 +174,196 @@ async def test_a_progress_query_failure_does_not_fail_the_poll(connect, monkeypa
 async def test_an_unknown_run_is_a_not_found(connect) -> None:
     from temporalio.service import RPCError, RPCStatusCode
 
-    connect(
-        FakeHandle(
-            None, describe_raises=RPCError("not found", RPCStatusCode.NOT_FOUND, b"")
-        )
-    )
+    connect(FakeHandle(None, describe_raises=RPCError("not found", RPCStatusCode.NOT_FOUND, b"")))
     with pytest.raises(NotFoundError):
         await describe_ingestion_run("nope")
+
+
+# -- W2 / H2: run status outlives Temporal ----------------------------------
+#
+# A run's status used to exist only inside Temporal. Past the namespace's
+# retention window - 24h by default on `temporalio/auto-setup:1.25.2` - a run
+# that had completed perfectly well became a 404, with its full report sitting
+# in `ingestion_runs` the whole time. The same 404 answered for a run the API
+# had queued but never managed to start.
+
+
+class FakeRunRow:
+    """A row as `IngestionRunRepository.get_by_run_id` would return it."""
+
+    def __init__(self, status: str, **counters) -> None:  # type: ignore[no-untyped-def]
+        self.status = status
+        self.platform = Platform.SLACK
+        self.fetched = counters.get("fetched", 0)
+        self.evaluated = counters.get("evaluated", 0)
+        self.embedded = counters.get("embedded", 0)
+        self.persisted = counters.get("persisted", 0)
+        self.decisions = counters.get("decisions", [])
+
+
+@pytest.fixture
+def stored_run(monkeypatch):  # type: ignore[no-untyped-def]
+    """Install a database answer for `_run_view_from_database` to find."""
+
+    def install(row):  # type: ignore[no-untyped-def]
+        async def fake_lookup(run_id: str):  # type: ignore[no-untyped-def]
+            import uuid as _uuid
+
+            try:
+                _uuid.UUID(run_id)
+            except ValueError:
+                return None
+            if row is None:
+                return None
+            from app.workflows.dto import RunProgress as _RunProgress
+            from app.workflows.gateway import DB_STATUS
+            from app.workflows.gateway import RunView as _RunView
+
+            status = DB_STATUS.get(row.status, "failed")
+            return _RunView(
+                run_id=run_id,
+                status=status,
+                progress=_RunProgress(
+                    platform=row.platform,
+                    stage="done" if status == "completed" else status,
+                    fetched=row.fetched,
+                    evaluated=row.evaluated,
+                    filtered=len(row.decisions),
+                    embedded=row.embedded,
+                    persisted=row.persisted,
+                ),
+            )
+
+        monkeypatch.setattr("app.workflows.gateway._run_view_from_database", fake_lookup)
+
+    return install
+
+
+KNOWN_RUN = "3f6b1c22-0f1e-4a3d-9c77-2f9a5e4b1d80"
+
+
+async def test_a_run_temporal_has_forgotten_is_served_from_the_database(
+    connect, stored_run
+) -> None:
+    """Acceptance check W2 bullet 1."""
+    from temporalio.service import RPCError, RPCStatusCode
+
+    connect(FakeHandle(None, describe_raises=RPCError("not found", RPCStatusCode.NOT_FOUND, b"")))
+    stored_run(FakeRunRow("success", fetched=9, evaluated=9, persisted=4, embedded=4))
+
+    view = await describe_ingestion_run(KNOWN_RUN)
+
+    assert view.status == "completed"
+    assert view.progress.persisted == 4
+    assert view.progress.stage == "done"
+
+
+async def test_a_queued_run_temporal_never_saw_is_reported_as_queued(connect, stored_run) -> None:
+    """Acceptance check H2: the API wrote the row, `start_workflow` then failed.
+
+    Reporting "queued" is the honest answer and, crucially, not a 404 - the run
+    was genuinely requested.
+    """
+    from temporalio.service import RPCError, RPCStatusCode
+
+    connect(FakeHandle(None, describe_raises=RPCError("not found", RPCStatusCode.NOT_FOUND, b"")))
+    stored_run(FakeRunRow("queued"))
+
+    view = await describe_ingestion_run(KNOWN_RUN)
+
+    assert view.status == "queued"
+
+
+async def test_a_failed_run_survives_retention_as_failed(connect, stored_run) -> None:
+    """The row the workflow's failure path wrote is what answers here."""
+    from temporalio.service import RPCError, RPCStatusCode
+
+    connect(FakeHandle(None, describe_raises=RPCError("not found", RPCStatusCode.NOT_FOUND, b"")))
+    stored_run(FakeRunRow("failed"))
+
+    view = await describe_ingestion_run(KNOWN_RUN)
+
+    assert view.status == "failed"
+
+
+async def test_a_run_neither_temporal_nor_the_database_knows_is_still_a_404(
+    connect, stored_run
+) -> None:
+    """The fallback must not turn every unknown id into a fabricated run."""
+    from temporalio.service import RPCError, RPCStatusCode
+
+    connect(FakeHandle(None, describe_raises=RPCError("not found", RPCStatusCode.NOT_FOUND, b"")))
+    stored_run(None)
+
+    with pytest.raises(NotFoundError):
+        await describe_ingestion_run(KNOWN_RUN)
+
+
+async def test_temporal_still_wins_while_it_knows_the_run(connect, stored_run) -> None:
+    """The database is a fallback, not a replacement: a live run's progress
+    comes from the workflow query, which the database cannot answer."""
+    handle = connect(
+        FakeHandle(
+            WorkflowExecutionStatus.RUNNING,
+            progress=RunProgress(stage="embedding", embedded=7),
+        )
+    )
+    stored_run(FakeRunRow("queued"))
+
+    view = await describe_ingestion_run(KNOWN_RUN)
+
+    assert handle.queried
+    assert view.status == "running"
+    assert view.progress.stage == "embedding"
+
+
+# -- H5: the active-runs listing is cached ----------------------------------
+
+
+async def test_the_active_runs_listing_is_cached_across_callers(monkeypatch) -> None:
+    """N console tabs must cost one Temporal round trip per interval, not N.
+
+    Each uncached call is a `list_workflows` plus a `progress` query per running
+    run, against a worker that runs one activity at a time.
+    """
+    import asyncio
+
+    from app.workflows import gateway
+
+    gateway.reset_active_runs_cache()
+    calls = {"n": 0}
+
+    async def counted_fetch():  # type: ignore[no-untyped-def]
+        calls["n"] += 1
+        await asyncio.sleep(0.01)
+        return []
+
+    monkeypatch.setattr(gateway, "_fetch_active_runs", counted_fetch)
+
+    await asyncio.gather(*(gateway.list_active_runs() for _ in range(20)))
+
+    assert calls["n"] == 1, f"{calls['n']} fan-outs for 20 concurrent callers"
+    gateway.reset_active_runs_cache()
+
+
+async def test_the_active_runs_cache_expires(monkeypatch) -> None:
+    """It is a 2-second cache, not a memo: the indicator has to stay live."""
+    from app.workflows import gateway
+
+    gateway.reset_active_runs_cache()
+    calls = {"n": 0}
+
+    async def counted_fetch():  # type: ignore[no-untyped-def]
+        calls["n"] += 1
+        return []
+
+    monkeypatch.setattr(gateway, "_fetch_active_runs", counted_fetch)
+    monkeypatch.setattr(
+        gateway, "get_settings", lambda: type("S", (), {"temporal_active_runs_cache_seconds": 0})()
+    )
+
+    await gateway.list_active_runs()
+    await gateway.list_active_runs()
+
+    assert calls["n"] == 2
+    gateway.reset_active_runs_cache()

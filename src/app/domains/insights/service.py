@@ -74,6 +74,21 @@ class UserInsightsService:
             [user.id for user in page.items], per_user_limit=messages_per_user
         )
 
+        # Release the pooled connection before the fan-out. The two reads above
+        # autobegan a SELECT-only transaction; committing it is a no-op
+        # write-wise and hands the asyncpg connection back, so the multi-minute
+        # `gather` below holds zero connections. Without this, one open page
+        # view pins a connection for the whole of its slowest summary, and a
+        # handful of concurrent views exhaust the pool - taking `/health` with
+        # them.
+        #
+        # Everything `build()` reads is loaded above; nothing after checkpoint()
+        # may lazy-load, or it will re-acquire a connection mid-fan-out (and
+        # `lazy='raise'` relations will throw). `list_users(with_relations=True)`
+        # eager-loads `user.relations`, and `build()` touches only `user`,
+        # `user.relations` and the already-fetched `messages_by_user` dict.
+        await self.uow.checkpoint()
+
         semaphore = asyncio.Semaphore(max(1, self.settings.llm_max_concurrency))
 
         async def build(user: User) -> UserCommunicationSummary:
@@ -140,6 +155,13 @@ class UserInsightsService:
         A failure sets `summary_error` and returns normally. One person the
         agent could not describe should not fail the request.
         """
+        # Same scope check as `list_with_summaries`, and for the same reason:
+        # this returns the same class of personal data - real names, verbatim
+        # message text, a generated behavioural narrative - one person at a time
+        # instead of a page at a time. The route-level dependency is the primary
+        # gate; this is the defence that survives someone adding a second route
+        # onto the same service method.
+        self.principal.require(Scope.INSIGHTS_READ, Scope.MESSAGES_READ)
         require_console_access(self.principal)
         window = window or SummaryWindow()
 
@@ -161,6 +183,14 @@ class UserInsightsService:
             PageParams(limit=MAX_LIMIT),
         )
         messages = list(page.items)
+
+        # Last read done; release the pooled connection before the model call
+        # below. Holding one for up to `OLLAMA_TIMEOUT_SECONDS` per open person
+        # view is the same defect `list_with_summaries` has, at N=1 - and the
+        # console opens one of these per person somebody clicks on. Nothing
+        # after this point lazy-loads: `user` and `messages` are both already
+        # materialised.
+        await self.uow.checkpoint()
 
         result = PersonSummary(
             user_id=user_id,

@@ -37,10 +37,32 @@ def test_the_workflow_id_carries_the_run_id() -> None:
     assert "abc" in run_workflow_id("abc")
 
 
-def test_inference_backs_off_harder_than_fetching() -> None:
-    """Fetching is a cheap idempotent read; inference is slow and paid for."""
+def test_inference_gives_up_sooner_than_fetching() -> None:
+    """Fetching is a cheap idempotent read; inference is slow and paid for.
+
+    "Backs off harder" used to mean a longer ceiling between attempts as well as
+    fewer of them. The ceiling is no longer the lever: with one activity slot on
+    the worker, a wedged batch blocks every run behind it for the whole of its
+    timeout window, so what matters is the total - attempts times timeout - and
+    that is bounded by taking attempts down, not by waiting longer between them.
+    Both ceilings now sit at 30s; the attempt counts are what differ.
+    """
     assert INFERENCE_RETRY.maximum_attempts < FETCH_RETRY.maximum_attempts
-    assert INFERENCE_RETRY.maximum_interval > FETCH_RETRY.maximum_interval  # type: ignore[operator]
+    assert INFERENCE_RETRY.backoff_coefficient >= FETCH_RETRY.backoff_coefficient  # type: ignore[operator]
+    assert INFERENCE_RETRY.initial_interval > FETCH_RETRY.initial_interval  # type: ignore[operator]
+
+
+def test_a_wedged_inference_batch_cannot_block_the_worker_for_half_an_hour() -> None:
+    """The bound that matters on a single-slot worker.
+
+    `TEMPORAL_MAX_CONCURRENT_ACTIVITIES` is 1 by default, matching Ollama's own
+    single-threaded configuration - so one batch that hangs until its timeout,
+    repeatedly, stalls every other run for attempts x timeout. At three attempts
+    of ten minutes that was about half an hour per batch.
+    """
+    attempts = INFERENCE_RETRY.maximum_attempts or 1
+    worst_case = INFERENCE_TIMEOUT.total_seconds() * attempts
+    assert worst_case <= 13 * 60
 
 
 def test_writes_retry_generously_because_they_are_idempotent() -> None:

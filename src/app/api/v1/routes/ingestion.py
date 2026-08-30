@@ -26,6 +26,7 @@ from app.core.security.principal import Scope
 from app.domains.identity.models import Platform
 from app.workflows.dto import IngestionInput
 from app.workflows.gateway import describe_ingestion_run, list_active_runs, start_ingestion_run
+from app.workflows.ingestion import EMBED_BATCH, FILTER_BATCH, PERSIST_BATCH
 
 router = APIRouter(prefix="/ingestion", tags=["ingestion"], responses=AUTH_RESPONSES)
 
@@ -85,18 +86,40 @@ async def run_ingestion(
             dry_run=result.dry_run,
         )
 
-    run_id = str(uuid.uuid4())
-    handle = await start_ingestion_run(
-        IngestionInput(
-            run_id=run_id,
-            platform=platform,
-            limit=limit,
-            system_prompt_override=request.system_prompt_override,
-            dry_run=request.dry_run,
+    run_id = uuid.uuid4()
+
+    # Insert the run before starting the workflow, and commit it immediately.
+    # A 202 used to be the only evidence a run existed until it finished: the
+    # identifier lived in Temporal alone, so a run that was queued, running, or
+    # lost to an unreachable orchestrator looked exactly like one that had never
+    # been requested. The row is what makes a queued run addressable.
+    await service.create_queued_run(run_id, platform, dry_run=request.dry_run)
+
+    try:
+        handle = await start_ingestion_run(
+            IngestionInput(
+                run_id=str(run_id),
+                platform=platform,
+                limit=limit,
+                system_prompt_override=request.system_prompt_override,
+                dry_run=request.dry_run,
+                # Batch sizing is decided here, once, and frozen into the
+                # execution's recorded input - see `IngestionInput`. The module
+                # constants remain the defaults; this is the single place a
+                # deployment could override them per run.
+                filter_batch=FILTER_BATCH,
+                embed_batch=EMBED_BATCH,
+                persist_batch=PERSIST_BATCH,
+            )
         )
-    )
+    except Exception:
+        # No 202 without a durable trace, and no row left permanently "queued"
+        # because Temporal happened to be down.
+        await service.mark_run_failed(run_id, platform)
+        raise
+
     return QueuedRunResponse(
-        run_id=run_id,
+        run_id=str(run_id),
         platform=platform,
         workflow_id=handle.id,
         dry_run=request.dry_run,
@@ -143,6 +166,10 @@ async def get_run_status(
 @router.get(
     "/runs/active",
     response_model=ActiveRunsResponse,
+    # Reports which pipelines are running and how far along they are - the same
+    # operational picture the sibling ingestion routes require a scope to see.
+    # It carried none while every route around it did.
+    dependencies=[Depends(require_scopes(Scope.INGEST_READ))],
     summary="Is ingestion running right now, anywhere",
     description=(
         "For a console-wide indicator, not a dashboard - just whether at least "
@@ -200,6 +227,10 @@ async def get_ingestion_config(
 @router.get(
     "/runs",
     response_model=list[IngestionRunSummary],
+    # The filtering audit trail: every retention verdict, with the message ids
+    # they were made about. Same scope as the rest of the ingestion surface,
+    # which this route was the one exception to.
+    dependencies=[Depends(require_scopes(Scope.INGEST_READ))],
     summary="List past ingestion runs",
     description=(
         "Newest first, each with the filtering verdicts it recorded. That trail "

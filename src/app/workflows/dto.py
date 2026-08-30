@@ -35,6 +35,20 @@ class IngestionInput(BaseModel):
     #: caller's credential never has to be serialized into history.
     requested_by: str = "unknown"
 
+    #: Batch sizes, frozen into this execution's recorded input at submission
+    #: time rather than read from module constants during replay. Tuning the
+    #: constants used to desynchronise every in-flight workflow: a replay would
+    #: chunk the same candidate list differently from the original run and issue
+    #: a different sequence of activity commands, which is a non-determinism
+    #: error. Carried here, a run replays against the sizes it actually used.
+    #:
+    #: The defaults MUST equal today's module constants in `workflows.ingestion`
+    #: - a history recorded before these fields existed deserializes to exactly
+    #: today's behaviour.
+    filter_batch: int = 5
+    embed_batch: int = 16
+    persist_batch: int = 50
+
 
 class FetchOutcome(BaseModel):
     """Everything the connector returned that is not already stored.
@@ -77,7 +91,15 @@ class PersistInput(BaseModel):
 
 
 class PersistOutcome(BaseModel):
+    #: Rows from this batch that are **durably present** after the call -
+    #: inserted now, or by a previous attempt of this same batch. See
+    #: `activities.persist` for why a conflict inside a run can only mean the
+    #: latter.
     persisted: int = 0
+    #: Rows this particular attempt inserted. Preserves the old `persisted`
+    #: observable for logging and metrics. Additive with a default, so histories
+    #: recorded before the field existed deserialize unchanged.
+    newly_inserted: int = 0
     users_provisioned: int = 0
     relations_provisioned: int = 0
 
@@ -109,6 +131,11 @@ class RunSummary(BaseModel):
     filter_prompt_version: str = ""
     embedding_model: str = ""
     decisions: list[FilterDecision] = Field(default_factory=list)
+    #: Forces the recorded run's terminal status instead of deriving it from the
+    #: counters. Set to `"failed"` by the workflow's failure path, which has
+    #: information `_status_of` cannot see: the run raised. Additive with a
+    #: default, so histories that omit it deserialize unchanged.
+    status_override: str | None = None
 
 
 class RunProgress(BaseModel):

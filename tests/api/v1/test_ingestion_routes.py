@@ -47,17 +47,13 @@ async def test_a_run_with_no_body_at_all_is_valid(client) -> None:
 
 
 async def test_dry_run_is_carried_through_to_the_queued_run(client) -> None:
-    response = await client.post(
-        runs_url("slack"), json={"dry_run": True}, headers=INGEST_HEADERS
-    )
+    response = await client.post(runs_url("slack"), json={"dry_run": True}, headers=INGEST_HEADERS)
     assert response.status_code == 202
     assert response.json()["dry_run"] is True
 
 
 async def test_limit_is_validated_at_the_edge(client) -> None:
-    response = await client.post(
-        runs_url("slack"), json={"limit": 0}, headers=INGEST_HEADERS
-    )
+    response = await client.post(runs_url("slack"), json={"limit": 0}, headers=INGEST_HEADERS)
     assert response.status_code == 422
 
 
@@ -124,7 +120,7 @@ async def test_a_past_runs_decisions_round_trip_through_history(client, seeded_u
     ]
     seeded_uow.runs.runs.append(run)
 
-    response = await client.get(RUNS)
+    response = await client.get(RUNS, headers=INGEST_HEADERS)
 
     assert response.status_code == 200
     decision = response.json()[0]["decisions"][0]
@@ -135,7 +131,7 @@ async def test_run_history_can_be_scoped_to_one_platform(client) -> None:
     await client.post(runs_url("slack"), json={}, headers=INGEST_HEADERS)
     await client.post(runs_url("github"), json={}, headers=INGEST_HEADERS)
 
-    response = await client.get(RUNS, params={"platform": "github"})
+    response = await client.get(RUNS, params={"platform": "github"}, headers=INGEST_HEADERS)
 
     assert response.status_code == 200
     body = response.json()

@@ -13,23 +13,26 @@ the body becomes a `can(...)` check and the call sites do not move.
 
 from __future__ import annotations
 
+from app.core.config import get_settings
 from app.core.security.principal import Principal, Scope
-
-#: Flip to True to require the admin scope on every console route, which is the
-#: cheap stopgap if this surface is ever exposed before the RBAC work lands.
-#: The real replacement is a permission check per operation - see the
-#: authorization proposal - and this flag exists so that "close it now" is
-#: always one line away.
-ENFORCED = False
 
 
 def require_console_access(principal: Principal) -> None:
     """Assert the caller may use the console surface.
 
-    A no-op today. Kept as a call rather than an absence so that the surface has
-    a single, greppable enforcement point from the first commit: an
+    A no-op while `CONSOLE_ACCESS_ENFORCED` is false, which is the default for
+    local development. Kept as a call rather than an absence so that the surface
+    has a single, greppable enforcement point from the first commit: an
     authorization check that has to be *added* everywhere later is the one that
     gets missed somewhere.
+
+    Reading the flag from settings rather than a module constant is what makes
+    "close it now" an environment variable instead of a deploy. It used to be a
+    hardcoded `False`, which meant the one-line escape hatch the docstring
+    promised was in fact a code change, a review and a release - and
+    `validate_for_environment` had no way to insist on it in production. It does
+    now. The real replacement remains a permission check per operation; when
+    that lands, the body changes and the call sites do not move.
     """
-    if ENFORCED:
+    if get_settings().console_access_enforced:
         principal.require(Scope.ADMIN)

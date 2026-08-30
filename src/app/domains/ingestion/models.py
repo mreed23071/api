@@ -16,7 +16,17 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+    Uuid,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db.base import Base
@@ -35,6 +45,21 @@ class IngestionRun(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "ingestion_runs"
     __table_args__ = (Index("ix_ingestion_runs_started_at", "started_at"),)
 
+    #: The identifier minted by the API when the run was queued, and the id the
+    #: Temporal workflow id is derived from. Unique: this is what makes every
+    #: run-recording write an idempotent upsert. Nullable only for rows recorded
+    #: before this column existed.
+    #:
+    #: Not to be confused with `IngestionRunDecision.run_id`, which is the
+    #: foreign key to this table's surrogate `id`. Two different things sharing
+    #: a name; renaming either would ripple through the repositories and
+    #: serializers, so the distinction is documented rather than refactored.
+    run_id: Mapped[uuid.UUID | None] = mapped_column(Uuid(as_uuid=True), unique=True)
+
+    #: Set at queue time by the API, then overwritten with the workflow's own
+    #: `workflow.now()` start when the run record is finalized - so a run's
+    #: recorded start is the workflow's, not the request's, once it actually
+    #: begins.
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     duration_ms: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
@@ -60,9 +85,11 @@ class IngestionRun(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     filter_provider: Mapped[str | None] = mapped_column(String(64))
     embedding_model: Mapped[str | None] = mapped_column(String(255))
 
-    #: "success" | "partial" | "failed". A plain string for the same reason
-    #: `Message.filter_category` is one: these vocabularies grow, and widening a
-    #: native enum costs a migration that a string does not.
+    #: "queued" | "running" | "success" | "partial" | "failed". A plain string
+    #: for the same reason `Message.filter_category` is one: these vocabularies
+    #: grow, and widening a native enum costs a migration that a string does
+    #: not - as this very vocabulary just demonstrated. "queued" is written by
+    #: the API at submission; "failed" by a workflow that raised.
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="success")
 
     decisions: Mapped[list[IngestionRunDecision]] = relationship(
@@ -80,8 +107,19 @@ class IngestionRunDecision(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     """Why one message was kept or discarded by one run."""
 
     __tablename__ = "ingestion_run_decisions"
-    __table_args__ = (Index("ix_ingestion_run_decisions_run_id", "run_id"),)
+    __table_args__ = (
+        Index("ix_ingestion_run_decisions_run_id", "run_id"),
+        # One verdict per message per run. `record_run` replaces a run's
+        # decisions by deleting and re-inserting inside one transaction, so this
+        # is not what makes the retry safe - it is the backstop that turns any
+        # future non-idempotent writer into a loud failure instead of silent
+        # duplication.
+        UniqueConstraint("run_id", "external_message_id", name="uq_run_decision_message"),
+    )
 
+    #: Foreign key to `ingestion_runs.id` - the surrogate primary key, *not*
+    #: `IngestionRun.run_id` (the workflow identifier, which happens to share
+    #: the name). See the note on that column.
     run_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("ingestion_runs.id", ondelete="CASCADE"),
         nullable=False,

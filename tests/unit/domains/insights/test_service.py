@@ -102,3 +102,84 @@ async def test_reading_summaries_requires_both_scopes() -> None:
 async def test_anonymous_callers_cannot_read_summaries() -> None:
     with pytest.raises(AuthenticationError):
         await build(seeded_uow(), principal=Principal.anonymous()).list_with_summaries(PageParams())
+
+
+# -- W1 / H1(a): the page holds no pooled connection while the model runs -----
+#
+# This is the most sensitive read in the system *and* the slowest: it summarises
+# a whole page of people concurrently, each summary a network round trip to a
+# model that may take minutes. It used to do all of that with the request-scoped
+# session's transaction still open, because the two loading queries autobegan
+# one and nothing closed it until the request ended.
+#
+# A pool of 5+10 and a handful of concurrent page views is all it takes for that
+# to exhaust the pool - at which point every other request in the process,
+# `/health` included, blocks waiting for a connection held by an LLM call. The
+# fix is one `checkpoint()` between the last read and the fan-out.
+
+
+class CheckpointProbeLLM(StubLLMClient):
+    """Records what the unit of work looked like at the moment it was called."""
+
+    def __init__(self, uow) -> None:  # type: ignore[no-untyped-def]
+        super().__init__()
+        self.uow = uow
+        self.checkpoints_at_call: list[int] = []
+
+    async def complete(self, request):  # type: ignore[no-untyped-def]
+        self.checkpoints_at_call.append(self.uow.checkpoints)
+        return await super().complete(request)
+
+
+async def test_the_connection_is_released_before_any_model_call() -> None:
+    """Acceptance check W1, at the unit layer.
+
+    Asserts ordering, not just occurrence: a checkpoint that happened *after*
+    the fan-out would satisfy a plain count and fix nothing.
+    """
+    uow = seeded_uow(user_count=3)
+    llm = CheckpointProbeLLM(uow)
+
+    await build(uow, llm=llm).list_with_summaries(PageParams())
+
+    assert llm.checkpoints_at_call, "the stub model was never called"
+    assert all(seen >= 1 for seen in llm.checkpoints_at_call), (
+        "a summary ran while the request still held its read transaction open"
+    )
+
+
+async def test_exactly_one_checkpoint_per_page() -> None:
+    """One release, between the loads and the fan-out - not one per user.
+
+    A checkpoint inside `build()` would be a commit per person, which is both
+    pointless and a way to reacquire the connection the checkpoint just gave up.
+    """
+    uow = seeded_uow(user_count=4)
+
+    await build(uow).list_with_summaries(PageParams())
+
+    assert uow.checkpoints == 1
+
+
+async def test_a_page_of_people_with_no_messages_still_releases_first() -> None:
+    """The no-messages path returns without calling the model, but the release
+    happens before the fan-out regardless of what the fan-out then does."""
+    uow = seeded_uow(user_count=2, messages_each=0)
+
+    await build(uow).list_with_summaries(PageParams())
+
+    assert uow.checkpoints == 1
+
+
+async def test_the_scope_check_precedes_the_checkpoint() -> None:
+    """An unauthorised caller must not cause a commit.
+
+    `require` is the method's first statement, so a rejected request does no
+    database work at all - not even the no-op commit.
+    """
+    uow = seeded_uow()
+
+    with pytest.raises(AuthenticationError):
+        await build(uow, principal=Principal.anonymous()).list_with_summaries(PageParams())
+
+    assert uow.checkpoints == 0

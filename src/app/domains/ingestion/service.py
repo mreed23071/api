@@ -252,6 +252,70 @@ class IngestionService:
             )
         return rows
 
+    # -- queued-run bookkeeping ---------------------------------------------
+
+    async def create_queued_run(
+        self, run_id: uuid.UUID, platform: Platform, *, dry_run: bool
+    ) -> None:
+        """Record a run as `"queued"` before handing it to the orchestrator.
+
+        Committed immediately, not deferred to the request's terminal commit:
+        the row has to be durable *before* `start_workflow` is called. Otherwise
+        a workflow can begin - and its `record_run` upsert land - against a
+        parent row that does not exist yet, and the two writes race for which
+        one creates it.
+
+        This is also what unifies the identifier space. The console used to
+        receive a `run_id` that existed only inside Temporal; `ingestion_runs`
+        knew nothing about it until the run finished, so a run that was queued,
+        running, or lost was indistinguishable from one that never happened.
+        """
+        self.principal.require(Scope.INGEST_RUN)
+        async with self.uow.transaction():
+            await self.uow.runs.upsert_by_run_id(
+                {
+                    "run_id": run_id,
+                    "platform": platform,
+                    "dry_run": dry_run,
+                    "started_at": datetime.now(UTC),
+                    "status": "queued",
+                }
+            )
+        # `transaction()` opens a SAVEPOINT rather than a real transaction when
+        # the session has already autobegun one - which it has, if anything
+        # earlier in the request read from the database. Releasing a SAVEPOINT
+        # commits nothing; the row would only become durable at the request's
+        # terminal commit, long after `start_workflow` has been called. This
+        # closes out the outer transaction explicitly, whichever shape it took.
+        await self.uow.checkpoint()
+
+    async def mark_run_failed(self, run_id: uuid.UUID, platform: Platform) -> None:
+        """Flip a queued row to `"failed"`. Best effort, by design.
+
+        Called when handing the run to Temporal fails. Without it an unreachable
+        orchestrator leaves a row stuck at `"queued"` forever - a phantom run the
+        console reports as perpetually about to start.
+
+        Carries enough columns to satisfy the insert path too: normally the
+        queued row exists and this takes the conflict path, but a failure early
+        enough that it does not should still leave a trace rather than raise.
+        """
+        try:
+            async with self.uow.transaction():
+                await self.uow.runs.upsert_by_run_id(
+                    {
+                        "run_id": run_id,
+                        "platform": platform,
+                        "started_at": datetime.now(UTC),
+                        "status": "failed",
+                    }
+                )
+            await self.uow.checkpoint()
+        except Exception:
+            logger.exception(
+                "could not mark the queued run as failed", extra={"run_id": str(run_id)}
+            )
+
     # -- history and health -------------------------------------------------
 
     async def record(self, result: IngestionRunResult) -> None:
@@ -267,6 +331,10 @@ class IngestionService:
         happened; losing the receipt is worth a loud log line and nothing more.
         """
         entity = IngestionRun(
+            # The inline pipeline mints its own run_id; recording it here puts
+            # inline and Temporal runs in one identifier space, so the console
+            # and the status endpoint can address either the same way.
+            run_id=uuid.UUID(result.run_id),
             started_at=result.started_at,
             finished_at=result.finished_at,
             duration_ms=result.duration_ms,

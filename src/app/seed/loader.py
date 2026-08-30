@@ -339,16 +339,27 @@ async def seed_database(
             embedding_model=row.get("embedding_model"),
             status=row.get("status", "success"),
         )
-        run.decisions = [
-            IngestionRunDecision(
-                external_message_id=decision["id"],
-                keep=decision["keep"],
-                category=decision.get("category"),
-                reason=decision.get("reason"),
-                is_fallback=decision.get("is_fallback", False),
+        # One verdict per message per run - `uq_run_decision_message` enforces
+        # it, and two runs in the shipped dataset carry the same message twice.
+        # Keeping the first occurrence matches how migration 0007 deduplicates
+        # the same shape in an existing database (earliest wins), so a seeded
+        # database and a migrated one end up describing a run identically.
+        seen_in_run: set[str] = set()
+        run.decisions = []
+        for decision in row.get("decisions", []):
+            external_message_id = decision["id"]
+            if external_message_id in seen_in_run:
+                continue
+            seen_in_run.add(external_message_id)
+            run.decisions.append(
+                IngestionRunDecision(
+                    external_message_id=external_message_id,
+                    keep=decision["keep"],
+                    category=decision.get("category"),
+                    reason=decision.get("reason"),
+                    is_fallback=decision.get("is_fallback", False),
+                )
             )
-            for decision in row.get("decisions", [])
-        ]
         report.decisions += len(run.decisions)
         session.add(run)
         report.runs += 1

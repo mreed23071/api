@@ -79,11 +79,23 @@ class Settings(BaseSettings):
     db_pool_size: int = 5
     db_max_overflow: int = 10
     db_pool_recycle_seconds: int = 1800
+    #: How long a request waits for a pooled connection before giving up.
+    #: SQLAlchemy's default is 30s, during which an exhausted pool looks like an
+    #: opaque hang - `/health` stalls with nothing in the logs to explain it. A
+    #: bounded, configurable timeout makes exhaustion fail fast and observably
+    #: instead of stalling.
+    db_pool_timeout_seconds: int = 10
 
     # -- authentication ----------------------------------------------------
     #: Legacy single-secret scheduler credential. Used only when API_KEYS is empty.
     cron_token: SecretStr = SecretStr(DEFAULT_CRON_TOKEN)
     api_keys: list[ApiKeyConfig] = Field(default_factory=list)
+    #: Whether the console surface demands the admin scope. False keeps the
+    #: routes open while the two platforms are being wired together - a real
+    #: decision with a real risk, which is why it is a setting rather than a
+    #: constant nobody can find. **Production must set this true**; the guard in
+    #: `validate_for_environment` refuses to boot otherwise.
+    console_access_enforced: bool = False
     #: Header-based user impersonation for local development and API tests.
     dev_auth_enabled: bool = True
     dev_auth_scopes: list[Scope] = Field(
@@ -158,6 +170,19 @@ class Settings(BaseSettings):
     #: can actually run in parallel just moves the queue somewhere it cannot
     #: be observed or timed out.
     temporal_max_concurrent_activities: int = 1
+    #: Upper bound on a single ingestion run, applied as both the workflow's
+    #: execution and run timeout. Without one, a run queued while no worker
+    #: exists stays in flight forever: the console's active list never clears
+    #: and the status endpoint reports "starting" indefinitely. Two hours is
+    #: comfortably past the slowest plausible bulk run against a local 3B model
+    #: and far short of "forever".
+    temporal_run_timeout_seconds: int = 7200
+    #: How long `list_active_runs` may serve a cached answer. The console polls
+    #: it from every open tab, and each call fans out into one `list_workflows`
+    #: plus a `progress` query per running run - so N tabs cost N times that
+    #: against a worker configured to run one activity at a time. Two seconds
+    #: keeps the indicator live while collapsing the fan-out to one round trip.
+    temporal_active_runs_cache_seconds: float = 2.0
 
     # -- agent prompts -----------------------------------------------------
     ingestion_filter_system_prompt: str = DEFAULT_FILTER_PROMPT
@@ -251,6 +276,12 @@ class Settings(BaseSettings):
                 problems.append("DOCS_ENABLED is true in production; disable the interactive docs.")
             if self.llm_provider == "anthropic" and not self.anthropic_api_key:
                 problems.append("LLM_PROVIDER=anthropic requires ANTHROPIC_API_KEY in production.")
+            if not self.console_access_enforced:
+                problems.append(
+                    "CONSOLE_ACCESS_ENFORCED is false in production; the console surface "
+                    "(people, notes, messages, org chart, run history) would be readable "
+                    "and writable by any caller. See app/core/security/provisional.py."
+                )
 
         if problems:
             raise ConfigurationError(
